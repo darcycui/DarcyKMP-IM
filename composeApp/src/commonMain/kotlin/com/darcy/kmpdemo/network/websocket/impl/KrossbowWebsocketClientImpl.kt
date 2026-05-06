@@ -70,7 +70,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             receiptTimeout = 10.toDuration(DurationUnit.SECONDS) // 确认帧超时
             autoReceipt = true  // 自动开启确认帧
             gracefulDisconnect = true
-            connectWithStompCommand = false // 使用 STOMP CONNECT 命令进行连接握手
+            connectWithStompCommand = true // 使用 STOMP CONNECT 命令进行连接握手
             heartBeat = HeartBeat(
                 minSendPeriod = 10.toDuration(DurationUnit.SECONDS),
                 expectedPeriod = 10.toDuration(DurationUnit.SECONDS)
@@ -95,6 +95,8 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                 override suspend fun onWebSocketClientError(exception: Throwable) {
                     super.onWebSocketClientError(exception)
                     println("$TAG onWebSocketClientError --> ${exception.message}")
+                    onFailure(exception.message ?: "")
+                    exception.printStackTrace()
                 }
 
                 override suspend fun onWebSocketClosed(cause: Throwable?) {
