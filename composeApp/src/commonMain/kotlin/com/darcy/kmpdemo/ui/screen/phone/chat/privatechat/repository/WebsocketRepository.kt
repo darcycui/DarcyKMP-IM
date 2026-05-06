@@ -106,7 +106,7 @@ object WebsocketRepository : IRepository {
 
             override fun onFailure(errorMessage: String) {
                 logE("WebsocketRepository onFailure:$errorMessage")
-                disconnect()
+                //disconnect()
             }
 
             override fun onClosed() {
