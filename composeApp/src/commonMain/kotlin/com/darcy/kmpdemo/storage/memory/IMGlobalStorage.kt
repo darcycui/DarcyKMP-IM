@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.storage.memory
 
 import com.darcy.kmpdemo.bean.http.response.LoginResponse
+import com.darcy.kmpdemo.network.http.token.TokenManager
 import com.darcy.kmpdemo.storage.database.tables.UserEntity
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -26,7 +27,9 @@ object IMGlobalStorage {
     suspend fun setCurrentUser(user: LoginResponse) {
         mutex.withLock {
             currentUser = user
+            // 设置 token
         }
+        TokenManager.setToken(user.token)
     }
 
 }
