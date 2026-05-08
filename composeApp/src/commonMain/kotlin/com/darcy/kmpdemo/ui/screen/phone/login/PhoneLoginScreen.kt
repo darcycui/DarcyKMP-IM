@@ -26,6 +26,7 @@ import com.darcy.kmpdemo.ui.screen.phone.login.intent.LoginIntent
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
 import com.darcy.kmpdemo.ui.screen.phone.navigation.PhoneRoute
 import com.darcy.kmpdemo.ui.screen.phone.navigation.customNavigate
+import com.darcy.kmpdemo.utils.HashHelper
 import kmpdarcydemo.composeapp.generated.resources.Res
 import kmpdarcydemo.composeapp.generated.resources.go_register
 import kmpdarcydemo.composeapp.generated.resources.page_login
@@ -61,7 +62,7 @@ fun PhoneLoginScreen() {
 @Composable
 fun PhoneLoginInnerPage(viewModel: LoginViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("150000111222")) }
+    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("152000111222")) }
     val passwordTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("123456")) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -122,7 +123,7 @@ private fun LoginComponent(
                 LoginIntent.ActionLogin(
                     LoginBean(
                         phone = phone,
-                        password = password
+                        password = HashHelper.sha256Str(password)
                     )
                 )
             )

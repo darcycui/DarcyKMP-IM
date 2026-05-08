@@ -15,7 +15,7 @@ object Md5Helper {
                     digest.update(bufferedData)
                 }
             }
-            HexHelper.bytesToHex(digest.digest()).apply {
+            HexHelper.bytesToHexStr(digest.digest()).apply {
                 return if (toLowerCase) this.lowercase() else this
             }
         }.onFailure {

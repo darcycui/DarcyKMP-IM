@@ -64,9 +64,9 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         webSocketClient = KtorWebSocketClient(ktorClient)
         // val kcrossbowWebsocketClient: WebSocketClient = WebSocketClient.builtIn()
         stompClient = StompClient(webSocketClient) {
-            connectionTimeout = 10.toDuration(DurationUnit.SECONDS)
-            disconnectTimeout = 10.toDuration(DurationUnit.SECONDS)
-            subscriptionCompletionTimeout = 10.toDuration(DurationUnit.SECONDS)
+            connectionTimeout = 30.toDuration(DurationUnit.SECONDS)
+            disconnectTimeout = 30.toDuration(DurationUnit.SECONDS)
+            subscriptionCompletionTimeout = 30.toDuration(DurationUnit.SECONDS)
             receiptTimeout = 10.toDuration(DurationUnit.SECONDS) // 确认帧超时
             autoReceipt = true  // 自动开启确认帧
             gracefulDisconnect = true
@@ -77,6 +77,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             )
             heartBeatTolerance = HeartBeatTolerance()
             defaultSessionCoroutineContext = dispatcher + SupervisorJob() + exceptionHandler
+            // 监听器
             instrumentation = object :KrossbowInstrumentation{
                 override suspend fun onStompFrameSent(frame: StompFrame) {
                     super.onStompFrameSent(frame)

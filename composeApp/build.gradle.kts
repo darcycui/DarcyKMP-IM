@@ -127,11 +127,13 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
             implementation(libs.coil.network.core)
-            // md5
+            // md5/hash in KMP
             // define the BOM and its version
             implementation(project.dependencies.platform(libs.hash.bom))
             // define MD5 artifacts without version
             implementation(libs.hash.md)
+            implementation(libs.hash.sha1)
+            implementation(libs.hash.sha2)
             // database room
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)

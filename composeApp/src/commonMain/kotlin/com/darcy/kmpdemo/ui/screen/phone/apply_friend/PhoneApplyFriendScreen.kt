@@ -68,9 +68,11 @@ fun PhoneAddFriendInnerPage(viewModel: ApplyFriendViewModel) {
                 nameTextFieldState,
                 viewModel
             )
-            UserSearchComponent(uiState.userInfo, viewModel)
+            UserSearchComponent(uiState.userInfo, uiState.statusText, viewModel)
             // 分隔线 指定背景颜色
-            HorizontalDivider(modifier = Modifier.height(4.dp).background(AppColors.bg_color_blue_409eff))
+            HorizontalDivider(
+                modifier = Modifier.height(4.dp).background(AppColors.bg_color_blue_409eff)
+            )
             UserApplyListComponent(uiState, viewModel)
         }
 
@@ -173,6 +175,7 @@ fun UserItemComponent(
 @Composable
 fun UserSearchComponent(
     user: UserResponse = UserResponse(),
+    statusText: String,
     viewModel: ApplyFriendViewModel? = null
 ) {
     if (user.id == 0L) {
@@ -201,7 +204,7 @@ fun UserSearchComponent(
         Button(onClick = {
             viewModel?.dispatch(ApplyFriendIntent.ActionApplyFriend(user.id))
         }) {
-            Text(text = "申请好友")
+            Text(text = statusText)
         }
         Spacer(modifier = Modifier.width(8.dp))
     }

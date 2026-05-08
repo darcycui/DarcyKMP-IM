@@ -24,7 +24,14 @@ class ApplyFriendReducer :
 
             is ApplyFriendIntent.RefreshByApplyFriend -> {
                 state.copy(
-                    statusText = intent.response
+                    statusText = ApplyFriendResponse.RequestStatus.fromCode(intent.response.status).name,
+                    applys = state.applys.map {
+                        if (it.id == intent.response.id) {
+                            intent.response
+                        } else {
+                            it
+                        }
+                    }
                 )
             }
 

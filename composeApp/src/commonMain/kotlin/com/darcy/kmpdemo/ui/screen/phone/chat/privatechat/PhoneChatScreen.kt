@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -118,7 +119,11 @@ fun SendComponent(
         Spacer(modifier = Modifier.width(8.dp))
         Button(
             modifier = Modifier,
-            onClick = { onSendClick(textState.text.toString()) }) {
+            onClick = {
+                onSendClick(textState.text.toString())
+                // 发送以后清空输入框
+                textState.clearText()
+            }) {
             Text("发送")
         }
     }

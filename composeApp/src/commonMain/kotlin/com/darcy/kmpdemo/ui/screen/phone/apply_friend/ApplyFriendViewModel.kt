@@ -47,6 +47,7 @@ class ApplyFriendViewModel(
             is ApplyFriendIntent.ActionSearchUser -> {
                 actionSearchUser(intent.phone)
             }
+
             is FetchIntent.ActionFetchData -> {
                 actionFetchFriendApplys()
             }
@@ -78,9 +79,10 @@ class ApplyFriendViewModel(
     private fun actionApplyFriend(userId: Long) {
         // todo apply friend
         val formUserId = IMGlobalStorage.getCurrentUserId()
-        repository.applyFriend(AddFriendBean(formUserId,userId),
+        repository.applyFriend(
+            AddFriendBean(formUserId, userId),
             onSuccess = {
-                dispatch(ApplyFriendIntent.RefreshByApplyFriend(ApplyFriendResponse.RequestStatus.fromCode(it.status).name))
+                dispatch(ApplyFriendIntent.RefreshByApplyFriend(it))
             },
             onError = {
                 logE("申请失败：$it")
