@@ -74,7 +74,7 @@ object WebsocketRepository : IRepository {
         webSocketManager.init(
             url = WEBSOCKET_URL,
 //            url = WEBSOCKET_HTTP_URL,
-            fromUser = imGlobalStorage.getCurrentUser().username
+            fromUser = imGlobalStorage.getCurrentUser().token
         )
     }
 
