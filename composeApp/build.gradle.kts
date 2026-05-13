@@ -14,7 +14,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
 }
-room {
+room3 {
     schemaDirectory("$projectDir/schemas")
 }
 
@@ -75,7 +75,7 @@ kotlin {
             // kotlin coroutine
             implementation(libs.kotlinx.coroutines.android)
             // Optional when using Room SQLite Wrapper
-            implementation(libs.androidx.room.sqlite.wrapper)
+//            implementation(libs.androidx.room.sqlite.wrapper)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -200,6 +200,7 @@ dependencies {
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspDesktop", libs.androidx.room.compiler)
+    // Room3 Web端通过OPFS(Original Private File System)实现持久化
 //    add("kspJS", libs.androidx.room.compiler)
 //    add("kspWasm", libs.androidx.room.compiler)
     // Add any other platform target you use in your project, for example kspDesktop

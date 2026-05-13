@@ -82,8 +82,11 @@ class ChatViewModel(
     }
 
     private fun actionSendMessage(message: PrivateMessageResponse) {
-        // todo: websocket发送消息
-        websocketRepository.sendMessage(message.toSTOMPMessage())
+        // todo: websocket发送消息 添加 DH棘轮 公钥
+        val headers = mapOf(
+            "dhPublicKey" to ""
+        )
+        websocketRepository.sendMessage(message.toSTOMPMessage(), headers)
         dispatch(ChatIntent.RefreshBySendMessage(message))
     }
 

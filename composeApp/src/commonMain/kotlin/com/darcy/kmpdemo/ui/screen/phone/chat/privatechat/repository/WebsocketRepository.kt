@@ -6,7 +6,6 @@ import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
-import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_HTTP_URL
 import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
 import com.darcy.kmpdemo.network.parser.impl.kotlinxJson
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
@@ -128,14 +127,14 @@ object WebsocketRepository : IRepository {
         }
     }
 
-    fun sendMessage(message: STOMPMessage) {
+    fun sendMessage(message: STOMPMessage, headers: Map<String, String>) {
         scope.launch {
             logD("$TAG sendMessage:$message toUser:${message.receiverName}")
             if (!isConnected) {
                 logE("$TAG Cannot send message: not connected")
                 return@launch
             }
-            webSocketManager.send(message)
+            webSocketManager.send(message, headers)
         }
     }
 

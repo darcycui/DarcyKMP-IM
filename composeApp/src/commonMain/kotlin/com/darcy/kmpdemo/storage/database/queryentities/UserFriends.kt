@@ -1,8 +1,8 @@
 package com.darcy.kmpdemo.storage.database.queryentities
 
-import androidx.room.Embedded
-import androidx.room.Junction
-import androidx.room.Relation
+import androidx.room3.Embedded
+import androidx.room3.Junction
+import androidx.room3.Relation
 import com.darcy.kmpdemo.storage.database.tables.FriendshipEntity
 import com.darcy.kmpdemo.storage.database.tables.FriendshipUserCrossRef
 import com.darcy.kmpdemo.storage.database.tables.UserEntity

@@ -1,6 +1,6 @@
 package com.darcy.kmpdemo.storage.database.tables
 
-import androidx.room.Entity
+import androidx.room3.Entity
 
 /**
  * 聊天会话和用户的关系表 多对多

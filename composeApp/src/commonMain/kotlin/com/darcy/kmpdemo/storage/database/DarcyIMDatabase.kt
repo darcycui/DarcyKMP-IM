@@ -1,7 +1,7 @@
 package com.darcy.kmpdemo.storage.database
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.darcy.kmpdemo.storage.database.daos.ConversationDao
 import com.darcy.kmpdemo.storage.database.daos.ConversationUserCrossRefDao

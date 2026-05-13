@@ -20,7 +20,9 @@ import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.StompSession
 import org.hildan.krossbow.stomp.config.HeartBeat
 import org.hildan.krossbow.stomp.config.HeartBeatTolerance
+import org.hildan.krossbow.stomp.frame.FrameBody
 import org.hildan.krossbow.stomp.frame.StompFrame
+import org.hildan.krossbow.stomp.headers.StompSendHeaders
 import org.hildan.krossbow.stomp.instrumentation.KrossbowInstrumentation
 import org.hildan.krossbow.stomp.sendText
 import org.hildan.krossbow.stomp.subscribeText
@@ -78,7 +80,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             heartBeatTolerance = HeartBeatTolerance()
             defaultSessionCoroutineContext = dispatcher + SupervisorJob() + exceptionHandler
             // 监听器
-            instrumentation = object :KrossbowInstrumentation{
+            instrumentation = object : KrossbowInstrumentation {
                 override suspend fun onStompFrameSent(frame: StompFrame) {
                     super.onStompFrameSent(frame)
                     println("$TAG onStompFrameSent --> ${frame.toString()}")
@@ -185,12 +187,16 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         topicSubscriptionJob = null
     }
 
-    override suspend fun send(message: STOMPMessage) {
+    override suspend fun send(message: STOMPMessage, headers: Map<String, String>) {
         val jsonMessage = kotlinxJson.encodeToString(message)
         println("$TAG send message... --> $jsonMessage")
         session?.let {
             runCatching {
-                val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
+                // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
+                val receipt = it.send(
+                    headers = StompSendHeaders(SEND_PRIVATE) { setAll(headers) },
+                    body = FrameBody.Text(jsonMessage)
+                )
                 println("$TAG 收到receipt: $receipt")
                 onSend(jsonMessage)
             }.onFailure { exception ->

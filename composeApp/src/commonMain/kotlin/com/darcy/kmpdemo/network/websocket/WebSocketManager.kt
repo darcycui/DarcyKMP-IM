@@ -24,8 +24,8 @@ object WebSocketManager : IWebSocketClient {
         iWebsocketClient.disconnect()
     }
 
-    override suspend fun send(message: STOMPMessage) {
-        iWebsocketClient.send(message)
+    override suspend fun send(message: STOMPMessage, headers: Map<String, String>) {
+        iWebsocketClient.send(message, headers)
     }
 
     override suspend fun send(bytes: ByteArray) {

@@ -7,7 +7,7 @@ interface IWebSocketClient {
     fun init(url: String, fromUser: String)
     suspend  fun connect()
     suspend fun disconnect()
-    suspend fun send(message: STOMPMessage)
+    suspend fun send(message: STOMPMessage, headers: Map<String, String>)
     suspend fun send(bytes: ByteArray)
     suspend fun reconnect()
     fun setOuterListener(listener: IOuterListener)

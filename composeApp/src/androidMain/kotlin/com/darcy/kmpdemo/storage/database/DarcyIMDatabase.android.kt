@@ -1,7 +1,7 @@
 package com.darcy.kmpdemo.storage.database
 
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
 import com.darcy.kmpdemo.app.AppContextProvider
 
 actual fun getIMDatabaseBuilder(): RoomDatabase.Builder<DarcyIMDatabase> {
