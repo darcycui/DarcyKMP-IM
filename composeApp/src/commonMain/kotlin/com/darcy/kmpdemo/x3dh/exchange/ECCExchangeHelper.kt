@@ -1,0 +1,29 @@
+package com.darcy.kmpdemo.x3dh.exchange
+
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.XDH
+import kotlinx.coroutines.runBlocking
+
+
+object ECCExchangeHelper {
+    // 初始化 指定使用 X25519 曲线
+    const val ALGORITHM: String = "X25519"
+    private val provider = CryptographyProvider.Default
+    fun generateKeyPair(): XDH.KeyPair {
+        return runBlocking {
+            val xdh = provider.get(XDH)
+            val curve = XDH.Curve.X25519
+            xdh.keyPairGenerator(curve).generateKey()
+        }
+    }
+
+    fun getSharedSecret(privateKey: XDH.PrivateKey?, publicKey: XDH.PublicKey?): ByteArray {
+        if (privateKey == null || publicKey == null) {
+            throw IllegalArgumentException("privateKey or publicKey is null")
+        }
+        return runBlocking {
+            privateKey.sharedSecretGenerator().generateSharedSecret(publicKey).toByteArray()
+        }
+    }
+
+}

@@ -141,6 +141,10 @@ kotlin {
             api(libs.krossbow.stomp.core)
             api(libs.krossbow.websocket.builtin)
             api(libs.krossbow.websocket.ktor)
+            // crypto
+            implementation(libs.cryptography.core)
+            implementation(libs.cryptography.provider.optimal)
+
 
 
         }

@@ -1,0 +1,59 @@
+package com.darcy.kmpdemo.x3dh.exchange
+
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.EdDSA
+import kotlinx.coroutines.runBlocking
+import org.kotlincrypto.error.InvalidKeyException
+import org.kotlincrypto.error.SignatureException
+
+object EdDSASignHelper {
+    private const val ALGORITHM_EDDSA: String = "Ed25519" // 椭圆曲线算法 EdDSA
+    private const val ALGORITHM_SIGN: String = "Ed25519" // 签名算法
+
+    private val provider = CryptographyProvider.Default
+
+    fun generateKeyPairEdDSA(): EdDSA.KeyPair {
+        return runBlocking {
+            val edDSA = provider.get(EdDSA)
+            val curve = EdDSA.Curve.Ed25519
+            edDSA.keyPairGenerator(curve).generateKey()
+        }
+
+    }
+
+    fun sign(data: ByteArray?, privateKey: EdDSA.PrivateKey?): ByteArray {
+        if (data == null || privateKey == null) {
+            throw IllegalArgumentException("data or privateKey is null")
+        }
+        return runBlocking {
+            try {
+                privateKey.signatureGenerator().generateSignature(data)
+            } catch (e: InvalidKeyException) {
+                e.printStackTrace()
+                throw e
+            } catch (e: SignatureException) {
+                e.printStackTrace()
+                throw e
+            }
+        }
+    }
+
+    fun verify(data: ByteArray?, sign: ByteArray?, publicKey: EdDSA.PublicKey?): Boolean {
+        if (data == null || sign == null || publicKey == null) {
+            return false
+        }
+        return runBlocking {
+            try {
+                publicKey.signatureVerifier().verifySignature(data, sign)
+                true
+            } catch (e: InvalidKeyException) {
+                e.printStackTrace()
+                false
+            } catch (e: SignatureException) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
+
+}

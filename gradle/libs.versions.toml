@@ -13,6 +13,7 @@ androidx-material = "1.13.0"
 androidx-test-junit = "1.3.0"
 coilCompose = "3.3.0"
 composeMultiplatform = "1.10.0"
+cryptographyCore = "0.6.0"
 material3 = "1.9.0"
 materialIconsExtended = "1.7.3"
 filekitCore = "0.12.0"
@@ -44,6 +45,8 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 # Optional SQLite Wrapper available in version 2.8.0 and higher
 androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "room_version" }
 
+cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptographyCore" }
+cryptography-provider-optimal = { module = "dev.whyoleg.cryptography:cryptography-provider-optimal", version.ref = "cryptographyCore" }
 hash-bom = { module = "org.kotlincrypto.hash:bom", version.ref = "hashBomVersion" }
 hash-md = { module = "org.kotlincrypto.hash:md" }
 hash-sha2 = { module = "org.kotlincrypto.hash:sha2" }
