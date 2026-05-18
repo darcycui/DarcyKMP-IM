@@ -73,8 +73,8 @@ object WebsocketRepository : IRepository {
         logD("$TAG init")
         webSocketManager.init(
             url = WEBSOCKET_URL,
-//            url = WEBSOCKET_HTTP_URL,
-            fromUser = imGlobalStorage.getCurrentUser().token
+            userToken = imGlobalStorage.getCurrentUser().token,
+//            userToken = "",
         )
     }
 

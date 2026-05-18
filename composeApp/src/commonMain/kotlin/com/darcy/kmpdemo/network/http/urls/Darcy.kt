@@ -13,9 +13,12 @@ object Darcy {
     const val QUERY_FRIEND_FROM_URL = "$HOME_URL/api/friend-requests/query/from"
     const val QUERY_FRIEND_TO_URL = "$HOME_URL/api/friend-requests/query/to"
     const val ACCEPT_FRIEND_URL = "$HOME_URL/api/friend-requests/accept"
-    const val FRIENDSHIP_LIST_URL = "$HOME_URL/api/friendships/query/all"
-    const val CONVERSATION_LIST_URL = "$HOME_URL/api/conversations/query/all"
-    const val CONVERSATION_CREATE_URL = "$HOME_URL/api/conversations/create"
+    const val QUERY_FRIENDSHIP_LIST_URL = "$HOME_URL/api/friendships/query/all"
+    const val QUERY_CONVERSATION_LIST_URL = "$HOME_URL/api/conversations/query/all"
+    const val CREATE_CONVERSATION_URL = "$HOME_URL/api/conversations/create"
 
     const val QUERY_PRIVATE_MESSAGE_URL = "$HOME_URL/api/private-messages/query/page"
+    const val PUSH_X3DH_KEYS_URL = "$HOME_URL/api/x3dh/push/keys"
+    const val PULL_X3DH_KEYS_URL = "$HOME_URL/api/x3dh/pull/keys"
+    const val SEND_ALICE_HELLO_MESSAGE_URL = "$HOME_URL/api/x3dh/send/alice/hello"
 }

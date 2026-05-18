@@ -12,8 +12,8 @@ object WebSocketManager : IWebSocketClient {
         this.iWebsocketClient = iWebsocketClient
     }
 
-    override fun init(url: String, fromUser: String) {
-        iWebsocketClient.init(url, fromUser)
+    override fun init(url: String, userToken: String) {
+        iWebsocketClient.init(url, userToken)
     }
 
     override suspend fun connect() {

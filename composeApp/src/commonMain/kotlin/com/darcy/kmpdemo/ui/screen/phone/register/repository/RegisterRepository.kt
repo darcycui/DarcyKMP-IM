@@ -45,5 +45,4 @@ class RegisterRepository : IRepository {
                 onError(it)
             })
     }
-
 }

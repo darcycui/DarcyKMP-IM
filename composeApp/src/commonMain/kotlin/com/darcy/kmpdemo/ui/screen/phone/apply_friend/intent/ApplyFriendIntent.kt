@@ -14,7 +14,7 @@ sealed class ApplyFriendIntent : IIntent {
     ): ApplyFriendIntent()
 
     data class ActionApplyFriend(
-        val userId: Long
+        val toUserId: Long
     ) : ApplyFriendIntent()
 
     data class RefreshByApplyFriend(

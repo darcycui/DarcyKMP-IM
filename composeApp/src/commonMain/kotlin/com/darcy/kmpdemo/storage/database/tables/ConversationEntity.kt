@@ -13,7 +13,7 @@ data class ConversationEntity(
     val name: String = "$userIdFrom-$userIdTo",
     val createdTime: Long = 0,
     val updatedTime: Long = 0,
-    val deletedTime: Long = 0
+    val deletedTime: Long = 0,
 ) {
     companion object {
         fun empty(): ConversationEntity {

@@ -10,7 +10,7 @@ import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
-data class X3DHBobKeysDTO(
+data class X3DHBobKeys(
     val identityKey: String = "45719fdb359ba56c3115dcde90533459559cb79abe918ff8c25710fa19551d6d",
     val signedPreKey: String = "2fc06c206dee050b7f0f7869dddeced0f9cccc0be79b015bb2f0bb01bf24b666",
     val oneTimePreKey: String = "831d0ea4848fc45db766e68a0014230cd967fddf603e37fdea5422ca1737062e"
@@ -20,7 +20,7 @@ class X3DHTest {
 
     @Test
     fun test() {
-        val bobKeys = X3DHBobKeysDTO()
+        val bobKeys = X3DHBobKeys()
         val K1 = aliceCalculateKey(bobKeys)
         println("K1==${K1.bytesToHexStr()}")
         val K2 = bobCalculateKey()
@@ -33,7 +33,7 @@ class X3DHTest {
     val aliceEphemeralPrivateKey =
         "f1b760d87917b117017d2328792fb28b95e652bd71d7c4db44c18b1e3dc79337"
 
-    fun aliceCalculateKey(bobKeys: X3DHBobKeysDTO): ByteArray {
+    fun aliceCalculateKey(bobKeys: X3DHBobKeys): ByteArray {
         val aliceIdentityPrivate = aliceIdentityPrivateKey.hexStrToBytes().toPrivateKey()
         val aliceEphemeralPrivate = aliceEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
 

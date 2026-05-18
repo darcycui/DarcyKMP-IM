@@ -1,13 +1,10 @@
 package com.darcy.kmpdemo.ui.screen.phone.conversations.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
-import com.darcy.kmpdemo.bean.http.response.ApplyFriendResponse
 import com.darcy.kmpdemo.bean.http.response.ConversationResponse
-import com.darcy.kmpdemo.bean.ui.AddFriendBean
 import com.darcy.kmpdemo.network.http.HttpManager
-import com.darcy.kmpdemo.network.http.urls.Darcy.APPLY_FRIEND_URL
-import com.darcy.kmpdemo.network.http.urls.Darcy.CONVERSATION_CREATE_URL
-import com.darcy.kmpdemo.network.http.urls.Darcy.CONVERSATION_LIST_URL
+import com.darcy.kmpdemo.network.http.urls.Darcy.CREATE_CONVERSATION_URL
+import com.darcy.kmpdemo.network.http.urls.Darcy.QUERY_CONVERSATION_LIST_URL
 import com.darcy.kmpdemo.repository.IRepository
 import kotlinx.serialization.serializer
 
@@ -20,7 +17,7 @@ class ConversationRepository : IRepository {
     ): Unit {
         HttpManager.doPostRequest(
             serializer<ConversationResponse>(),
-            CONVERSATION_LIST_URL,
+            QUERY_CONVERSATION_LIST_URL,
             mapOf(
                 "userId" to userId.toString(),
             ),
@@ -47,7 +44,7 @@ class ConversationRepository : IRepository {
     ): Unit {
         HttpManager.doPostRequest(
             serializer<ConversationResponse>(),
-            CONVERSATION_CREATE_URL,
+            CREATE_CONVERSATION_URL,
             mapOf(
                 "userId" to userId,
                 "targetId" to targetId,

@@ -128,6 +128,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             println("$TAG connect...")
             session = stompClient.connect(
                 this.url,
+                // 设置认证token header
                 customStompConnectHeaders = mapOf(
                     "Authorization" to fromUser,
 //                    "accept-version" to "1.2,1.1,1.0"

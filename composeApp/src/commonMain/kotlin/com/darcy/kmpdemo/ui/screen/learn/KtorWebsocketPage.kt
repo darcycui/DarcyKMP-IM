@@ -64,7 +64,7 @@ fun ShowKtorWebsocket() {
 private fun connectWS(scope: CoroutineScope, content: MutableState<String>) {
     updateText(scope, content, "connect")
     scope.launch(Dispatchers.Default) {
-        WebSocketManager.init(url = "wss://darcycui.com.cn:7443/person", fromUser = "KMP")
+        WebSocketManager.init(url = "wss://darcycui.com.cn:7443/person", userToken = "KMP")
         WebSocketManager.setOuterListener(object : IOuterListener {
             override fun onOpen() {
                 updateText(scope, content, "onOpen")

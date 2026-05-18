@@ -10,11 +10,7 @@ import io.ktor.http.HttpStatusCode
 
 class PluginConfiguration {
     var headerName: String = "Authorization"
-    var headerValue: String = ""
-        get() = TokenManager.getToken()
-        set(value) {
-            field = "Bearer $value"
-        }
+    var headerValue: String = TokenManager.getToken()
 }
 
 val CustomHeaderPlugin = createClientPlugin("CustomHeaderPlugin") {
