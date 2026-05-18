@@ -31,7 +31,7 @@ Bambi
 Dumbo
 Peter Pan
 Tinker Bell
-Winnie the Pooh
+Winnie-the-Pooh
 Stitch
 Woody
 Buzz Lightyear

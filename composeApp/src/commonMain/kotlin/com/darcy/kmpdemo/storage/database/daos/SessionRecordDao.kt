@@ -11,24 +11,24 @@ import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
 @Dao
 interface SessionRecordDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insert(item: SessionRecordEntity): Int
+    suspend fun insert(item: SessionRecordEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertAll(itemList: List<SessionRecordEntity>): Int
+    suspend fun insertAll(itemList: List<SessionRecordEntity>)
 
     @Query("SELECT * FROM SessionRecordEntity WHERE id=:id")
-    fun getById(id: Long): SessionRecordEntity?
+    suspend fun getById(id: Long): SessionRecordEntity?
 
     @Query("SELECT * FROM SessionRecordEntity WHERE aliceUserId=:aliceUserId AND bobUserId=:bobUserId")
-    fun getByUserId(aliceUserId: Long, bobUserId: Long): SessionRecordEntity?
+    suspend fun getByUserId(aliceUserId: Long, bobUserId: Long): SessionRecordEntity?
 
     @Delete
-    fun delete(item: SessionRecordEntity): Int
+    suspend fun delete(item: SessionRecordEntity)
 
     @Query("DELETE FROM SessionRecordEntity WHERE id=:id")
-    fun deleteById(id: Long)
+    suspend fun deleteById(id: Long)
 
     @Update
-    fun update(item: SessionRecordEntity): Int
+    suspend fun update(item: SessionRecordEntity)
 
 }

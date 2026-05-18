@@ -1,4 +1,4 @@
-package com.darcy.kmpdemo.ui.screen.phone.x3dh.usecase
+package com.darcy.kmpdemo.x3dh.usecase
 
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity

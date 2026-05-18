@@ -5,14 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
-import com.darcy.kmpdemo.bean.http.request.X3DHAliceHelloRequest
-import com.darcy.kmpdemo.bean.http.response.X3DHKeysPullResponse
 import com.darcy.kmpdemo.bean.ui.AddFriendBean
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
+import com.darcy.kmpdemo.storage.database.daos.SessionRecordDao
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
-import com.darcy.kmpdemo.storage.memory.X3DHGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
@@ -21,22 +19,22 @@ import com.darcy.kmpdemo.ui.screen.phone.apply_friend.intent.ApplyFriendIntent
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.reducer.ApplyFriendReducer
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.repository.ApplyFriendRepository
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.state.ApplyFriendState
-import com.darcy.kmpdemo.ui.screen.phone.x3dh.repository.FirstHelloRepository
-import com.darcy.kmpdemo.ui.screen.phone.x3dh.repository.X3DHRepository
-import com.darcy.kmpdemo.ui.screen.phone.x3dh.usecase.CalculateAliceX3DHKeyUseCase
+import com.darcy.kmpdemo.x3dh.repository.AliceHelloRepository
+import com.darcy.kmpdemo.x3dh.repository.X3DHRepository
+import com.darcy.kmpdemo.x3dh.usecase.CalculateAliceX3DHKeyUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.utils.toBytes
-import dev.whyoleg.cryptography.algorithms.XDH
-import kotlin.emptyArray
+import com.darcy.kmpdemo.x3dh.usecase.SaveAliceSessionRecordUseCase
 import kotlin.reflect.KClass
 
 class ApplyFriendViewModel(
     private val applyFriendRepository: ApplyFriendRepository = ApplyFriendRepository(),
-    private val firstHelloRepository: FirstHelloRepository = FirstHelloRepository(),
+    private val aliceHelloRepository: AliceHelloRepository = AliceHelloRepository(),
     private val identityKeyDao: IdentityKeyDao = getDarcyIMDatabase().identityKeyDao(),
     private val x3DHRepository: X3DHRepository = X3DHRepository(),
     private val calculateAliceX3DHKeyUseCase: CalculateAliceX3DHKeyUseCase = CalculateAliceX3DHKeyUseCase(),
-    private val saveAliceX3DHKeyUseCase: CalculateAliceX3DHKeyUseCase = CalculateAliceX3DHKeyUseCase()
+    private val saveAliceX3DHKeyUseCase: SaveAliceSessionRecordUseCase = SaveAliceSessionRecordUseCase(),
+    private val sessionRecordDao: SessionRecordDao = getDarcyIMDatabase().sessionRecordDao(),
 ) : BaseViewModel<ApplyFriendState>() {
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -91,16 +89,20 @@ class ApplyFriendViewModel(
 
     private fun pullX3DHBobKeys(aliceUserId: Long, bobUserId: Long) {
         x3DHRepository.pullX3DHBobKeys(
+            aliceUserId = aliceUserId,
             bobUserId = bobUserId,
-            onSuccess = {
+            onSuccess = {bobKeys->
                 io {
-                    logE("拉取 BobKeys 成功：$it")
+                    logE("拉取 BobKeys 成功：$bobKeys")
                     val resultPair = calculateAliceX3DHKeyUseCase.invoke(
                         mapOf(
+                            "aliceUserId" to aliceUserId.toString(),
                             "bobUserId" to aliceUserId.toString(),
-                            "bobKeys" to JsonHelper.toJson(it),
+                            "bobKeys" to JsonHelper.toJson(bobKeys),
                         )
-                    ).getOrElse { Pair(null, null) }
+                    ).onFailure {
+                        it.printStackTrace()
+                    }.getOrElse { Pair(null, null) }
                     // 注意这里 使用一个局部变量来保存这个值 这样检查后就不为空 可以传递给 saveAliceX3DHKeyUseCase
                     val x3DHKey = resultPair.first
                     val aliceEphemeralKey = resultPair.second
@@ -111,18 +113,26 @@ class ApplyFriendViewModel(
                         return@io
                     }
                     // todo 保存 sessionRecord 到数据库
-                    saveAliceX3DHKeyUseCase.invoke(
+                    val saveSessionResult = saveAliceX3DHKeyUseCase.invoke(
                         mapOf(
                             "aliceUserId" to aliceUserId.toString(),
                             "bobUserId" to bobUserId.toString(),
                             "aliceX3DHKey" to x3DHKey.toHexString(),
                             "aliceEphemeralPrivateKey" to aliceEphemeralKey.privateKey.toBytes().toHexString(),
                             "aliceEphemeralPublicKey" to aliceEphemeralKey.publicKey.toBytes().toHexString(),
-                            "bobIdentityKey" to it.identityKey,
-                            "bobSignedPreKey" to it.signedPreKey,
+                            "bobIdentityKey" to bobKeys.identityKey,
+                            "bobSignedPreKey" to bobKeys.signedPreKey,
                         )
-                    )
-                    sendAliceHello(aliceUserId, bobUserId)
+                    ).onFailure {
+                        it.printStackTrace()
+                    }
+                    if (!saveSessionResult.isSuccess) {
+                        val error = ErrorResponse.create(message = "保存 sessionRecord 到数据库失败")
+                        logE("保存 sessionRecord 到数据库失败：")
+                        main { dispatch(error.toTipsIntent()) }
+                        return@io
+                    }
+                    pushAliceHello(aliceUserId, bobUserId, bobKeys.oneTimePreKeyIndex)
                 }
             },
             onError = {
@@ -132,15 +142,28 @@ class ApplyFriendViewModel(
         )
     }
 
-    private suspend fun sendAliceHello(aliceUserId: Long, bobUserId: Long) {
+    private suspend fun pushAliceHello(aliceUserId: Long, bobUserId: Long, oneTimePreKeyIndex: Long) {
+        val session = sessionRecordDao.getByUserId(aliceUserId, bobUserId)
+        if (session == null) {
+            logE("sessionRecord 不存在")
+            val error = ErrorResponse.create(message = "sessionRecord 不存在")
+            main { dispatch(error.toTipsIntent()) }
+            return
+        }
         val identityKey = identityKeyDao.getByUserId(aliceUserId)
-            ?: throw Exception("未找到用户 $aliceUserId 的密钥 identityKey")
-        firstHelloRepository.sendAliceHello(
-            bean = X3DHAliceHelloRequest(
-                identityKey = identityKey.publicKey,
-                // 获取存储的临时密钥
-                ephemeralKey = X3DHGlobalStorage.getX3DHEphemeralKey(bobUserId)
-            ),
+        if (identityKey == null) {
+            logE("identityKey 不存在")
+            val error = ErrorResponse.create(message = "identityKey 不存在")
+            main { dispatch(error.toTipsIntent()) }
+            return
+        }
+        aliceHelloRepository.pushAliceHello(
+            aliceUserId = aliceUserId,
+            bobUserId = bobUserId,
+            aliceIdentityKey = identityKey.publicKey,
+            // 获取存储的临时密钥
+            aliceEphemeralKey = session.localEphemeralPublicKey,
+            bobOneTimePreKeyIndex = oneTimePreKeyIndex,
             onSuccess = {
                 logE("发送 AliceHello 成功：$it")
                 // hello消息发送成功后 再发送好友申请

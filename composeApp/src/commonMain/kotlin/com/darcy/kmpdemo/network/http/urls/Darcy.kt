@@ -20,5 +20,6 @@ object Darcy {
     const val QUERY_PRIVATE_MESSAGE_URL = "$HOME_URL/api/private-messages/query/page"
     const val PUSH_X3DH_KEYS_URL = "$HOME_URL/api/x3dh/push/keys"
     const val PULL_X3DH_KEYS_URL = "$HOME_URL/api/x3dh/pull/keys"
-    const val SEND_ALICE_HELLO_MESSAGE_URL = "$HOME_URL/api/x3dh/send/alice/hello"
+    const val PUSH_ALICE_HELLO_MESSAGE_URL = "$HOME_URL/api/x3dh/push/alice/hello"
+    const val PULL_ALICE_HELLO_MESSAGE_URL = "$HOME_URL/api/x3dh/pull/alice/hello"
 }

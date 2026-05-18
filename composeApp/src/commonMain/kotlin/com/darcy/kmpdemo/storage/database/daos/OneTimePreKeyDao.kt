@@ -11,23 +11,23 @@ import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
 @Dao
 interface OneTimePreKeyDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(item: OneTimePreKeyEntity): Int
+    suspend fun insert(item: OneTimePreKeyEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(itemList: List<OneTimePreKeyEntity>): Int
+    suspend fun insertAll(itemList: List<OneTimePreKeyEntity>)
 
-    @Query("SELECT * FROM OneTimePreKey WHERE id=:id")
+    @Query("SELECT * FROM OneTimePreKeyEntity WHERE id=:id")
     suspend fun getById(id: Long): OneTimePreKeyEntity?
 
-    @Query("SELECT * FROM OneTimePreKey WHERE userId=:userId")
+    @Query("SELECT * FROM OneTimePreKeyEntity WHERE userId=:userId")
     suspend fun getAllByUserId(userId: Long): List<OneTimePreKeyEntity>
 
     @Delete
-    suspend fun delete(item: OneTimePreKeyEntity): Int
+    suspend fun delete(item: OneTimePreKeyEntity)
 
-    @Query("DELETE FROM OneTimePreKey WHERE id=:id")
+    @Query("DELETE FROM OneTimePreKeyEntity WHERE id=:id")
     suspend fun deleteById(id: Long)
 
     @Update
-    suspend fun update(item: OneTimePreKeyEntity): Int
+    suspend fun update(item: OneTimePreKeyEntity)
 }

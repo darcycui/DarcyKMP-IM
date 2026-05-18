@@ -1,6 +1,5 @@
-package com.darcy.kmpdemo.ui.screen.phone.x3dh.usecase
+package com.darcy.kmpdemo.x3dh.usecase
 
-import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
 import com.darcy.kmpdemo.storage.database.daos.SessionRecordDao
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
@@ -14,12 +13,12 @@ class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
         return runCatching {
             val aliceUserId = params["aliceUserId"]?.toLong() ?: return Result.failure(Exception("aliceUserId is null"))
             val bobUserId = params["bobUserId"]?.toLong() ?: return Result.failure(Exception("bobUserId is null"))
-            val x3DHKeyStr = params["x3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
+            val x3DHKeyStr = params["aliceX3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
             val aliceEphemeralPrivateKey = params["aliceEphemeralPrivateKey"] ?: return Result.failure(Exception("aliceEphemeralPrivateKey is null"))
             val aliceEphemeralPublicKey = params["aliceEphemeralPublicKey"] ?: return Result.failure(Exception("aliceEphemeralPublicKey is null"))
             val bobSignedPreKey = params["bobSignedPreKey"] ?: return Result.failure(Exception("bobSignedPreKey is null"))
             val bobIdentityKey = params["bobIdentityKey"] ?: return Result.failure(Exception("bobIdentityKey is null"))
-            var pairAlice = EncryptUtil.splitArray64(x3DHKeyStr.hexStrToBytes(), 32)
+            val pairAlice = EncryptUtil.splitArray64(x3DHKeyStr.hexStrToBytes(), 32)
             // Alice Root密钥
             val K1 = pairAlice.first
             // Alice 接收链密钥
@@ -34,7 +33,7 @@ class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
                     localEphemeralPublicKey = aliceEphemeralPublicKey,
                     rootKey = K1.toHexString(),
                     receivingChainKey = K2.toHexString(),
-                    sendingChainKey = "", // 第一次保存的时候，发送链密钥为空
+                    sendingChainKey = "", // 第一次保存的时候 alice发送链密钥为空
                     sendingChainIndex = 0,
                     receivingChainIndex = 0,
                 )
