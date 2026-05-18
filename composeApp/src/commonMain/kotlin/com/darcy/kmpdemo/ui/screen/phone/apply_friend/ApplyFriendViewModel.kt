@@ -125,8 +125,8 @@ class ApplyFriendViewModel(
                         )
                     ).onFailure {
                         it.printStackTrace()
-                    }
-                    if (!saveSessionResult.isSuccess) {
+                    }.getOrElse { false }
+                    if (saveSessionResult.not()) {
                         val error = ErrorResponse.create(message = "保存 sessionRecord 到数据库失败")
                         logE("保存 sessionRecord 到数据库失败：")
                         main { dispatch(error.toTipsIntent()) }

@@ -13,7 +13,7 @@ class SaveBobSessionRecordUseCase : IUseCase<Boolean> {
         return runCatching {
             val bobUserId = params["bobUserId"]?.toLong() ?: return Result.failure(Exception("bobUserId is null"))
             val aliceUserId = params["aliceUserId"]?.toLong() ?: return Result.failure(Exception("aliceUserId is null"))
-            val x3DHKeyStr = params["x3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
+            val x3DHKeyStr = params["bobX3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
             val aliceIdentityKey = params["aliceIdentityKey"] ?: return Result.failure(Exception("aliceIdentityKey is null"))
             val aliceEphemeralKey = params["aliceEphemeralKey"] ?: return Result.failure(Exception("aliceEphemeralKey is null"))
             val bobIdentityKey = identityKeyDao.getByUserId(bobUserId) ?: return Result.failure(Exception("bobIdentityKey is null"))

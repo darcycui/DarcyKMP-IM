@@ -97,14 +97,14 @@ class AcceptFriendViewModel(
                         mapOf(
                             "bobUserId" to bobUserId.toString(),
                             "aliceUserId" to aliceUserId.toString(),
-                            "x3DHKey" to x3DHKey.toHexString(),
+                            "bobX3DHKey" to x3DHKey.toHexString(),
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey
                         )
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { false }
-                    if (!saveSessionResult) {
+                    if (saveSessionResult.not()) {
                         logE("保存 SessionRecord 到数据库失败")
                         val error =
                             ErrorResponse.create(message = "保存 SessionRecord 到数据库失败")
