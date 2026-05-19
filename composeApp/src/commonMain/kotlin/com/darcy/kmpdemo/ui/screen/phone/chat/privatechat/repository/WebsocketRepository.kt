@@ -12,6 +12,8 @@ import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
+import com.darcy.kmpdemo.x3dh.MessageKey
+import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetReceiveStepUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +35,7 @@ object WebsocketRepository : IRepository {
     private const val TAG = "WebsocketRepository"
     private val webSocketManager: WebSocketManager = WebSocketManager
     private val imGlobalStorage: IMGlobalStorage = IMGlobalStorage
+    private val doubleRatchetReceiveStepUseCase = DoubleRatchetReceiveStepUseCase()
 
     private val _messageFlow = MutableSharedFlow<STOMPMessage>(replay = 0)
     val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
@@ -94,12 +97,12 @@ object WebsocketRepository : IRepository {
                 TODO("Not yet implemented")
             }
 
-            override fun onMessage(message: String) {
-                logV("WebsocketRepository onMessage:$message")
-                handleMessage(message)
+            override fun onMessage(body: String, headers: Map<String, String>) {
+                logV("WebsocketRepository onMessage:$body")
+                handleReceiveMessage(body, headers)
             }
 
-            override fun onMessage(bytes: ByteArray) {
+            override fun onMessage(bytes: ByteArray, headers: Map<String, String>) {
                 TODO("Not yet implemented")
             }
 
@@ -129,7 +132,9 @@ object WebsocketRepository : IRepository {
 
     fun sendMessage(message: STOMPMessage, headers: Map<String, String>) {
         scope.launch {
-            logD("$TAG sendMessage:$message toUser:${message.receiverName}")
+            logD("$TAG sendMessage toUser:${message.receiverName}")
+            logD("$TAG sendMessage:headers=$headers")
+            logD("$TAG sendMessage:message=$message")
             if (!isConnected) {
                 logE("$TAG Cannot send message: not connected")
                 return@launch
@@ -142,10 +147,27 @@ object WebsocketRepository : IRepository {
         return isConnected
     }
 
-    private fun handleMessage(message: String) {
+    /**
+     * 收到消息
+     */
+    private fun handleReceiveMessage(message: String, headers: Map<String, String>) {
         runCatching {
             scope.launch(Dispatchers.Default) {
-                logD("$TAG handleMessage:$message")
+                logD("$TAG handleMessage:headers=$headers")
+                logD("$TAG handleMessage:message=$message")
+                val localUserId = imGlobalStorage.getCurrentUserId()
+                val messageKey = MessageKey.fromMap(headers)
+                val messageKeyLocal = doubleRatchetReceiveStepUseCase.invoke(
+                    mapOf(
+                        "localUserId" to localUserId.toString(),
+                        "remoteUserId" to messageKey.fromUserId.toString()
+                    )
+                ).onFailure {
+                    logE("$TAG handleReceiveMessage failed: ${it.message}")
+                    it.printStackTrace()
+                    return@launch
+                }.getOrElse { MessageKey() }
+                logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
                 val messageEntity = kotlinxJson.decodeFromString<STOMPMessage>(message)
                 _messageFlow.emit(messageEntity)
             }

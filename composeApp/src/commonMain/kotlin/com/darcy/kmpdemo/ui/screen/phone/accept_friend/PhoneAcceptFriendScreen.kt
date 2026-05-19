@@ -116,7 +116,7 @@ fun ApplyItemComponent(bean: ApplyFriendResponse, viewModel: AcceptFriendViewMod
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = bean.fromUser.username, modifier = Modifier.weight(1f))
         Button(onClick = {
-            viewModel?.dispatch(AcceptFriendIntent.ActionAcceptFriend(bean.id))
+            viewModel.dispatch(AcceptFriendIntent.ActionAcceptFriend(bean.id, bean.fromUser.id))
         }) {
             Text(text = ApplyFriendResponse.RequestStatus.fromCode(bean.status).name)
         }

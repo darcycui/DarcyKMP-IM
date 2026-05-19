@@ -5,7 +5,7 @@ import com.darcy.kmpdemo.utils.EncryptUtil
 class ChainKey(
     private var kdf: HKDF1,
     private var key: ByteArray,
-    private var index: Int,
+    private var index: Long,
 ) {
     companion object {
         private val MESSAGE_KEY_SEED: ByteArray = byteArrayOf(0x01)
@@ -16,7 +16,7 @@ class ChainKey(
         return key
     }
 
-    fun getIndex(): Int {
+    fun getIndex(): Long {
         return index
     }
 

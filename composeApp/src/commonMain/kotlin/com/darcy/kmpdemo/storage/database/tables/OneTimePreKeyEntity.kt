@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 data class OneTimePreKeyEntity(
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0,
+    var keyId: String = "",
     var userId: Long = 0,
     var privateKey: String = "",
     var publicKey: String = "",

@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 3,
-    "identityHash": "48c5e8654a9494c5b695dba2311c5d1e",
+    "version": 6,
+    "identityHash": "7662499efe1a05268660a9d8acae78ad",
     "entities": [
       {
         "tableName": "UserEntity",
@@ -258,12 +258,18 @@
       },
       {
         "tableName": "IdentityKeyEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `privateKey` TEXT NOT NULL, `publicKey` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `keyId` TEXT NOT NULL, `userId` INTEGER NOT NULL, `privateKey` TEXT NOT NULL, `publicKey` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keyId",
+            "columnName": "keyId",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -305,12 +311,24 @@
       },
       {
         "tableName": "SignedPreKeyEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `privateKey` TEXT NOT NULL, `publicKey` TEXT NOT NULL, `signature` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `keyId` TEXT NOT NULL, `identityKeyId` TEXT NOT NULL, `userId` INTEGER NOT NULL, `privateKey` TEXT NOT NULL, `publicKey` TEXT NOT NULL, `signature` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keyId",
+            "columnName": "keyId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identityKeyId",
+            "columnName": "identityKeyId",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -400,7 +418,7 @@
       },
       {
         "tableName": "SessionRecordEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `aliceUserId` INTEGER NOT NULL, `bobUserId` INTEGER NOT NULL, `remoteIdentityKey` TEXT NOT NULL, `remoteDHKey` TEXT NOT NULL, `localEphemeralPrivateKey` TEXT NOT NULL, `localEphemeralPublicKey` TEXT NOT NULL, `rootKey` TEXT NOT NULL, `sendingChainKey` TEXT NOT NULL, `receivingChainKey` TEXT NOT NULL, `sendingChainIndex` INTEGER NOT NULL, `receivingChainIndex` INTEGER NOT NULL, `createdTime` INTEGER NOT NULL, `updatedTime` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `localUserId` INTEGER NOT NULL, `remoteUserId` INTEGER NOT NULL, `remoteIdentityKey` TEXT NOT NULL, `remoteDHKey` TEXT NOT NULL, `localEphemeralPrivateKey` TEXT NOT NULL, `localEphemeralPublicKey` TEXT NOT NULL, `rootKey` TEXT NOT NULL, `sendingChainKey` TEXT NOT NULL, `receivingChainKey` TEXT NOT NULL, `sendingChainIndex` INTEGER NOT NULL, `receivingChainIndex` INTEGER NOT NULL, `createdTime` INTEGER NOT NULL, `updatedTime` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -409,14 +427,14 @@
             "notNull": true
           },
           {
-            "fieldPath": "aliceUserId",
-            "columnName": "aliceUserId",
+            "fieldPath": "localUserId",
+            "columnName": "localUserId",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "bobUserId",
-            "columnName": "bobUserId",
+            "fieldPath": "remoteUserId",
+            "columnName": "remoteUserId",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -495,21 +513,21 @@
         },
         "indices": [
           {
-            "name": "index_SessionRecordEntity_aliceUserId_bobUserId",
+            "name": "index_SessionRecordEntity_localUserId_remoteUserId",
             "unique": true,
             "columnNames": [
-              "aliceUserId",
-              "bobUserId"
+              "localUserId",
+              "remoteUserId"
             ],
             "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_SessionRecordEntity_aliceUserId_bobUserId` ON `${TABLE_NAME}` (`aliceUserId`, `bobUserId`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_SessionRecordEntity_localUserId_remoteUserId` ON `${TABLE_NAME}` (`localUserId`, `remoteUserId`)"
           }
         ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '48c5e8654a9494c5b695dba2311c5d1e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7662499efe1a05268660a9d8acae78ad')"
     ]
   }
 }

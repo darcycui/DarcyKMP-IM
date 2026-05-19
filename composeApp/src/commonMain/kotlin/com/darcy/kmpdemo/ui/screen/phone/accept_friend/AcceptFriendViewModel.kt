@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -46,7 +47,7 @@ class AcceptFriendViewModel(
     override fun dispatch(intent: IIntent) {
         when (intent) {
             is AcceptFriendIntent.ActionAcceptFriend -> {
-                pullAliceHello(intent.targetUserId)
+                pullAliceHello( intent.applyId, intent.targetUserId)
             }
 
             is FetchIntent.ActionFetchData -> {
@@ -71,22 +72,24 @@ class AcceptFriendViewModel(
             })
     }
 
-    private fun pullAliceHello(aliceUserId: Long) {
-        val bobUserId = IMGlobalStorage.getCurrentUserId()
+    private fun pullAliceHello(friendRequestId: Long, remoteUserId: Long) {
+        val localUserId = IMGlobalStorage.getCurrentUserId()
         aliceHelloRepository.pullAliceHello(
-            aliceUserId,
-            bobUserId,
+            remoteUserId,
+            localUserId,
             onSuccess = { alideKeys ->
                 io {
-                    logE("拉取 AliceHello 成功：$alideKeys")
+                    logD("拉取 AliceHello 成功：$alideKeys")
                     val x3DHKey = calculateBobX3DHKeyUseCase.invoke(
                         mapOf(
-                            "bobUserId" to bobUserId.toString(),
+                            "bobUserId" to localUserId.toString(),
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey,
-                            "oneTimePreKeyId" to alideKeys.bobOneTimePreKeyIndex.toString()
+                            "bobOneTimePreKeyId" to alideKeys.bobOneTimePreKeyId
                         )
-                    ).getOrElse { null }
+                    ).onFailure {
+                        it.printStackTrace()
+                    }.getOrElse { null }
                     if (x3DHKey == null) {
                         logE("计算 BobX3DHKey 失败")
                         val error = ErrorResponse.create(message = "计算 BobX3DHKey 失败")
@@ -95,8 +98,8 @@ class AcceptFriendViewModel(
                     }
                     val saveSessionResult = saveBobSessionRecordUseCase.invoke(
                         mapOf(
-                            "bobUserId" to bobUserId.toString(),
-                            "aliceUserId" to aliceUserId.toString(),
+                            "localUserId" to localUserId.toString(),
+                            "remoteUserId" to remoteUserId.toString(),
                             "bobX3DHKey" to x3DHKey.toHexString(),
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey
@@ -111,7 +114,7 @@ class AcceptFriendViewModel(
                         main { dispatch(error.toTipsIntent()) }
                         return@io
                     }
-                    actionAcceptFriend(aliceUserId)
+                    actionAcceptFriend(friendRequestId)
                 }
             },
             onError = {
@@ -121,9 +124,9 @@ class AcceptFriendViewModel(
         )
     }
 
-    private fun actionAcceptFriend(targetUserId: Long) {
+    private fun actionAcceptFriend(friendRequestId: Long) {
         acceptFriendRepository.acceptFriend(
-            targetUserId,
+            friendRequestId = friendRequestId,
             onSuccess = {
                 dispatch(AcceptFriendIntent.RefreshByAcceptFriend(it))
             },

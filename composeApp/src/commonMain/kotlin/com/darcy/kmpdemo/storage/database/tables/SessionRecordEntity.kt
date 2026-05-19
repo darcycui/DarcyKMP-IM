@@ -6,14 +6,14 @@ import androidx.room3.PrimaryKey
 
 @Entity(
     indices = [
-        Index(value = ["aliceUserId", "bobUserId"], unique = true)
+        Index(value = ["localUserId", "remoteUserId"], unique = true)
     ]
 )
 data class SessionRecordEntity(
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0,
-    var aliceUserId: Long = 0,
-    var bobUserId: Long = 0,
+    var localUserId: Long = 0,
+    var remoteUserId: Long = 0,
 
     var remoteIdentityKey: String = "",
     var remoteDHKey: String = "",
@@ -24,8 +24,8 @@ data class SessionRecordEntity(
     var sendingChainKey: String = "",
     var receivingChainKey: String = "",
 
-    var sendingChainIndex: Int = 0,
-    var receivingChainIndex: Int = 0,
+    var sendingChainIndex: Long = 0,
+    var receivingChainIndex: Long = 0,
     var createdTime: Long = 0,
     var updatedTime: Long = 0
 )

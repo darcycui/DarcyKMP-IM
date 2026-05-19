@@ -37,7 +37,7 @@ import kotlinx.coroutines.IO
         OneTimePreKeyEntity::class,
         SessionRecordEntity::class
     ],
-    version = 3,
+    version = 6,
     exportSchema = true
 )
 

@@ -16,6 +16,9 @@ interface IdentityKeyDao {
     @Query("SELECT * FROM IdentityKeyEntity WHERE id=:id LIMIT 1")
     suspend fun getById(id: Long): IdentityKeyEntity?
 
+    @Query("SELECT * FROM IdentityKeyEntity WHERE keyId=:keyId LIMIT 1")
+    suspend fun getByKeyId(keyId: String): IdentityKeyEntity?
+
     @Query("SELECT * FROM IdentityKeyEntity WHERE userId=:userId LIMIT 1")
     suspend fun getByUserId(userId: Long): IdentityKeyEntity?
 

@@ -11,8 +11,8 @@ class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
     private val sessionRecordDao: SessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
     override suspend fun invoke(params: Map<String, String>): Result<Boolean> {
         return runCatching {
-            val aliceUserId = params["aliceUserId"]?.toLong() ?: return Result.failure(Exception("aliceUserId is null"))
-            val bobUserId = params["bobUserId"]?.toLong() ?: return Result.failure(Exception("bobUserId is null"))
+            val aliceUserId = params["aliceUserId"]?.toLongOrNull() ?: return Result.failure(Exception("aliceUserId is null"))
+            val bobUserId = params["bobUserId"]?.toLongOrNull() ?: return Result.failure(Exception("bobUserId is null"))
             val x3DHKeyStr = params["aliceX3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
             val aliceEphemeralPrivateKey = params["aliceEphemeralPrivateKey"] ?: return Result.failure(Exception("aliceEphemeralPrivateKey is null"))
             val aliceEphemeralPublicKey = params["aliceEphemeralPublicKey"] ?: return Result.failure(Exception("aliceEphemeralPublicKey is null"))
@@ -25,8 +25,8 @@ class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
             val K2 = pairAlice.second
             sessionRecordDao.insert(
                 SessionRecordEntity(
-                    aliceUserId = aliceUserId,
-                    bobUserId = bobUserId,
+                    localUserId = aliceUserId,
+                    remoteUserId = bobUserId,
                     remoteIdentityKey = bobIdentityKey,
                     remoteDHKey = bobSignedPreKey, // 第一个DH密钥 使用Bob的SignedPreKey
                     localEphemeralPrivateKey = aliceEphemeralPrivateKey,

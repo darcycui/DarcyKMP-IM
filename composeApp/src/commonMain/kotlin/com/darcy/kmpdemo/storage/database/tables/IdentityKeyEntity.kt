@@ -12,6 +12,7 @@ import androidx.room3.PrimaryKey
 data class IdentityKeyEntity(
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0,
+    var keyId: String = "",
     var userId: Long = 0,
     var privateKey: String = "",
     var publicKey: String = ""

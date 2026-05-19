@@ -12,6 +12,8 @@ import androidx.room3.PrimaryKey
 data class SignedPreKeyEntity(
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0,
+    var keyId: String = "",
+    var identityKeyId: String = "",
     var userId: Long = 0,
     var privateKey: String = "",
     var publicKey: String = "",

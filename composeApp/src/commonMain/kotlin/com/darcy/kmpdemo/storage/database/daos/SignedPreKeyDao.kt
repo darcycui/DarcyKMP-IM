@@ -16,6 +16,9 @@ interface SignedPreKeyDao {
     @Query("SELECT * FROM SignedPreKeyEntity WHERE id=:id")
     suspend fun getById(id: Long): SignedPreKeyEntity?
 
+    @Query("SELECT * FROM SignedPreKeyEntity WHERE keyId=:keyId")
+    suspend fun getByKeyId(keyId: String): SignedPreKeyEntity?
+
     @Query("SELECT * FROM SignedPreKeyEntity WHERE userId=:userId")
     suspend fun getByUserId(userId: Long): SignedPreKeyEntity?
 

@@ -78,11 +78,11 @@ private fun connectWS(scope: CoroutineScope, content: MutableState<String>) {
                 TODO("Not yet implemented")
             }
 
-            override fun onMessage(message: String) {
-                updateText(scope, content, "onMessage:$message")
+            override fun onMessage(body: String, headers: Map<String, String>) {
+                updateText(scope, content, "onMessage:$body")
             }
 
-            override fun onMessage(bytes: ByteArray) {
+            override fun onMessage(bytes: ByteArray, headers: Map<String, String>) {
 //                updateText(scope, content, "onMessage:${bytes.toString(Charsets.UTF_8)}")
             }
 

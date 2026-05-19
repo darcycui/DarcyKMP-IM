@@ -14,15 +14,15 @@ class CalculateBobX3DHKeyUseCase : IUseCase<ByteArray> {
     private val signedPreKeyDao = getDarcyIMDatabase().signedPreKeyDao()
     private val oneTimePreKeyDao = getDarcyIMDatabase().oneTimePreKeyDao()
     override suspend fun invoke(params: Map<String, String>): Result<ByteArray> {
-        val bobUserId = params["bobUserId"]?.toLong() ?: return Result.failure(Exception("userId is null"))
+        val bobUserId = params["bobUserId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val aliceIdentityKey = params["aliceIdentityKey"] ?: return Result.failure(Exception("aliceIdentityKey is null"))
         val aliceEphemeralKey = params["aliceEphemeralKey"] ?: return Result.failure(Exception("aliceEphemeralKey is null"))
-        val oneTimePreKeyId = params["oneTimePreKeyId"]?.toLong() ?: return Result.failure(Exception("oneTimePreKeyId is null"))
+        val oneTimePreKeyId = params["bobOneTimePreKeyId"] ?: return Result.failure(Exception("bobOneTimePreKeyId is null"))
         val bobIdentityKey = identityKeyDao.getByUserId(bobUserId) ?: return Result.failure(Exception("bobIdentityKey is null"))
         val bobIdentityPrivate = bobIdentityKey.privateKey.hexStrToBytes().toPrivateKey()
         val bobSignedPreKey = signedPreKeyDao.getByUserId(bobUserId) ?: return Result.failure(Exception("bobSignedPreKey is null"))
         val bobSignedPreKeyPrivate = bobSignedPreKey.privateKey.hexStrToBytes().toPrivateKey()
-        val bobOneTimePreKey = oneTimePreKeyDao.getById(oneTimePreKeyId) ?: return Result.failure(Exception("bobOneTimePreKey is null"))
+        val bobOneTimePreKey = oneTimePreKeyDao.getByKeyId(oneTimePreKeyId) ?: return Result.failure(Exception("bobOneTimePreKey is null"))
         val bobOneTimePreKeyPrivate = bobOneTimePreKey.privateKey.hexStrToBytes().toPrivateKey()
 
         val aliceIdentityPublic = aliceIdentityKey.hexStrToBytes().toPublicKey()

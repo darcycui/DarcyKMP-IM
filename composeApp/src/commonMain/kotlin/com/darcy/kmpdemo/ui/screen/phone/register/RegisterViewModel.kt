@@ -16,11 +16,11 @@ import com.darcy.kmpdemo.ui.screen.phone.register.intent.RegisterIntent
 import com.darcy.kmpdemo.ui.screen.phone.register.reducer.RegisterReducer
 import com.darcy.kmpdemo.ui.screen.phone.register.repository.RegisterRepository
 import com.darcy.kmpdemo.ui.screen.phone.register.state.RegisterState
+import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.x3dh.usecase.GenerateIdentityKeyUseCase
 import com.darcy.kmpdemo.x3dh.usecase.GenerateOneTimePreKeysUseCase
 import com.darcy.kmpdemo.x3dh.usecase.GenerateSignedPreKeyUseCase
 import com.darcy.kmpdemo.x3dh.repository.X3DHRepository
-import com.darcy.kmpdemo.utils.JsonHelper
 import kotlin.reflect.KClass
 
 class RegisterViewModel(
@@ -81,12 +81,16 @@ class RegisterViewModel(
         }
     }
 
-    suspend fun pushX3DHKeys(identityKey: String, signedPreKey: String, oneTimePreKeys: String) {
+    suspend fun pushX3DHKeys(
+        identityKey: String,
+        signedPreKey: String,
+        oneTimePreKeys: List<OneTimePreKeyEntity>
+    ) {
         x3DHRepository.pushX3DHKeys(
             userId = IMGlobalStorage.getCurrentUserId(),
             identityKey = identityKey,
             signedPreKey = signedPreKey,
-            oneTimePreKeys = oneTimePreKeys,
+            oneTimePreKeys = JsonHelper.toJson(oneTimePreKeys),
             onSuccess = {
                 io {
                     logE("推送X3DH密钥成功：$it")
@@ -100,7 +104,7 @@ class RegisterViewModel(
         )
     }
 
-    suspend fun generateX3DHKeys(): Triple<String, String, String> {
+    suspend fun generateX3DHKeys(): Triple<String, String, List<OneTimePreKeyEntity>> {
         var paramsMap = mapOf(
             "userId" to IMGlobalStorage.getCurrentUserId().toString(),
         )
@@ -111,25 +115,26 @@ class RegisterViewModel(
         if (identityKeyEntity == null) {
             val error = ErrorResponse(message = "生成X3DH密钥 identityKey 失败")
             main { dispatch(error.toTipsIntent()) }
-            return Triple("", "", "")
+            return Triple("", "", emptyList())
         }
         val identityKey: String =
             identityKeyUseCase.invoke(paramsMap).map { it.publicKey }.getOrElse { "" }
-        paramsMap = paramsMap + ("identityKeyId" to identityKeyEntity.id.toString())
 
+        paramsMap = paramsMap + ("identityKeyId" to identityKeyEntity.keyId)
         val signedPreKey: String = signedPreKeyUseCase.invoke(paramsMap).onFailure {
             it.printStackTrace()
             logE("生成X3DH密钥 signedPreKey 失败：$it")
         }.map { it.publicKey }.getOrElse { "" }
 
-        val oneTimePreKeys: List<String> =
+        val oneTimePreKeys: List<OneTimePreKeyEntity> =
             oneTimePreKeyUseCase.invoke(paramsMap).onFailure {
                 it.printStackTrace()
                 logE("生成X3DH密钥 oneTimePreKeys 失败：$it")
             }.getOrElse { emptyList() }.map {
-                it.publicKey
+                it.privateKey = ""
+                it
             }
-        val oneTimePreKeysStr = JsonHelper.toJson(oneTimePreKeys)
-        return Triple(identityKey, signedPreKey, oneTimePreKeysStr)
+//        val oneTimePreKeysStr = JsonHelper.toJson(oneTimePreKeys)
+        return Triple(identityKey, signedPreKey, oneTimePreKeys)
     }
 }

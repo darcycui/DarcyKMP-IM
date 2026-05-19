@@ -15,7 +15,7 @@ class AliceHelloRepository : IRepository {
         bobUserId: Long,
         aliceIdentityKey: String,
         aliceEphemeralKey: String,
-        bobOneTimePreKeyIndex: Long,
+        bobOneTimePreKeyId: String,
         onSuccess: (X3DHKeysPushResponse) -> Unit,
         onError: (ErrorResponse) -> Unit,
     ): Unit {
@@ -27,7 +27,7 @@ class AliceHelloRepository : IRepository {
                 "bobUserId" to bobUserId.toString(),
                 "aliceIdentityKey" to aliceIdentityKey,
                 "aliceEphemeralKey" to aliceEphemeralKey,
-                "bobOneTimePreKeyIndex" to bobOneTimePreKeyIndex.toString(),
+                "bobOneTimePreKeyId" to bobOneTimePreKeyId,
             ),
             needRetry = true,
             needCache = true,

@@ -19,8 +19,8 @@ interface SessionRecordDao {
     @Query("SELECT * FROM SessionRecordEntity WHERE id=:id")
     suspend fun getById(id: Long): SessionRecordEntity?
 
-    @Query("SELECT * FROM SessionRecordEntity WHERE aliceUserId=:aliceUserId AND bobUserId=:bobUserId")
-    suspend fun getByUserId(aliceUserId: Long, bobUserId: Long): SessionRecordEntity?
+    @Query("SELECT * FROM SessionRecordEntity WHERE localUserId=:localUserId AND remoteUserId=:remoteUserId")
+    suspend fun getByUserId(localUserId: Long, remoteUserId: Long): SessionRecordEntity?
 
     @Delete
     suspend fun delete(item: SessionRecordEntity)

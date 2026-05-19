@@ -132,7 +132,7 @@ class ApplyFriendViewModel(
                         main { dispatch(error.toTipsIntent()) }
                         return@io
                     }
-                    pushAliceHello(aliceUserId, bobUserId, bobKeys.oneTimePreKeyIndex)
+                    pushAliceHello(aliceUserId, bobUserId, bobKeys.oneTimePreKeyId)
                 }
             },
             onError = {
@@ -142,7 +142,7 @@ class ApplyFriendViewModel(
         )
     }
 
-    private suspend fun pushAliceHello(aliceUserId: Long, bobUserId: Long, oneTimePreKeyIndex: Long) {
+    private suspend fun pushAliceHello(aliceUserId: Long, bobUserId: Long, oneTimePreKeyId: String) {
         val session = sessionRecordDao.getByUserId(aliceUserId, bobUserId)
         if (session == null) {
             logE("sessionRecord 不存在")
@@ -163,7 +163,7 @@ class ApplyFriendViewModel(
             aliceIdentityKey = identityKey.publicKey,
             // 获取存储的临时密钥
             aliceEphemeralKey = session.localEphemeralPublicKey,
-            bobOneTimePreKeyIndex = oneTimePreKeyIndex,
+            bobOneTimePreKeyId = oneTimePreKeyId,
             onSuccess = {
                 logE("发送 AliceHello 成功：$it")
                 // hello消息发送成功后 再发送好友申请

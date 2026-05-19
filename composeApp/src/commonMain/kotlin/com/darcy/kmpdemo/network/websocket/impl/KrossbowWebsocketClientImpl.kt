@@ -22,9 +22,10 @@ import org.hildan.krossbow.stomp.config.HeartBeat
 import org.hildan.krossbow.stomp.config.HeartBeatTolerance
 import org.hildan.krossbow.stomp.frame.FrameBody
 import org.hildan.krossbow.stomp.frame.StompFrame
+import org.hildan.krossbow.stomp.headers.ExperimentalHeadersApi
 import org.hildan.krossbow.stomp.headers.StompSendHeaders
 import org.hildan.krossbow.stomp.instrumentation.KrossbowInstrumentation
-import org.hildan.krossbow.stomp.sendText
+import org.hildan.krossbow.stomp.subscribe
 import org.hildan.krossbow.stomp.subscribeText
 import org.hildan.krossbow.websocket.WebSocketClient
 import org.hildan.krossbow.websocket.WebSocketFrame
@@ -116,6 +117,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         }
     }
 
+    @OptIn(ExperimentalHeadersApi::class)
     override suspend fun connect() {
         if (outListener == null) {
             throw NullPointerException("outListener is null. please call setOutListener() first.")
@@ -138,17 +140,27 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             session?.let {
                 // 启动私有消息订阅
                 privateSubscriptionJob = scope.launch {
-                    it.subscribeText(RECEIVE_PRIVATE).collect { message ->
-                        println("$TAG onReceive message <-- $message")
-                        onMessage(message)
+                    it.subscribe(RECEIVE_PRIVATE).collect { frame ->
+                        println("$TAG onReceive private message <-- $frame")
+                        val headers = frame.headers.asMap() // 获取消息 headers
+                        val body = frame.body // 获取消息体
+                        println("$TAG onReceive message <-- $body")
+                        println("$TAG message headers <-- $headers")
+                        // 将消息体和 headers 一起传递给外部监听器
+                        onMessage(body.toString(), headers)
                     }
 
                 }
                 // 启动主题消息订阅
                 topicSubscriptionJob = scope.launch {
-                    it.subscribeText(SEND_TOPIC).collect { message ->
-                        println("$TAG onReceive topic message <-- $message")
-                        onMessage(message)
+                    it.subscribe(SEND_TOPIC).collect { frame: StompFrame ->
+                        val headers = frame.headers.asMap() // 获取消息 headers
+                        val body = frame.body // 获取消息体
+                        println("$TAG onReceive topic message <-- $body")
+                        println("$TAG message headers <-- $headers")
+
+                        // 将消息体和 headers 一起传递给外部监听器
+                        onMessage(body.toString(), headers)
                     }
                 }
             } ?: run {
@@ -241,12 +253,12 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         TODO("Not yet implemented")
     }
 
-    override fun onMessage(message: String) {
-        println("$TAG onMessage... $message")
-        outListener?.onMessage(message)
+    override fun onMessage(body: String, headers: Map<String, String>) {
+        println("$TAG onMessage... $body")
+        outListener?.onMessage(body, headers)
     }
 
-    override fun onMessage(bytes: ByteArray) {
+    override fun onMessage(bytes: ByteArray, headers: Map<String, String>) {
         logE("$TAG onMessage2... $bytes")
         TODO("Not yet implemented")
     }

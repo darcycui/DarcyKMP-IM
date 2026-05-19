@@ -6,8 +6,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.toSTOMPMessage
-import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -19,13 +19,17 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.ChatRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.WebsocketRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
+import com.darcy.kmpdemo.x3dh.MessageKey
+import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetSendStepUseCase
 import kotlin.reflect.KClass
 
 class ChatViewModel(
     private val chatRepository: ChatRepository = ChatRepository(),
     private val websocketRepository: WebsocketRepository = WebsocketRepository,
+    private val doubleRatchetSendStepUseCase: DoubleRatchetSendStepUseCase = DoubleRatchetSendStepUseCase(),
 ) : BaseViewModel<ChatState>() {
     companion object {
+        private const val TAG = "ChatViewModel"
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: KClass<T>, extras: CreationExtras): T {
@@ -82,12 +86,29 @@ class ChatViewModel(
     }
 
     private fun actionSendMessage(message: PrivateMessageResponse) {
-        // todo: websocket发送消息 添加 DH棘轮 公钥
-        val headers = mapOf(
-            "dhPublicKey" to ""
-        )
-        websocketRepository.sendMessage(message.toSTOMPMessage(), headers)
-        dispatch(ChatIntent.RefreshBySendMessage(message))
+        io {
+            // todo: websocket发送消息 添加 DH棘轮 公钥
+            val localUserId = IMGlobalStorage.getCurrentUserId()
+            val remoteUserId = message.receiverId
+            val messageKeyLocal = doubleRatchetSendStepUseCase.invoke(
+                mapOf(
+                    "localUserId" to localUserId.toString(),
+                    "remoteUserId" to remoteUserId.toString()
+                )
+            ).onFailure {
+                logE("计算 messageKey 错误: ${it.message}")
+                it.printStackTrace()
+            }.getOrElse { MessageKey() }
+            logD("$TAG sendMessage messageKeyLocal: $messageKeyLocal")
+            /**
+             * 发送消息
+             */
+            websocketRepository.sendMessage(
+                message.toSTOMPMessage(),
+                messageKeyLocal.toMap()
+            )
+            dispatch(ChatIntent.RefreshBySendMessage(message))
+        }
     }
 
     private fun actionRegisterReceiveMessage() {

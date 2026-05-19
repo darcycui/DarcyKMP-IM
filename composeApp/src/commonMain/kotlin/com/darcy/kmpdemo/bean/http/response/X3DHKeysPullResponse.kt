@@ -9,6 +9,6 @@ data class X3DHKeysPullResponse(
     val identityKey: String = "",
     val signedPreKey: String = "",
     val oneTimePreKey: String = "",
-    val oneTimePreKeyIndex: Long = 0,
+    val oneTimePreKeyId: String = "",
 ) {
 }

@@ -97,7 +97,7 @@ fun PhoneRegisterInnerPage(viewModel: RegisterViewModel) {
 private fun RegisterComponent(
     nameTextFieldState: TextFieldState = TextFieldState(""),
     nickNameTextFieldState: TextFieldState = TextFieldState(""),
-    passwordTextFieldState: TextFieldState = TextFieldState(""),
+    passwordTextFieldState: TextFieldState = TextFieldState("123456"),
     phoneTextFieldState: TextFieldState = TextFieldState(""),
     emailTextFieldState: TextFieldState = TextFieldState(""),
     viewModel: RegisterViewModel? = null
@@ -106,18 +106,19 @@ private fun RegisterComponent(
         TextField(
             state = nameTextFieldState,
             placeholder = { Text("用户名") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             state = nickNameTextFieldState,
             placeholder = { Text("昵称") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
             state = passwordTextFieldState,
             placeholder = { Text("密码") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
         TextField(
@@ -129,7 +130,7 @@ private fun RegisterComponent(
         TextField(
             state = emailTextFieldState,
             placeholder = { Text("邮箱") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth()
         )
         Button(modifier = Modifier.fillMaxWidth(), onClick = {

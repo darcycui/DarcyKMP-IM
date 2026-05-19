@@ -19,6 +19,9 @@ interface OneTimePreKeyDao {
     @Query("SELECT * FROM OneTimePreKeyEntity WHERE id=:id")
     suspend fun getById(id: Long): OneTimePreKeyEntity?
 
+    @Query("SELECT * FROM OneTimePreKeyEntity WHERE keyId=:keyId")
+    suspend fun getByKeyId(keyId: String): OneTimePreKeyEntity?
+
     @Query("SELECT * FROM OneTimePreKeyEntity WHERE userId=:userId")
     suspend fun getAllByUserId(userId: Long): List<OneTimePreKeyEntity>
 
