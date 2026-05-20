@@ -18,12 +18,12 @@ class ChatReducer :
         return when (intent) {
             is ChatIntent.RefreshByReceiveMessage -> {
                 state.copy(
-                    items = listOf(intent.message) + state.items
+                    items = state.items + listOf(intent.message)
                 )
             }
             is ChatIntent.RefreshBySendMessage -> {
                 state.copy(
-                    items = listOf(intent.message) + state.items
+                    items = state.items + listOf(intent.message)
                 )
             }
 

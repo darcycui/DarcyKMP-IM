@@ -28,7 +28,7 @@ class DoubleRatchetReceiveStepUseCase : IUseCase<MessageKey> {
                 Exception("sessionRecord is null")
             )
         val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
-        EncryptUtil.log("$localUserId Root密钥(旧):", lastRootKey)
+        EncryptUtil.log("$localUserId 根密钥(旧):", lastRootKey)
 
         // DH 棘轮同步
         val localEphemeralPrivateKey = sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
@@ -43,7 +43,7 @@ class DoubleRatchetReceiveStepUseCase : IUseCase<MessageKey> {
         val dhRatchetAlice =
             hkdf.deriveSecrets(newDH, lastRootKey, "DHInfo".encodeToByteArray(), 64) // 盐:K1
         val pairAlice = EncryptUtil.splitArray64(dhRatchetAlice, 32)
-        // Root密钥(新)
+        // 根密钥(新)
         val K3 = pairAlice.first
         EncryptUtil.log("$localUserId 根密钥(新):", K3)
         // 接收链密钥

@@ -154,9 +154,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                     it.subscribe(SEND_TOPIC).collect { frame: StompFrame ->
                         val headers = frame.headers.asMap() // 获取消息 headers
                         val body = frame.body // 获取消息体
-                        println("$TAG onReceive topic message <-- $body")
-                        println("$TAG message headers <-- $headers")
-
+                        println("$TAG onReceive topic message")
                         // 将消息体和 headers 一起传递给外部监听器
                         onMessage(body.toJsonString(), headers)
                     }
@@ -199,8 +197,8 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     }
 
     override suspend fun send(message: STOMPMessage, headers: Map<String, String>) {
+        println("$TAG send message... --> ${message.content}")
         val jsonMessage = kotlinxJson.encodeToString(message)
-        //println("$TAG send message... --> $jsonMessage")
         session?.let {
             runCatching {
                 // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)

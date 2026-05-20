@@ -41,9 +41,9 @@ class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
         val dhRatchetAlice =
             hkdf.deriveSecrets(newDH, lastRootKey, "DHInfo".encodeToByteArray(), 64) // 盐:K1
         val pairAlice = EncryptUtil.splitArray64(dhRatchetAlice, 32)
-        // Root密钥(新)
+        // 根密钥(新)
         val K3 = pairAlice.first
-        EncryptUtil.log("$localUserId Root密钥(新):", K3)
+        EncryptUtil.log("$localUserId 根密钥(新):", K3)
         // 发送链密钥
         val K4 = pairAlice.second
         EncryptUtil.log("$localUserId 发送链密钥:", K4)

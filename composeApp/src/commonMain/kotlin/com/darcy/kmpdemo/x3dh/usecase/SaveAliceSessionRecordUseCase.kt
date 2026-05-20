@@ -19,7 +19,7 @@ class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
             val bobSignedPreKey = params["bobSignedPreKey"] ?: return Result.failure(Exception("bobSignedPreKey is null"))
             val bobIdentityKey = params["bobIdentityKey"] ?: return Result.failure(Exception("bobIdentityKey is null"))
             val pairAlice = EncryptUtil.splitArray64(x3DHKeyStr.hexStrToBytes(), 32)
-            // Alice Root密钥
+            // Alice 根密钥
             val K1 = pairAlice.first
             // Alice 接收链密钥
             val K2 = pairAlice.second
