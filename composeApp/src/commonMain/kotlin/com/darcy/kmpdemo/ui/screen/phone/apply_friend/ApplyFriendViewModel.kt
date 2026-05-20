@@ -7,6 +7,7 @@ import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.ui.AddFriendBean
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
 import com.darcy.kmpdemo.storage.database.daos.SessionRecordDao
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
@@ -112,6 +113,7 @@ class ApplyFriendViewModel(
                         main { dispatch(error.toTipsIntent()) }
                         return@io
                     }
+                    logV("aliceEphemeralKey 公钥：${aliceEphemeralKey.publicKey.toBytes().toHexString()}")
                     // todo 保存 sessionRecord 到数据库
                     val saveSessionResult = saveAliceX3DHKeyUseCase.invoke(
                         mapOf(

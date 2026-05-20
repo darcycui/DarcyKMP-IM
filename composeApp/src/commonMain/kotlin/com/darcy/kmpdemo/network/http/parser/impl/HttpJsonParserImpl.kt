@@ -1,30 +1,16 @@
-package com.darcy.kmpdemo.network.parser.impl
+package com.darcy.kmpdemo.network.http.parser.impl
 
 import com.darcy.kmpdemo.bean.http.base.BaseResult
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
-import com.darcy.kmpdemo.log.logD
-import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.network.parser.IJsonParser
+import com.darcy.kmpdemo.network.http.parser.IHttpJsonParser
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.modules.SerializersModule
 
-val kotlinxJson = Json {
-    prettyPrint = true
-    isLenient = true
-    ignoreUnknownKeys = true
-    coerceInputValues = true
-    serializersModule = SerializersModule {
-        // 注册BaseResult的上下文序列化器 KSerializer
-    }
-}
-
-class JsonParserImpl : IJsonParser {
+class HttpJsonParserImpl : IHttpJsonParser {
     override fun <T> toBean(
         json: String,
         kSerializer: KSerializer<T>,

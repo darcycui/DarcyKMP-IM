@@ -4,10 +4,9 @@ import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
-import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
-import com.darcy.kmpdemo.network.parser.impl.kotlinxJson
+import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
@@ -98,7 +97,7 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onMessage(body: String, headers: Map<String, String>) {
-                logV("$TAG onMessage:$headers $body")
+                //logV("$TAG onMessage:$headers $body")
                 handleReceiveMessage(body, headers)
             }
 
@@ -157,7 +156,8 @@ object WebsocketRepository : IRepository {
                 val messageKeyLocal = doubleRatchetReceiveStepUseCase.invoke(
                     mapOf(
                         "localUserId" to localUserId.toString(),
-                        "remoteUserId" to messageKey.fromUserId.toString()
+                        "remoteUserId" to messageKey.fromUserId.toString(),
+                        "remoteDHKey" to messageKey.dhPublicKey,
                     )
                 ).onFailure {
                     logE("$TAG handleReceiveMessage failed: ${it.message}")

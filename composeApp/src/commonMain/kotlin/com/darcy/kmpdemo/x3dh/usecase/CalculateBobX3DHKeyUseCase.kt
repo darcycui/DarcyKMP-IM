@@ -20,13 +20,21 @@ class CalculateBobX3DHKeyUseCase : IUseCase<ByteArray> {
         val oneTimePreKeyId = params["bobOneTimePreKeyId"] ?: return Result.failure(Exception("bobOneTimePreKeyId is null"))
         val bobIdentityKey = identityKeyDao.getByUserId(bobUserId) ?: return Result.failure(Exception("bobIdentityKey is null"))
         val bobIdentityPrivate = bobIdentityKey.privateKey.hexStrToBytes().toPrivateKey()
+        val bobIdentityPublic = bobIdentityKey.publicKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$bobUserId bobIdentityPublic", bobIdentityPublic)
         val bobSignedPreKey = signedPreKeyDao.getByUserId(bobUserId) ?: return Result.failure(Exception("bobSignedPreKey is null"))
         val bobSignedPreKeyPrivate = bobSignedPreKey.privateKey.hexStrToBytes().toPrivateKey()
+        val bobSignedPreKeyPublic = bobSignedPreKey.publicKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$bobUserId bobSignedPreKeyPublic", bobSignedPreKeyPublic)
         val bobOneTimePreKey = oneTimePreKeyDao.getByKeyId(oneTimePreKeyId) ?: return Result.failure(Exception("bobOneTimePreKey is null"))
         val bobOneTimePreKeyPrivate = bobOneTimePreKey.privateKey.hexStrToBytes().toPrivateKey()
+        val bobOneTimePreKeyPublic = bobOneTimePreKey.publicKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$bobUserId bobOneTimePreKeyPublic", bobOneTimePreKeyPublic)
 
         val aliceIdentityPublic = aliceIdentityKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$bobUserId aliceIdentityPublic", aliceIdentityPublic)
         val aliceEphemeralPublic = aliceEphemeralKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$bobUserId aliceEphemeralPublic", aliceEphemeralPublic)
 
         val dh1 = ECCExchangeHelper.getSharedSecret(bobIdentityPrivate, aliceIdentityPublic)
         val dh2 = ECCExchangeHelper.getSharedSecret(bobIdentityPrivate, aliceEphemeralPublic)
@@ -35,6 +43,7 @@ class CalculateBobX3DHKeyUseCase : IUseCase<ByteArray> {
         val sharedSecret = EncryptUtil.appendArrays(dh1, dh2, dh3, dh4)
         val x3DHKey =
             HKDF1().deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
+        EncryptUtil.log("$bobUserId x3DHKey", x3DHKey)
         return Result.success(x3DHKey)
     }
 }

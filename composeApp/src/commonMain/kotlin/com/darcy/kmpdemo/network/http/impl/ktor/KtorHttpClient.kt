@@ -4,10 +4,9 @@ import com.darcy.kmpdemo.bean.http.base.BaseResult
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.network.http.IHttp
-import com.darcy.kmpdemo.network.parser.impl.JsonParserImpl
+import com.darcy.kmpdemo.network.http.parser.impl.HttpJsonParserImpl
 import com.darcy.kmpdemo.utils.toFormDataContent
 import com.darcy.kmpdemo.utils.toUrlEncodedString
-import io.github.aakira.napier.Napier.i
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -35,7 +34,7 @@ class KtorHttpClient : IHttp {
     private val scope: CoroutineScope =
         CoroutineScope(Dispatchers.Default + SupervisorJob() + exceptionHandler)
     private val jsonParser by lazy {
-        JsonParserImpl()
+        HttpJsonParserImpl()
     }
 
     override fun <T> doGetRequest(

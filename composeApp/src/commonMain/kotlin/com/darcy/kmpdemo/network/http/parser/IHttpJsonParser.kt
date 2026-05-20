@@ -1,10 +1,10 @@
-package com.darcy.kmpdemo.network.parser
+package com.darcy.kmpdemo.network.http.parser
 
 import com.darcy.kmpdemo.bean.http.base.BaseResult
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import kotlinx.serialization.KSerializer
 
-interface IJsonParser {
+interface IHttpJsonParser {
     fun <T> toBean(
         json: String,
         kSerializer: KSerializer<T>,

@@ -30,10 +30,17 @@ class CalculateAliceX3DHKeyUseCase : IUseCase<Pair<ByteArray, XDH.KeyPair>> {
         val aliceIdentityPrivate = aliceIdentityPrivateKey.privateKey.hexStrToBytes().toPrivateKey()
         val aliceEphemeralKey = ECCExchangeHelper.generateKeyPair()
         val aliceEphemeralPrivate = aliceEphemeralKey.privateKey
+        val aliceIdentityPublic = aliceIdentityPrivateKey.publicKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$aliceUserId aliceIdentityPublic=", aliceIdentityPublic)
+        val aliceEphemeralPublic = aliceEphemeralKey.publicKey
+        EncryptUtil.log("$aliceUserId aliceEphemeralPublic=", aliceEphemeralPublic)
 
         val bobIdentityPublic = bobKeys.identityKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$aliceUserId bobIdentityPublic=", bobIdentityPublic)
         val bobSignedPreKeyPublic = bobKeys.signedPreKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$aliceUserId bobSignedPreKeyPublic=", bobSignedPreKeyPublic)
         val bobOneTimePreKeyPublic = bobKeys.oneTimePreKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$aliceUserId bobOneTimePreKeyPublic=", bobOneTimePreKeyPublic)
 
         val dh1 = ECCExchangeHelper.getSharedSecret(aliceIdentityPrivate, bobIdentityPublic)
         val dh2 = ECCExchangeHelper.getSharedSecret(aliceEphemeralPrivate, bobIdentityPublic)
@@ -42,6 +49,7 @@ class CalculateAliceX3DHKeyUseCase : IUseCase<Pair<ByteArray, XDH.KeyPair>> {
         val sharedSecret = EncryptUtil.appendArrays(dh1, dh2, dh3, dh4)
         val x3DHKey =
             HKDF1().deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
+        EncryptUtil.log("$aliceUserId x3DHKey", x3DHKey)
         return Result.success(Pair(x3DHKey, aliceEphemeralKey))
     }
 }

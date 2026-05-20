@@ -3,8 +3,9 @@ package com.darcy.kmpdemo.network.websocket.impl
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.impl.ktor.ktorClient
-import com.darcy.kmpdemo.network.parser.impl.kotlinxJson
+import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
 import com.darcy.kmpdemo.network.websocket.IWebSocketClient
+import com.darcy.kmpdemo.network.websocket.frame.toJsonString
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -26,7 +27,6 @@ import org.hildan.krossbow.stomp.headers.ExperimentalHeadersApi
 import org.hildan.krossbow.stomp.headers.StompSendHeaders
 import org.hildan.krossbow.stomp.instrumentation.KrossbowInstrumentation
 import org.hildan.krossbow.stomp.subscribe
-import org.hildan.krossbow.stomp.subscribeText
 import org.hildan.krossbow.websocket.WebSocketClient
 import org.hildan.krossbow.websocket.WebSocketFrame
 import org.hildan.krossbow.websocket.ktor.KtorWebSocketClient
@@ -141,13 +141,11 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                 // 启动私有消息订阅
                 privateSubscriptionJob = scope.launch {
                     it.subscribe(RECEIVE_PRIVATE).collect { frame ->
-                        println("$TAG onReceive private message <-- $frame")
+                        println("$TAG onReceive private message")
                         val headers = frame.headers.asMap() // 获取消息 headers
                         val body = frame.body // 获取消息体
-                        println("$TAG onReceive message <-- $body")
-                        println("$TAG message headers <-- $headers")
                         // 将消息体和 headers 一起传递给外部监听器
-                        onMessage(body.toString(), headers)
+                        onMessage(body.toJsonString(), headers)
                     }
 
                 }
@@ -160,7 +158,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                         println("$TAG message headers <-- $headers")
 
                         // 将消息体和 headers 一起传递给外部监听器
-                        onMessage(body.toString(), headers)
+                        onMessage(body.toJsonString(), headers)
                     }
                 }
             } ?: run {
@@ -254,7 +252,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     }
 
     override fun onMessage(body: String, headers: Map<String, String>) {
-        println("$TAG onMessage... $body")
+        //println("$TAG onMessage... $headers $body")
         outListener?.onMessage(body, headers)
     }
 

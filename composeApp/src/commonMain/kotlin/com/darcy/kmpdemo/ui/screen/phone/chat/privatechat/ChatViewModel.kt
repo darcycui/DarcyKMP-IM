@@ -96,7 +96,7 @@ class ChatViewModel(
                     "remoteUserId" to remoteUserId.toString()
                 )
             ).onFailure {
-                logE("计算 messageKey 错误: ${it.message}")
+                logE("发送时计算messageKey错误: ${it.message}")
                 it.printStackTrace()
             }.getOrElse { MessageKey() }
             logD("$TAG sendMessage messageKeyLocal: $messageKeyLocal")

@@ -2,7 +2,7 @@ package com.darcy.kmpdemo.x3dh
 
 data class MessageKey(
     val fromUserId: Long = 0,
-    val dxPublicKey: String = "",
+    val dhPublicKey: String = "",
     val sendingIndex: Long = 0,
     val receivingIndex: Long = 0,
     val messageKey: String = "",
@@ -17,7 +17,7 @@ data class MessageKey(
         fun fromMap(map: Map<String, String>): MessageKey {
             return MessageKey(
                 fromUserId = map[FROM_USER_ID]?.toLongOrNull() ?: 0,
-                dxPublicKey = map[DX_PUBLIC_KEY] ?: "",
+                dhPublicKey = map[DX_PUBLIC_KEY] ?: "",
                 sendingIndex = map[SENDING_INDEX]?.toLongOrNull() ?: 0,
                 receivingIndex = map[RECEIVING_INDEX]?.toLongOrNull() ?: 0,
             )
@@ -27,7 +27,7 @@ data class MessageKey(
     fun toMap(): Map<String, String> {
         return mapOf(
             FROM_USER_ID to fromUserId.toString(),
-            DX_PUBLIC_KEY to dxPublicKey,
+            DX_PUBLIC_KEY to dhPublicKey,
             SENDING_INDEX to sendingIndex.toString(),
             RECEIVING_INDEX to receivingIndex.toString(),
         )

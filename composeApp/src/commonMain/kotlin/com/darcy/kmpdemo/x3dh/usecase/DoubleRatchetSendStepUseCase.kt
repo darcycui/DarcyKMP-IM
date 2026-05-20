@@ -11,7 +11,6 @@ import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.chain.ChainKey
 import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
-import dev.whyoleg.cryptography.algorithms.XDH
 
 class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
     private val sessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
@@ -25,13 +24,18 @@ class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
                 Exception("sessionRecord is null")
             )
         val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
+        EncryptUtil.log("$localUserId 根密钥(旧):", lastRootKey)
         val remoteDHKey = sessionRecord.remoteDHKey.hexStrToBytes().toPublicKey()
 
         // DH 棘轮步进
         val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
         val localEphemeralPrivateKey = localEphemeralKey.privateKey
         val localEphemeralPublicKey = localEphemeralKey.publicKey
+        EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
+        EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
+        EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
         val newDH = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
+        EncryptUtil.log("$localUserId DH 棘轮步进:", newDH)
         // KDF 棘轮步进
         val hkdf = HKDF1()
         val dhRatchetAlice =
@@ -39,18 +43,22 @@ class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
         val pairAlice = EncryptUtil.splitArray64(dhRatchetAlice, 32)
         // Root密钥(新)
         val K3 = pairAlice.first
+        EncryptUtil.log("$localUserId Root密钥(新):", K3)
         // 发送链密钥
         val K4 = pairAlice.second
+        EncryptUtil.log("$localUserId 发送链密钥:", K4)
         // 更新 sessionRecord 数据库
-        updateSessionRecordBySend(sessionRecord, K3, K4)
+        val newSendingChainIndex = sessionRecord.sendingChainIndex + 1
+        println("$localUserId 发送链索引: $newSendingChainIndex")
+        updateSessionRecordBySend(sessionRecord, K3, K4, newSendingChainIndex)
         // KDF 棘轮(发送链)步进一次
-        val senderChainAlice = ChainKey(hkdf, K4, sessionRecord.sendingChainIndex)
+        val senderChainAlice = ChainKey(hkdf, K4, newSendingChainIndex)
         val messageKeyAlice = senderChainAlice.getMessageKeys() // 计算消息密钥
         EncryptUtil.log("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyAlice)
         val messageKey = MessageKey(
             fromUserId = localUserId,
-            dxPublicKey = localEphemeralPublicKey.toBytes().toHexString(),
-            sendingIndex = sessionRecord.sendingChainIndex + 1,
+            dhPublicKey = localEphemeralPublicKey.toBytes().toHexString(),
+            sendingIndex = newSendingChainIndex,
             receivingIndex = sessionRecord.receivingChainIndex,
             messageKey = messageKeyAlice.toHexString(),
         )
@@ -60,11 +68,12 @@ class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
     private suspend fun updateSessionRecordBySend(
         sessionRecord: SessionRecordEntity,
         K3: ByteArray,
-        K4: ByteArray
+        K4: ByteArray,
+        newSendingChainIndex: Long
     ) {
         val newSessionRecord = sessionRecord.copy(
             rootKey = K3.toHexString(),
-            sendingChainIndex = sessionRecord.sendingChainIndex + 1,
+            sendingChainIndex = newSendingChainIndex,
             sendingChainKey = K4.toHexString()
         )
         sessionRecordDao.update(newSessionRecord)

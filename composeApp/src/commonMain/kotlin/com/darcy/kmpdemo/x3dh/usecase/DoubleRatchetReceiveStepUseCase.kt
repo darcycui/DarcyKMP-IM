@@ -6,12 +6,12 @@ import com.darcy.kmpdemo.ui.base.IUseCase
 import com.darcy.kmpdemo.utils.EncryptUtil
 import com.darcy.kmpdemo.utils.hexStrToBytes
 import com.darcy.kmpdemo.utils.toBytes
+import com.darcy.kmpdemo.utils.toPrivateKey
 import com.darcy.kmpdemo.utils.toPublicKey
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.chain.ChainKey
 import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
-import dev.whyoleg.cryptography.algorithms.XDH
 
 class DoubleRatchetReceiveStepUseCase : IUseCase<MessageKey> {
     private val sessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
@@ -20,18 +20,24 @@ class DoubleRatchetReceiveStepUseCase : IUseCase<MessageKey> {
             ?: return Result.failure(Exception("localUserId is null"))
         val remoteUserId = params["remoteUserId"]?.toLongOrNull()
             ?: return Result.failure(Exception("remoteUserId is null"))
+        val remoteDHKey = params["remoteDHKey"]?.hexStrToBytes()?.toPublicKey() ?: return Result.failure(
+            Exception("remoteDHKey is null")
+        )
         val sessionRecord =
             sessionRecordDao.getByUserId(localUserId, remoteUserId) ?: return Result.failure(
                 Exception("sessionRecord is null")
             )
         val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
-        val remoteDHKey = sessionRecord.remoteDHKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$localUserId Root密钥(旧):", lastRootKey)
 
-        // DH 棘轮步进
-        val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
-        val localEphemeralPrivateKey = localEphemeralKey.privateKey
-        val localEphemeralPublicKey = localEphemeralKey.publicKey
+        // DH 棘轮同步
+        val localEphemeralPrivateKey = sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
+        val localEphemeralPublicKey = sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
+        EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
+        EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
         val newDH = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
+        EncryptUtil.log("$localUserId DH 棘轮同步:", newDH)
         // KDF 棘轮步进
         val hkdf = HKDF1()
         val dhRatchetAlice =
@@ -39,18 +45,22 @@ class DoubleRatchetReceiveStepUseCase : IUseCase<MessageKey> {
         val pairAlice = EncryptUtil.splitArray64(dhRatchetAlice, 32)
         // Root密钥(新)
         val K3 = pairAlice.first
+        EncryptUtil.log("$localUserId 根密钥(新):", K3)
         // 接收链密钥
         val K4 = pairAlice.second
+        EncryptUtil.log("$localUserId 接收链密钥:", K4)
         // 更新 sessionRecord 数据库
-        updateSessionRecordByReceive(sessionRecord, K3, K4)
+        val newReceivingChainIndex = sessionRecord.receivingChainIndex + 1
+        updateSessionRecordByReceive(sessionRecord, K3, K4, newReceivingChainIndex)
         // KDF 棘轮(发送链)步进一次
-        val senderChainAlice = ChainKey(hkdf, K4, sessionRecord.receivingChainIndex)
+        val senderChainAlice = ChainKey(hkdf, K4, newReceivingChainIndex)
         val messageKeyAlice = senderChainAlice.getMessageKeys() // 计算消息密钥
         EncryptUtil.log("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyAlice)
         val messageKey = MessageKey(
-            dxPublicKey = localEphemeralPublicKey.toBytes().toHexString(),
+            fromUserId = remoteUserId,
+            dhPublicKey = localEphemeralPublicKey.toBytes().toHexString(),
             sendingIndex = sessionRecord.sendingChainIndex,
-            receivingIndex = sessionRecord.receivingChainIndex + 1,
+            receivingIndex = newReceivingChainIndex,
             messageKey = messageKeyAlice.toHexString()
         )
         return Result.success(messageKey)
@@ -59,11 +69,12 @@ class DoubleRatchetReceiveStepUseCase : IUseCase<MessageKey> {
     private suspend fun updateSessionRecordByReceive(
         sessionRecord: SessionRecordEntity,
         K3: ByteArray,
-        K4: ByteArray
+        K4: ByteArray,
+        newReceivingChainIndex: Long
     ) {
         val newSessionRecord = sessionRecord.copy(
             rootKey = K3.toHexString(),
-            receivingChainIndex = sessionRecord.sendingChainIndex + 1,
+            receivingChainIndex = newReceivingChainIndex,
             receivingChainKey = K4.toHexString()
         )
         sessionRecordDao.update(newSessionRecord)

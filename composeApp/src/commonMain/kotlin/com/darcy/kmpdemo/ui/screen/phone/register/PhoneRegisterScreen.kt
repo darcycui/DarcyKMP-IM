@@ -58,7 +58,7 @@ fun PhoneRegisterInnerPage(viewModel: RegisterViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
     val nickNameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
-    val passwordTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
+    val passwordTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("123456")) }
     val phoneTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
     val emailTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
     Box(modifier = Modifier.fillMaxSize()) {
@@ -97,7 +97,7 @@ fun PhoneRegisterInnerPage(viewModel: RegisterViewModel) {
 private fun RegisterComponent(
     nameTextFieldState: TextFieldState = TextFieldState(""),
     nickNameTextFieldState: TextFieldState = TextFieldState(""),
-    passwordTextFieldState: TextFieldState = TextFieldState("123456"),
+    passwordTextFieldState: TextFieldState = TextFieldState(""),
     phoneTextFieldState: TextFieldState = TextFieldState(""),
     emailTextFieldState: TextFieldState = TextFieldState(""),
     viewModel: RegisterViewModel? = null

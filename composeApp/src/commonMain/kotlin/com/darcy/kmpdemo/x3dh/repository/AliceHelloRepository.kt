@@ -2,6 +2,7 @@ package com.darcy.kmpdemo.x3dh.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.response.X3DHAliceHelloPullResponse
+import com.darcy.kmpdemo.bean.http.response.X3DHAliceHelloPushResponse
 import com.darcy.kmpdemo.bean.http.response.X3DHKeysPushResponse
 import com.darcy.kmpdemo.network.http.HttpManager
 import com.darcy.kmpdemo.network.http.urls.Darcy.PULL_ALICE_HELLO_MESSAGE_URL
@@ -16,11 +17,11 @@ class AliceHelloRepository : IRepository {
         aliceIdentityKey: String,
         aliceEphemeralKey: String,
         bobOneTimePreKeyId: String,
-        onSuccess: (X3DHKeysPushResponse) -> Unit,
+        onSuccess: (X3DHAliceHelloPushResponse) -> Unit,
         onError: (ErrorResponse) -> Unit,
     ): Unit {
         HttpManager.doPostRequest(
-            serializer<X3DHKeysPushResponse>(),
+            serializer<X3DHAliceHelloPushResponse>(),
             PUSH_ALICE_HELLO_MESSAGE_URL,
             mapOf(
                 "aliceUserId" to aliceUserId.toString(),
