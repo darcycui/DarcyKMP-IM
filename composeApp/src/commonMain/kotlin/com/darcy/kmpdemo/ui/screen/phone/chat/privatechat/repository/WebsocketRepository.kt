@@ -85,12 +85,12 @@ object WebsocketRepository : IRepository {
         logD("$TAG setupListener")
         webSocketManager.setOuterListener(object : IOuterListener {
             override fun onOpen() {
-                logI("WebsocketRepository onOpen")
+                logI("$TAG onOpen")
                 isConnected = true
             }
 
             override fun onSend(message: String) {
-                logD("WebsocketRepository onSend:$message")
+                //logD("WebsocketRepository onSend:$message")
             }
 
             override fun onSend(bytes: ByteArray) {
@@ -98,7 +98,7 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onMessage(body: String, headers: Map<String, String>) {
-                logV("WebsocketRepository onMessage:$body")
+                logV("$TAG onMessage:$headers $body")
                 handleReceiveMessage(body, headers)
             }
 
@@ -107,12 +107,12 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onFailure(errorMessage: String) {
-                logE("WebsocketRepository onFailure:$errorMessage")
+                logE("$TAG onFailure:$errorMessage")
                 //disconnect()
             }
 
             override fun onClosed() {
-                logW("WebsocketRepository onClosed")
+                logW("$TAG onClosed")
                 isConnected = false
             }
         })
@@ -133,8 +133,6 @@ object WebsocketRepository : IRepository {
     fun sendMessage(message: STOMPMessage, headers: Map<String, String>) {
         scope.launch {
             logD("$TAG sendMessage toUser:${message.receiverName}")
-            logD("$TAG sendMessage:headers=$headers")
-            logD("$TAG sendMessage:message=$message")
             if (!isConnected) {
                 logE("$TAG Cannot send message: not connected")
                 return@launch
@@ -153,8 +151,7 @@ object WebsocketRepository : IRepository {
     private fun handleReceiveMessage(message: String, headers: Map<String, String>) {
         runCatching {
             scope.launch(Dispatchers.Default) {
-                logD("$TAG handleMessage:headers=$headers")
-                logD("$TAG handleMessage:message=$message")
+                logD("$TAG handleMessage")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
                 val messageKeyLocal = doubleRatchetReceiveStepUseCase.invoke(

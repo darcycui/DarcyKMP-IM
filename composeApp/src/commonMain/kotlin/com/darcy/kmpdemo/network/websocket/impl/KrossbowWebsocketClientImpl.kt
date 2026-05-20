@@ -110,7 +110,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
                 override suspend fun onWebSocketFrameReceived(frame: WebSocketFrame) {
                     super.onWebSocketFrameReceived(frame)
-                    println("$TAG onWebSocketFrameReceived <-- ${frame.toString()}")
+                    //println("$TAG onWebSocketFrameReceived <-- ${frame.toString()}")
                 }
 
             }
@@ -202,7 +202,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
     override suspend fun send(message: STOMPMessage, headers: Map<String, String>) {
         val jsonMessage = kotlinxJson.encodeToString(message)
-        println("$TAG send message... --> $jsonMessage")
+        //println("$TAG send message... --> $jsonMessage")
         session?.let {
             runCatching {
                 // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
@@ -244,7 +244,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     }
 
     override fun onSend(message: String) {
-        println("$TAG onSend... $message")
+        //println("$TAG onSend... $message")
         outListener?.onSend(message)
     }
 
