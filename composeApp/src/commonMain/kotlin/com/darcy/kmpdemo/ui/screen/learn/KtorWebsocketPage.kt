@@ -86,6 +86,13 @@ private fun connectWS(scope: CoroutineScope, content: MutableState<String>) {
 //                updateText(scope, content, "onMessage:${bytes.toString(Charsets.UTF_8)}")
             }
 
+            override fun onMessageReadStatus(
+                body: String,
+                headers: Map<String, String>
+            ) {
+
+            }
+
             override fun onFailure(errorMessage: String) {
                 updateText(scope, content, "onFailure:$errorMessage")
             }

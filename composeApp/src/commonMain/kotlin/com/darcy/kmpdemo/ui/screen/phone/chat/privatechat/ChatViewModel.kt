@@ -102,6 +102,7 @@ class ChatViewModel(
             ).onFailure {
                 logE("发送时计算messageKey错误: ${it.message}")
                 it.printStackTrace()
+                return@io
             }.getOrElse { MessageKey() }
             logD("$TAG sendMessage messageKeyLocal: $messageKeyLocal")
             /**

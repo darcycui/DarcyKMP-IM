@@ -6,6 +6,7 @@ interface IOuterListener {
     fun onSend(bytes: ByteArray)
     fun onMessage(body: String, headers: Map<String, String>)
     fun onMessage(bytes: ByteArray, headers: Map<String, String>)
+    fun onMessageReadStatus(body: String, headers: Map<String, String>)
     fun onFailure(errorMessage: String)
     fun onClosed()
 }

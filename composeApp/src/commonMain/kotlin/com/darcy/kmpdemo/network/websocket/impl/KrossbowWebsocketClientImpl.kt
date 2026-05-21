@@ -1,10 +1,8 @@
 package com.darcy.kmpdemo.network.websocket.impl
 
-import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.impl.ktor.ktorClient
-import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
 import com.darcy.kmpdemo.network.websocket.IWebSocketClient
 import com.darcy.kmpdemo.network.websocket.frame.toJsonString
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
@@ -38,11 +36,15 @@ import kotlin.time.toDuration
 class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     companion object {
         private val TAG = KrossbowWebsocketClientImpl::class.simpleName
-        private val SEND_PRIVATE = "/app/sendPrivateMessage"
-        private val SEND_TARGET_GROUP = "/app/sendTargetGroupMessage"
-        private val SEND_TOPIC = "/app/sendGroupAllMessage"
-        private val RECEIVE_PRIVATE = "/user/queue/message"
-        private val RECEIVE_TARGET_GROUP = "/topic/group/" // + groupId
+        const val SEND_PRIVATE = "/app/sendPrivateMessage"
+        const val SEND_TARGET_GROUP = "/app/sendTargetGroupMessage"
+        const val SEND_TOPIC = "/app/sendGroupAllMessage"
+        const val SEND_MESSAGE_READ_STATUS = "/app/markMessageRead"
+
+        private const val RECEIVE_PRIVATE = "/user/queue/message"
+        private const val RECEIVE_TARGET_GROUP = "/topic/group/" // + groupId
+        private const val RECEIVE_TOPIC = "/topic/message"
+        private const val RECEIVE_MESSAGE_READ_STATUS = "/user/queue/message/read"
     }
 
     private var url: String = ""
@@ -51,6 +53,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     private var session: StompSession? = null
     private var privateSubscriptionJob: Job? = null
     private var topicSubscriptionJob: Job? = null
+    private var statusSubscriptionJob: Job? = null
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocket-stomp")
@@ -141,8 +144,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             throw NullPointerException("outListener is null. please call setOutListener() first.")
         }
         if (session != null) {
-            logD("$TAG already connected!")
-            return
+            session = null
         }
         runCatching {
             logD("$TAG connect...")
@@ -159,7 +161,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                 // 启动私有消息订阅
                 privateSubscriptionJob = scope.launch {
                     it.subscribe(RECEIVE_PRIVATE).collect { frame ->
-                        logD("$TAG onReceive private message")
+                        logD("$TAG onReceive privateMessage")
                         val headers = frame.headers.asMap() // 获取消息 headers
                         val body = frame.body // 获取消息体
                         // 将消息体和 headers 一起传递给外部监听器
@@ -169,12 +171,22 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                 }
                 // 启动主题消息订阅
                 topicSubscriptionJob = scope.launch {
-                    it.subscribe(SEND_TOPIC).collect { frame: StompFrame ->
+                    it.subscribe(RECEIVE_TOPIC).collect { frame: StompFrame ->
                         val headers = frame.headers.asMap() // 获取消息 headers
                         val body = frame.body // 获取消息体
-                        logD("$TAG onReceive topic message")
+                        logD("$TAG onReceive topicMessage")
                         // 将消息体和 headers 一起传递给外部监听器
                         onMessage(body.toJsonString(), headers)
+                    }
+                }
+                // 启动消息状态订阅
+                statusSubscriptionJob = scope.launch {
+                    it.subscribe(RECEIVE_MESSAGE_READ_STATUS).collect { frame: StompFrame ->
+                        val headers = frame.headers.asMap() // 获取消息 headers
+                        val body = frame.body // 获取消息体
+                        logD("$TAG onReceive messageReadStatus")
+                        // 将消息体和 headers 一起传递给外部监听器
+                        onMessageReadStatus(body.toJsonString(), headers)
                     }
                 }
             } ?: run {
@@ -210,18 +222,20 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     private fun cleanupSubscriptions() {
         privateSubscriptionJob?.cancel()
         topicSubscriptionJob?.cancel()
+        statusSubscriptionJob?.cancel()
         privateSubscriptionJob = null
         topicSubscriptionJob = null
+        statusSubscriptionJob = null
     }
 
-    override suspend fun send(message: STOMPMessage, headers: Map<String, String>) {
-        logD("$TAG send message... --> ${message.content}")
-        val jsonMessage = kotlinxJson.encodeToString(message)
+    override suspend fun send(message: String, destination: String, headers: Map<String, String>) {
+        logD("$TAG send message... --> $message")
+        val jsonMessage = (message)
         session?.let {
             runCatching {
                 // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
                 val receipt = it.send(
-                    headers = StompSendHeaders(SEND_PRIVATE) { setAll(headers) },
+                    headers = StompSendHeaders(destination) { setAll(headers) },
                     body = FrameBody.Text(jsonMessage)
                 )
                 logD("$TAG 收到receipt: $receipt")
@@ -275,6 +289,14 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     override fun onMessage(bytes: ByteArray, headers: Map<String, String>) {
         logE("$TAG onMessage2... $bytes")
         TODO("Not yet implemented")
+    }
+
+    override fun onMessageReadStatus(
+        body: String,
+        headers: Map<String, String>
+    ) {
+        logD("$TAG onMessageReadStatus...")
+        outListener?.onMessageReadStatus(body, headers)
     }
 
     override fun onFailure(errorMessage: String) {

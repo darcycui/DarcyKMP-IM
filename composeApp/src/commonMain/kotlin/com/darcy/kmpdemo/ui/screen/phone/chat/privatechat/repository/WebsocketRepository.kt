@@ -1,13 +1,15 @@
 package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository
 
+import com.darcy.kmpdemo.bean.http.request.MessageReadStatusInputDTO
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
 import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
+import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
+import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
@@ -112,6 +114,14 @@ object WebsocketRepository : IRepository {
                 TODO("Not yet implemented")
             }
 
+            override fun onMessageReadStatus(
+                body: String,
+                headers: Map<String, String>
+            ) {
+                // todo 更新数据库已读状态 用于双棘轮
+                logW("$TAG onMessageReadStatus:更新数据库已读状态 用于双棘轮")
+            }
+
             override fun onFailure(errorMessage: String) {
                 //logE("$TAG onFailure:$errorMessage")
                 scope.launch {
@@ -149,7 +159,11 @@ object WebsocketRepository : IRepository {
                 logE("$TAG Cannot send message: not connected")
                 return@launch
             }
-            webSocketManager.send(message, headers)
+            webSocketManager.send(
+                kotlinxJson.encodeToString(message),
+                SEND_PRIVATE,
+                headers
+            )
         }
     }
 
@@ -173,17 +187,49 @@ object WebsocketRepository : IRepository {
                         "remoteDHKey" to messageKey.dhPublicKey,
                     )
                 ).onFailure {
-                    logE("$TAG handleReceiveMessage failed: ${it.message}")
+                    logE("$TAG 接收时计算messageKey错误: ${it.message}")
                     it.printStackTrace()
                     return@launch
                 }.getOrElse { MessageKey() }
                 logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
                 val messageEntity = kotlinxJson.decodeFromString<STOMPMessage>(message)
                 _messageFlow.emit(messageEntity)
+                // 发送已读状态
+                sendMessageReadStatus(messageEntity, headers)
             }
         }.onFailure {
             logE("$TAG handle message failed: ${it.message}")
             it.printStackTrace()
+        }
+    }
+
+    /**
+     * 收到消息后 标记消息已读
+     */
+    fun sendMessageReadStatus(
+        messageEntity: STOMPMessage,
+        headers: Map<String, String>
+    ) {
+        scope.launch {
+            logD("$TAG markMessageReadStatus")
+            val messageReadStatusInputDTO = MessageReadStatusInputDTO(
+                userId = messageEntity.receiverId,
+                targetId = messageEntity.senderId,
+                targetName = messageEntity.senderName,
+                msgIds = listOf(messageEntity.msgId),
+                conversationType = 1,
+                clientType = "",
+                deviceId = ""
+            )
+            if (!isConnected) {
+                logE("$TAG Cannot mark message read status: not connected")
+                return@launch
+            }
+            webSocketManager.send(
+                kotlinxJson.encodeToString(messageReadStatusInputDTO),
+                SEND_MESSAGE_READ_STATUS,
+                mapOf()
+            )
         }
     }
 }
