@@ -12,3 +12,7 @@ actual fun getPlatform(): Platform {
 actual fun isPhonePlatform(): Boolean {
     return true
 }
+
+actual fun isJvmPlatform(): Boolean {
+    return false
+}
