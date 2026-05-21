@@ -2,6 +2,8 @@ package com.darcy.kmpdemo.ui.screen.phone.conversations.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.response.ConversationResponse
+import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
 import com.darcy.kmpdemo.network.http.urls.Darcy.CREATE_CONVERSATION_URL
 import com.darcy.kmpdemo.network.http.urls.Darcy.QUERY_CONVERSATION_LIST_URL
@@ -25,11 +27,11 @@ class ConversationRepository : IRepository {
             needCache = true,
             success = {},
             successList = {
-                println("success: itClazz=${it.result::class}")
+                logD("success: itClazz=${it.result::class}")
                 onSuccessList(it.result)
             },
             errors = {
-                println("error: it=$it")
+                logE("error: it=$it")
                 onError(it)
             })
     }
@@ -53,12 +55,12 @@ class ConversationRepository : IRepository {
             needRetry = true,
             needCache = true,
             success = {
-                println("success: itClazz=${it.result::class}")
+                logD("success: itClazz=${it.result::class}")
                 onSuccess(it.result)
             },
             successList = { },
             errors = {
-                println("error: it=$it")
+                logE("error: it=$it")
                 onError(it)
             })
     }

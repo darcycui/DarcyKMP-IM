@@ -7,7 +7,7 @@ import com.darcy.kmpdemo.platform.isJvmPlatform
 
 const val DARCY_TAG = "DarcyLog"
 
-object Loger {
+object DarcyLogger {
     val isJVMPlatform = isJvmPlatform()
     fun initLogger() {
         if (isJVMPlatform) {
@@ -22,27 +22,15 @@ object Loger {
 }
 
 fun logD(msg: String, tag: String = DARCY_TAG, throwable: Throwable? = null) {
-//    if (Loger.isJVMPlatform) {
-//        println("$tag $msg")
-//    } else {
-        Napier.d(message = msg, tag = tag, throwable = throwable)
-//    }
+    Napier.d(message = msg, tag = tag, throwable = throwable)
 }
 
 fun logI(msg: String, tag: String = DARCY_TAG, throwable: Throwable? = null) {
-//    if (Loger.isJVMPlatform) {
-//        println("$tag $msg")
-//    } else {
-        Napier.i(message = msg, tag = tag, throwable = throwable)
-//    }
+    Napier.i(message = msg, tag = tag, throwable = throwable)
 }
 
 fun logV(msg: String, tag: String = DARCY_TAG, throwable: Throwable? = null) {
-//    if (Loger.isJVMPlatform) {
-//        println("$tag $msg")
-//    } else {
-        Napier.v(message = msg, tag = tag, throwable = throwable)
-//    }
+    Napier.v(message = msg, tag = tag, throwable = throwable)
 }
 
 fun logW(msg: String, tag: String = DARCY_TAG, throwable: Throwable? = null) {

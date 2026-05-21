@@ -20,12 +20,13 @@ val CustomHeaderPlugin = createClientPlugin("CustomHeaderPlugin") {
         request.header(config.headerName, config.headerValue)
     }
     onResponse { response ->
+        val message = "${response.status} ${response.call.request.url}"
         if (response.status == HttpStatusCode.Unauthorized
             || response.status == HttpStatusCode.Forbidden) {
 //        if (response.status == HttpStatusCode.OK) {
-            logE("CustomHeaderPlugin Response: 未授权 需要重新登录！")
+            logE("CustomHeaderPlugin Response: 未授权 需要重新登录！$message")
         } else {
-            logI("CustomHeaderPlugin Response: 已授权 ${response.status}")
+            logI("CustomHeaderPlugin Response: 已授权 $message")
         }
     }
 }

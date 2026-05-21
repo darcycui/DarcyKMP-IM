@@ -1,6 +1,6 @@
 package com.darcy.kmpdemo
 
-import com.darcy.kmpdemo.log.Loger
+import com.darcy.kmpdemo.log.DarcyLogger
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.utils.KeyValueHelper
 import kotlin.test.BeforeTest
@@ -11,7 +11,7 @@ class KmpStorageLibraryTest {
 
     @BeforeTest
     fun setUp() {
-        Loger.initLogger()
+        DarcyLogger.initLogger()
     }
 
     @Test

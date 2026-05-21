@@ -2,6 +2,8 @@ package com.darcy.kmpdemo.ui.screen.phone.friends.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.response.FriendshipResponse
+import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
 import com.darcy.kmpdemo.network.http.urls.Darcy.QUERY_FRIENDSHIP_LIST_URL
 import com.darcy.kmpdemo.repository.IRepository
@@ -24,11 +26,11 @@ class FriendsRepository : IRepository {
             needCache = true,
             success = {},
             successList = {
-                println("success: itClazz=${it.result::class}")
+                logD("success: itClazz=${it.result::class}")
                 onSuccessList(it.result)
             },
             errors = {
-                println("error: it=$it")
+                logE("error: it=$it")
                 onError(it)
             })
     }

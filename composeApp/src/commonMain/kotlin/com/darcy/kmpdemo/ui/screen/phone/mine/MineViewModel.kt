@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.response.LoginResponse
 import com.darcy.kmpdemo.bean.http.response.MineResponse
 import com.darcy.kmpdemo.bean.ui.UserItemBean
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.platform.FilePlatform
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -82,7 +83,7 @@ class MineViewModel : BaseViewModel<MineState>() {
     private fun actionPickImage() {
         io {
             val path = PickHelper.pickImage()
-            println("pick image: $path")
+            logD("pick image: $path")
             val cachePath = FilePlatform.dealUriIfNeed(path)
             dispatch(MineIntent.RefreshAvatar(cachePath.toString()))
         }

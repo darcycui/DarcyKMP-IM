@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.utils
 
+import com.darcy.kmpdemo.log.logD
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.XDH
 import kotlinx.coroutines.runBlocking
@@ -8,7 +9,7 @@ object KeyUtil {
     private val provider = CryptographyProvider.Default
     private val xdh = provider.get(XDH)
     fun bytesToPrivateKey(privateKeyBytes: ByteArray): XDH.PrivateKey {
-        println("privateKeyBytes长度: ${privateKeyBytes.size}")
+        logD("privateKeyBytes长度: ${privateKeyBytes.size}")
         return runBlocking {
             val curve = XDH.Curve.X25519
             // 使用 RAW 格式解码私钥
@@ -18,7 +19,7 @@ object KeyUtil {
     }
 
     fun bytesToPublicKey(publicKeyBytes: ByteArray): XDH.PublicKey {
-        println("publicKeyBytes长度: ${publicKeyBytes.size}")
+        logD("publicKeyBytes长度: ${publicKeyBytes.size}")
         return runBlocking {
             val curve = XDH.Curve.X25519
             // 使用 RAW 格式解码公钥

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.darcy.kmpdemo.bean.http.response.JuHeIPResponse
 import com.darcy.kmpdemo.bean.http.response.DarcyServerResponse
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.network.http.HttpManager
@@ -97,11 +98,11 @@ private fun doGetDarcy(scope: CoroutineScope, content: MutableState<String>) {
         needCache = true,
         success = {},
         successList = {
-            println("success: itClazz=${it.result::class}")
+            logD("success: itClazz=${it.result::class}")
             updateText(scope, content, it.toString())
         },
         errors = {
-            println("error: it=$it")
+            logD("error: it=$it")
             updateText(scope, content, "${it.status} ${it.message}")
         })
 }
@@ -117,19 +118,19 @@ private fun doPost(scope: CoroutineScope, content: MutableState<String>) {
         needRetry = true,
         needCache = true,
         success = {
-            println("success: itClazz=${it.result::class}")
+            logD("success: itClazz=${it.result::class}")
             updateText(scope, content, it.toString())
         },
         successList = {},
         errors = {
-            println("error: it=$it")
+            logD("error: it=$it")
             updateText(scope, content, "${it.status} ${it.message}")
         })
 }
 
 private fun updateText(scope: CoroutineScope, content: MutableState<String>, text: String) {
     scope.launch(Dispatchers.Main) {
-        println("text:$text")
+        logD("text:$text")
         content.value += "\n$text"
     }
 }

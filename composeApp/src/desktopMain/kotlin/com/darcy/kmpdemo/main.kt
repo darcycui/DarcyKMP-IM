@@ -2,6 +2,7 @@ package com.darcy.kmpdemo
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.darcy.kmpdemo.log.logD
 import io.github.kotlin.fibonacci.generateFibi
 
 fun main() = application {
@@ -11,6 +12,6 @@ fun main() = application {
     ) {
         App()
         val x = generateFibi().take(3).last()
-        println("fibonacci: $x")
+        logD("fibonacci: $x")
     }
 }

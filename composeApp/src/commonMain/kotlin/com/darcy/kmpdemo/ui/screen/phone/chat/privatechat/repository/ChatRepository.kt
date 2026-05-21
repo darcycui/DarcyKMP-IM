@@ -3,6 +3,8 @@ package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponsePage
+import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
 import com.darcy.kmpdemo.network.http.urls.Darcy.QUERY_PRIVATE_MESSAGE_URL
 import com.darcy.kmpdemo.repository.IRepository
@@ -29,12 +31,12 @@ class ChatRepository : IRepository {
             needRetry = true,
             needCache = true,
             success = {
-                println("success: itClazz=${it.result::class}")
+                logD("success: itClazz=${it.result::class}")
                 onSuccess(it.result)
             },
             successList = {},
             errors = {
-                println("error: it=$it")
+                logE("error: it=$it")
                 onError(it)
             })
     }

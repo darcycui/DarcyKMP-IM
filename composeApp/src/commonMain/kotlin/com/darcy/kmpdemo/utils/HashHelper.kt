@@ -10,7 +10,7 @@ object HashHelper {
     }
 
     fun sha256ByteArray(byteArray: ByteArray): ByteArray {
-        println("original bytearray: ${byteArray.contentToString()}")
+        logD("original bytearray: ${byteArray.contentToString()}")
         if (byteArray.isEmpty()) return ByteArray(0)
         val sha256 = SHA256()
         sha256.update(byteArray)

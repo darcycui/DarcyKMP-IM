@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import com.darcy.kmpdemo.log.Loger
+import com.darcy.kmpdemo.log.DarcyLogger
 import com.darcy.kmpdemo.ui.theme.AppTheme
 //import com.darcy.kmpdemo.network.ssl.SslSettings
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,7 +22,7 @@ const val KEYSTORE_PATH_SERVER = "files/ssl/test2ServerSelf.p12"
 fun App() {
     // init actions
     LaunchedEffect(Unit) {
-        Loger.initLogger()
+        DarcyLogger.initLogger()
 
         val bytesIP = Res.readBytes(KEYSTORE_PATH_IP)
         val bytesServer = Res.readBytes(KEYSTORE_PATH_SERVER)

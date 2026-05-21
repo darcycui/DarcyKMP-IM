@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.x3dh.usecase
 
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
 import com.darcy.kmpdemo.ui.base.IUseCase
@@ -49,7 +50,7 @@ class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
         EncryptUtil.log("$localUserId 发送链密钥:", K4)
         // 更新 sessionRecord 数据库
         val newSendingChainIndex = sessionRecord.sendingChainIndex + 1
-        println("$localUserId 发送链索引: $newSendingChainIndex")
+        logD("$localUserId 发送链索引: $newSendingChainIndex")
         updateSessionRecordBySend(sessionRecord, K3, K4, newSendingChainIndex)
         // KDF 棘轮(发送链)步进一次
         val senderChainAlice = ChainKey(hkdf, K4, newSendingChainIndex)
