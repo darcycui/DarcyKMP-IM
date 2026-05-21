@@ -76,6 +76,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
             // Optional when using Room SQLite Wrapper
 //            implementation(libs.androidx.room.sqlite.wrapper)
+            // SLF4J simple implementation for Napier
+            implementation(libs.slf4j.simple)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
