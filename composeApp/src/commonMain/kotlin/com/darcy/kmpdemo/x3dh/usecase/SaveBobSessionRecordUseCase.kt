@@ -23,6 +23,9 @@ class SaveBobSessionRecordUseCase : IUseCase<Boolean> {
             val pairBob = EncryptUtil.splitArray64(x3DHKeyStr.hexStrToBytes(), 32)
             val K1 = pairBob.first
             val K2 = pairBob.second
+            sessionRecordDao.getByUserId(localUserId, remoteUserId)?.apply {
+                sessionRecordDao.delete(this)
+            }
             sessionRecordDao.insert(SessionRecordEntity(
                 localUserId = localUserId,
                 remoteUserId = remoteUserId,

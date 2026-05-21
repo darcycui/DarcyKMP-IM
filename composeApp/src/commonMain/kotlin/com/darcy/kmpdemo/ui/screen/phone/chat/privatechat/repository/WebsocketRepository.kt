@@ -118,7 +118,7 @@ object WebsocketRepository : IRepository {
                 body: String,
                 headers: Map<String, String>
             ) {
-                // todo 更新数据库已读状态 用于双棘轮
+                // todo 更新数据库已读状态 用于双棘轮 MarkMessageReadStatusUseCase
                 logW("$TAG onMessageReadStatus:更新数据库已读状态 用于双棘轮")
             }
 
@@ -164,6 +164,8 @@ object WebsocketRepository : IRepository {
                 SEND_PRIVATE,
                 headers
             )
+            // todo 创建数据库已读状态 用于双棘轮 CreateMessageReadStatusUseCase
+            logW("$TAG sendMessage:创建数据库已读状态 用于双棘轮")
         }
     }
 

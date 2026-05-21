@@ -11,22 +11,33 @@ class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
     private val sessionRecordDao: SessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
     override suspend fun invoke(params: Map<String, String>): Result<Boolean> {
         return runCatching {
-            val aliceUserId = params["aliceUserId"]?.toLongOrNull() ?: return Result.failure(Exception("aliceUserId is null"))
-            val bobUserId = params["bobUserId"]?.toLongOrNull() ?: return Result.failure(Exception("bobUserId is null"))
-            val x3DHKeyStr = params["aliceX3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
-            val aliceEphemeralPrivateKey = params["aliceEphemeralPrivateKey"] ?: return Result.failure(Exception("aliceEphemeralPrivateKey is null"))
-            val aliceEphemeralPublicKey = params["aliceEphemeralPublicKey"] ?: return Result.failure(Exception("aliceEphemeralPublicKey is null"))
-            val bobSignedPreKey = params["bobSignedPreKey"] ?: return Result.failure(Exception("bobSignedPreKey is null"))
-            val bobIdentityKey = params["bobIdentityKey"] ?: return Result.failure(Exception("bobIdentityKey is null"))
+            val localUserId = params["aliceUserId"]?.toLongOrNull() ?: return Result.failure(
+                Exception("aliceUserId is null")
+            )
+            val remoteUserId = params["bobUserId"]?.toLongOrNull()
+                ?: return Result.failure(Exception("bobUserId is null"))
+            val x3DHKeyStr =
+                params["aliceX3DHKey"] ?: return Result.failure(Exception("x3DHKey is null"))
+            val aliceEphemeralPrivateKey = params["aliceEphemeralPrivateKey"]
+                ?: return Result.failure(Exception("aliceEphemeralPrivateKey is null"))
+            val aliceEphemeralPublicKey = params["aliceEphemeralPublicKey"]
+                ?: return Result.failure(Exception("aliceEphemeralPublicKey is null"))
+            val bobSignedPreKey = params["bobSignedPreKey"]
+                ?: return Result.failure(Exception("bobSignedPreKey is null"))
+            val bobIdentityKey = params["bobIdentityKey"]
+                ?: return Result.failure(Exception("bobIdentityKey is null"))
             val pairAlice = EncryptUtil.splitArray64(x3DHKeyStr.hexStrToBytes(), 32)
             // Alice 根密钥
             val K1 = pairAlice.first
             // Alice 接收链密钥
             val K2 = pairAlice.second
+            sessionRecordDao.getByUserId(localUserId, remoteUserId)?.apply {
+                sessionRecordDao.delete(this)
+            }
             sessionRecordDao.insert(
                 SessionRecordEntity(
-                    localUserId = aliceUserId,
-                    remoteUserId = bobUserId,
+                    localUserId = localUserId,
+                    remoteUserId = remoteUserId,
                     remoteIdentityKey = bobIdentityKey,
                     remoteDHKey = bobSignedPreKey, // 第一个DH密钥 使用Bob的SignedPreKey
                     localEphemeralPrivateKey = aliceEphemeralPrivateKey,
