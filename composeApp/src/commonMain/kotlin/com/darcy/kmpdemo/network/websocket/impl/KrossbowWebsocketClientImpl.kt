@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.StompSession
+import org.hildan.krossbow.stomp.WebSocketClosedUnexpectedly
 import org.hildan.krossbow.stomp.config.HeartBeat
 import org.hildan.krossbow.stomp.config.HeartBeatTolerance
 import org.hildan.krossbow.stomp.frame.FrameBody
@@ -56,7 +57,23 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         CoroutineExceptionHandler { _, throwable ->
             logE("$TAG exceptionHandler: ${throwable.message}")
             throwable.printStackTrace()
+            dispatchException(throwable)
         }
+
+    fun dispatchException(throwable: Throwable) {
+        outListener?.onFailure(throwable.message ?: "")
+        when (throwable) {
+            // 连接已断开 手动调用 disconnect
+            is WebSocketClosedUnexpectedly -> {
+                scope.launch {
+                    disconnect()
+                }
+            }
+
+            else -> {}
+        }
+    }
+
     private val scope = CoroutineScope(dispatcher + SupervisorJob() + exceptionHandler)
     private lateinit var stompClient: StompClient
     private lateinit var webSocketClient: WebSocketClient

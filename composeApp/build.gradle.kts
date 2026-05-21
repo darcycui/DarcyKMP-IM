@@ -158,6 +158,8 @@ kotlin {
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
             implementation(libs.filekit.coil)
+            // SLF4J simple implementation for Napier
+            implementation(libs.slf4j.simple)
         }
         // 添加单元测试
         commonTest.dependencies {

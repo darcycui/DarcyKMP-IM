@@ -77,6 +77,7 @@ private fun PhoneChatInnerPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
+            Text(text = uiState.webSocketConnectionState.message, modifier = Modifier.align(Alignment.Start))
             Text(text = userName, modifier = Modifier.align(Alignment.CenterHorizontally))
             PrivateMessageListComponent(
                 messageList = uiState.items,

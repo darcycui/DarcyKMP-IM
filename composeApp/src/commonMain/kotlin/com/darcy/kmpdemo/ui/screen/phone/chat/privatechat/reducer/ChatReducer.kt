@@ -8,6 +8,7 @@ import com.darcy.kmpdemo.ui.base.impl.screenstatus.ScreenState
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
+import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
 
 class ChatReducer :
     ScreenStateFetchPagingTipsCombinedReducer<ChatState, PrivateMessageResponsePage>() {
@@ -24,6 +25,11 @@ class ChatReducer :
             is ChatIntent.RefreshBySendMessage -> {
                 state.copy(
                     items = state.items + listOf(intent.message)
+                )
+            }
+            is ChatIntent.WebSocketState -> {
+                state.copy(
+                    webSocketConnectionState = intent.state
                 )
             }
 

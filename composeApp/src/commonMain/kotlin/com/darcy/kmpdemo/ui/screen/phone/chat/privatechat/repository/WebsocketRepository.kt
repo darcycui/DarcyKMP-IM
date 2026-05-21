@@ -11,6 +11,7 @@ import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
+import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetReceiveStepUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -38,6 +39,9 @@ object WebsocketRepository : IRepository {
 
     private val _messageFlow = MutableSharedFlow<STOMPMessage>(replay = 0)
     val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
+    private val _connectionStateFlow = MutableSharedFlow<WebSocketConnectionState>(replay = 1)
+    val connectionStateFlow: SharedFlow<WebSocketConnectionState> =
+        _connectionStateFlow.asSharedFlow()
 
     @Volatile
     private var isConnected = false
@@ -84,8 +88,11 @@ object WebsocketRepository : IRepository {
         logD("$TAG setupListener")
         webSocketManager.setOuterListener(object : IOuterListener {
             override fun onOpen() {
-                logI("$TAG onOpen")
+                //logI("$TAG onOpen")
                 isConnected = true
+                scope.launch {
+                    _connectionStateFlow.emit(WebSocketConnectionState.Connected)
+                }
             }
 
             override fun onSend(message: String) {
@@ -106,20 +113,26 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onFailure(errorMessage: String) {
-                logE("$TAG onFailure:$errorMessage")
+                //logE("$TAG onFailure:$errorMessage")
+                scope.launch {
+                    _connectionStateFlow.emit(WebSocketConnectionState.Error(errorMessage))
+                }
                 //disconnect()
             }
 
             override fun onClosed() {
-                logW("$TAG onClosed")
+                //logW("$TAG onClosed")
                 isConnected = false
+                scope.launch {
+                    _connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
+                }
             }
         })
     }
 
     fun disconnect() {
         scope.launch {
-            logD("$TAG disconnect")
+            //logD("$TAG disconnect")
             if (!isConnected) {
                 logW("$TAG already disconnected")
                 return@launch
@@ -150,7 +163,7 @@ object WebsocketRepository : IRepository {
     private fun handleReceiveMessage(message: String, headers: Map<String, String>) {
         runCatching {
             scope.launch(Dispatchers.Default) {
-                logD("$TAG handleMessage")
+                logD("$TAG handleMessage fromUser:${headers["fromUser"]}")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
                 val messageKeyLocal = doubleRatchetReceiveStepUseCase.invoke(

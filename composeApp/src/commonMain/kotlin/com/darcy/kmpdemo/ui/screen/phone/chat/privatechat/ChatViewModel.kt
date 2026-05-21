@@ -9,6 +9,8 @@ import com.darcy.kmpdemo.bean.http.response.toSTOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logI
+import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
@@ -19,6 +21,7 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.ChatRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.WebsocketRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
+import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetSendStepUseCase
 import kotlin.reflect.KClass
@@ -60,6 +63,7 @@ class ChatViewModel(
 
             is ChatIntent.ActionRegisterReceiveMessage -> {
                 actionRegisterReceiveMessage()
+                actionRegisterConnectionState()
             }
 
             else -> {
@@ -111,9 +115,20 @@ class ChatViewModel(
         }
     }
 
-    private fun actionRegisterReceiveMessage() {
+    private fun actionRegisterConnectionState() {
         io {
             websocketRepository.connect()
+            websocketRepository.connectionStateFlow.collect { state ->
+                main {
+                    logW("$TAG WebSocket 状态改变: ${state.message}")
+                    dispatch(ChatIntent.WebSocketState(state))
+                }
+            }
+        }
+    }
+
+    private fun actionRegisterReceiveMessage() {
+        io {
             io {
                 websocketRepository.messageFlow.collect { message ->
                     logE("接收到消息: $message")

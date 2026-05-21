@@ -11,6 +11,5 @@ data class ChatState(
     val screenState: ScreenState = ScreenState.Initial,
     val pagingState: PagingState = PagingState(),
     val tipsState: TipsState = TipsState(),
-
-
+    val webSocketConnectionState: WebSocketConnectionState = WebSocketConnectionState.Disconnected,
 ) : IState
