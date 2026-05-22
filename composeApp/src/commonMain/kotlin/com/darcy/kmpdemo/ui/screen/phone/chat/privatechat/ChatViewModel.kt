@@ -3,6 +3,7 @@ package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.toSTOMPMessage
@@ -91,7 +92,16 @@ class ChatViewModel(
 
     private fun actionSendMessage(message: PrivateMessageResponse) {
         io {
-            // todo: websocket发送消息 添加 DH棘轮 公钥
+            if (message.content.isEmpty() or message.content.isBlank()) {
+                logE("发送消息内容为空")
+                val error = ErrorResponse(
+                    status = 400,
+                    message = "发送消息内容为空"
+                )
+                main { dispatch(error.toTipsIntent()) }
+                return@io
+            }
+            // websocket发送消息 添加 DH棘轮 公钥
             val localUserId = IMGlobalStorage.getCurrentUserId()
             val remoteUserId = message.receiverId
             val messageKeyLocal = doubleRatchetSendStepUseCase.invoke(
@@ -130,11 +140,9 @@ class ChatViewModel(
 
     private fun actionRegisterReceiveMessage() {
         io {
-            io {
-                websocketRepository.messageFlow.collect { message ->
-                    logE("接收到消息: $message")
-                    dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
-                }
+            websocketRepository.messageFlow.collect { message ->
+                logE("接收到消息: $message")
+                dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
             }
         }
     }

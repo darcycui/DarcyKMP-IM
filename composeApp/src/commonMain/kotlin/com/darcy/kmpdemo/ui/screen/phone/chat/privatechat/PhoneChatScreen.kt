@@ -35,7 +35,9 @@ import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.isSelfSent
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
+import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.colors.AppColors
+import com.darcy.kmpdemo.ui.components.structure.TipsDialog
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import kmpdarcydemo.composeapp.generated.resources.Res
 import kmpdarcydemo.composeapp.generated.resources.icon_header_default
@@ -77,7 +79,10 @@ private fun PhoneChatInnerPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Text(text = uiState.webSocketConnectionState.message, modifier = Modifier.align(Alignment.Start))
+            Text(
+                text = uiState.webSocketConnectionState.message,
+                modifier = Modifier.align(Alignment.Start)
+            )
             Text(text = userName, modifier = Modifier.align(Alignment.CenterHorizontally))
             PrivateMessageListComponent(
                 messageList = uiState.items,
@@ -101,6 +106,20 @@ private fun PhoneChatInnerPage(
                     )
                 )
             }, modifier = Modifier.fillMaxWidth())
+            if (uiState.tipsState.showTips) {
+                TipsDialog(
+                    titleStr = uiState.tipsState.title,
+                    contentStr = uiState.tipsState.tips,
+                    code = uiState.tipsState.code,
+                    confirmStr = uiState.tipsState.middleButtonText,
+                    onDismissRequest = {
+                        viewModel.dispatch(TipsIntent.DismissTips)
+                    },
+                    onConfirm = {
+                        viewModel.dispatch(TipsIntent.DismissTips)
+                    }
+                )
+            }
         }
     }
 }
