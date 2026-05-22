@@ -6,11 +6,12 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
+import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponsePage
+import com.darcy.kmpdemo.bean.http.response.isSelfSent
 import com.darcy.kmpdemo.bean.http.response.toSTOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -22,7 +23,6 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.ChatRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.WebsocketRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
-import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetSendStepUseCase
 import kotlin.reflect.KClass
@@ -74,17 +74,47 @@ class ChatViewModel(
     }
 
     private fun actionFetchMessages(params: Map<String, String>) {
-        // todo: http拉取最新消息
+        // http拉取最新消息
         chatRepository.fetchMessages(
             userId = IMGlobalStorage.getCurrentUserId(),
             conversationId = params["conversationId"]?.toLongOrNull() ?: 0L,
             page = 0,
             size = 10,
             onSuccess = {
+                sendMessageReadStatusHttp(it)
                 dispatch(FetchIntent.RefreshByFetchData(it))
             },
             onError = {
                 logE("拉取消息错误")
+                main { dispatch(it.toTipsIntent()) }
+            }
+        )
+    }
+
+    private fun sendMessageReadStatusHttp(page: PrivateMessageResponsePage) {
+        // http发送消息已读
+        if (page.content.isEmpty()) {
+            logW("没有消息")
+            return
+        }
+        // 只有对方发的消息才需要发送已读
+        val receiveList = page.content.filter { it.isSelfSent().not() }
+        if (receiveList.isEmpty()) {
+            logW("没有对方发的消息")
+            return
+        }
+        val first = receiveList.first()
+        chatRepository.sendMessageReadStatusHttp(
+            userId = IMGlobalStorage.getCurrentUserId(),
+            fromUserName = IMGlobalStorage.getCurrentUser().username,
+            targetId = first.senderId,
+            targetName = first.senderName,
+            msgIds = receiveList.map { it.msgId },
+            onSuccess = {
+                logD("http发送消息已读状态(已读) 成功")
+            },
+            onError = {
+                logE("http发送消息已读状态(已读) 错误: ${it.message}")
                 main { dispatch(it.toTipsIntent()) }
             }
         )

@@ -1,14 +1,13 @@
 package com.darcy.kmpdemo.utils
 
-import kotlinx.serialization.json.Json
+import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
 
 object JsonHelper {
-    val json = Json
 
     inline fun <reified T> toJson(data: T?): String {
         if (data == null) return "{}"
         return runCatching {
-            json.encodeToString(data)
+            kotlinxJson.encodeToString(data)
         }.onFailure {
             it.printStackTrace()
         }.getOrElse { "{}" }
@@ -16,7 +15,7 @@ object JsonHelper {
 
     inline fun <reified T> fromJson(jsonStr: String): T? {
         return runCatching {
-            json.decodeFromString<T>(jsonStr)
+            kotlinxJson.decodeFromString<T>(jsonStr)
         }.onFailure {
             it.printStackTrace()
         }.getOrElse {

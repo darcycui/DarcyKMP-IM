@@ -8,7 +8,6 @@ import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
-import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
 import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
@@ -166,7 +165,7 @@ object WebsocketRepository : IRepository {
                 return@launch
             }
             webSocketManager.send(
-                kotlinxJson.encodeToString(message),
+                JsonHelper.toJson(message),
                 SEND_PRIVATE,
                 headers
             )
@@ -207,10 +206,14 @@ object WebsocketRepository : IRepository {
                     return@launch
                 }.getOrElse { MessageKey() }
                 logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
-                val messageEntity = kotlinxJson.decodeFromString<STOMPMessage>(message)
-                _messageFlow.emit(messageEntity)
-                // 发送已读状态
-                sendMessageReadStatus(messageEntity, headers)
+                val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
+                messageEntity?.let {
+                    _messageFlow.emit(it)
+                    // 发送已读状态
+                    sendMessageReadStatus(it, headers)
+                }?: run {
+                    logE("$TAG handleReceiveMessage messageEntity is null after json parse")
+                }
             }
         }.onFailure {
             logE("$TAG handle message failed: ${it.message}")
@@ -227,6 +230,10 @@ object WebsocketRepository : IRepository {
     ) {
         scope.launch {
             logD("$TAG markMessageReadStatus")
+            if (!isConnected) {
+                logE("$TAG Cannot mark message read status: not connected")
+                return@launch
+            }
             val messageReadStatusRequest = MessageReadStatusRequest(
                 userId = messageEntity.receiverId,
                 fromUserName = messageEntity.receiverName,
@@ -237,12 +244,8 @@ object WebsocketRepository : IRepository {
                 clientType = "",
                 deviceId = ""
             )
-            if (!isConnected) {
-                logE("$TAG Cannot mark message read status: not connected")
-                return@launch
-            }
             webSocketManager.send(
-                kotlinxJson.encodeToString(messageReadStatusRequest),
+                JsonHelper.toJson(messageReadStatusRequest),
                 SEND_MESSAGE_READ_STATUS,
                 mapOf()
             )

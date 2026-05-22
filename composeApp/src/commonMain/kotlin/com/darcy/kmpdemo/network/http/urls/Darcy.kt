@@ -22,4 +22,8 @@ object Darcy {
     const val PULL_X3DH_KEYS_URL = "$HOME_URL/api/x3dh/pull/keys"
     const val PUSH_ALICE_HELLO_MESSAGE_URL = "$HOME_URL/api/x3dh/push/alice/hello"
     const val PULL_ALICE_HELLO_MESSAGE_URL = "$HOME_URL/api/x3dh/pull/alice/hello"
+
+    const val RECEIVER_PUSH_MESSAGE_READ_STATUS_URL = "$HOME_URL/api/message/read/receiver/push/read"
+    const val RECEIVER_PULL_MESSAGE_READ_STATUS_URL = "$HOME_URL/api/message/read/receiver/pull/unread"
+    const val SENDER_SYNC_MESSAGE_READ_STATUS_URL = "$HOME_URL/api/message/read/sender/sync/read"
 }
