@@ -25,7 +25,7 @@ class CalculateAliceX3DHKeyUseCase : IUseCase<Pair<ByteArray, XDH.KeyPair>> {
         val aliceUserId = params["aliceUserId"]?.toLongOrNull() ?: return Result.failure(Exception("aliceUserId is null"))
         val bobUserId = params["bobUserId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val bobKeysStr = params["bobKeys"] ?: return Result.failure(Exception("bobKeys is null"))
-        val bobKeys = JsonHelper.fromJson<X3DHKeysPullResponse>(bobKeysStr)
+        val bobKeys = JsonHelper.fromJson<X3DHKeysPullResponse>(bobKeysStr) ?: return Result.failure(Exception("bobKeys is null after json parse"))
         val aliceIdentityPrivateKey = identityKeyDao.getByUserId(aliceUserId) ?: return Result.failure(Exception("aliceIdentityPrivateKey is null"))
         val aliceIdentityPrivate = aliceIdentityPrivateKey.privateKey.hexStrToBytes().toPrivateKey()
         val aliceEphemeralKey = ECCExchangeHelper.generateKeyPair()

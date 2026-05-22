@@ -1,6 +1,6 @@
 package com.darcy.kmpdemo.x3dh.usecase
 
-import com.darcy.kmpdemo.bean.http.request.MessageReadStatusInputDTO
+import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
 import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.database.tables.MessageReadStatus
@@ -13,13 +13,13 @@ class MarkMessageReadStatusUseCase : IUseCase<List<MessageReadStatus>> {
         getDarcyIMDatabase().messageReadStatusDao()
 
     override suspend fun invoke(params: Map<String, String>): Result<List<MessageReadStatus>> {
-        val messageReadStatusInputDTOStr = params["messageReadStatusInputDTO"]
+        val messageReadStatusResponseStr = params["messageReadStatusResponse"]
             ?: return Result.failure(Exception("消息参数不能为空"))
-        val messageReadStatusInputDTO =
-            JsonHelper.fromJson<MessageReadStatusInputDTO>(messageReadStatusInputDTOStr)
+        val messageReadStatusResponse =
+            JsonHelper.fromJson<MessageReadStatusResponse>(messageReadStatusResponseStr)
                 ?: return Result.failure(Exception("消息参数格式错误"))
-        val userId = messageReadStatusInputDTO.userId
-        val msgIds = messageReadStatusInputDTO.msgIds
+        val userId = messageReadStatusResponse.userId
+        val msgIds = messageReadStatusResponse.msgIds
         msgIds.forEach { msgId ->
             messageReadStatusDao.findByUserIdAndMessageId(userId, msgId)?.apply {
                 messageReadStatusDao.delete(this)

@@ -2,6 +2,7 @@ package com.darcy.kmpdemo.network.websocket.impl
 
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.network.http.impl.ktor.ktorClient
 import com.darcy.kmpdemo.network.websocket.IWebSocketClient
 import com.darcy.kmpdemo.network.websocket.frame.toJsonString
@@ -267,7 +268,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     }
 
     override fun onOpen() {
-        logE("$TAG onOpen")
+        logI("$TAG onOpen")
         outListener?.onOpen()
     }
 

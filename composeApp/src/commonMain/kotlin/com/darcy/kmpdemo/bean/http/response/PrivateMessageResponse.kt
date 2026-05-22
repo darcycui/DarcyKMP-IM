@@ -2,6 +2,7 @@ package com.darcy.kmpdemo.bean.http.response
 
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
+import com.darcy.kmpdemo.utils.UUIDHelper
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
@@ -72,7 +73,7 @@ fun PrivateMessageResponse.toSTOMPMessage(): STOMPMessage {
         sendTime = this.sendTime,
         isRead = this.isRead,
         isRecalled = this.isRecalled,
-        msgId = this.msgId,
+        msgId = UUIDHelper.generateMessageId(),
         msgType = this.msgType
     )
 }

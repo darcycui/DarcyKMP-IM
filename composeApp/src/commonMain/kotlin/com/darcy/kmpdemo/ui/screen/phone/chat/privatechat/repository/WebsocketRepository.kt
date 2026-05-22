@@ -1,9 +1,11 @@
 package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository
 
-import com.darcy.kmpdemo.bean.http.request.MessageReadStatusInputDTO
+import com.darcy.kmpdemo.bean.http.request.MessageReadStatusRequest
+import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
 import com.darcy.kmpdemo.network.http.parser.impl.kotlinxJson
@@ -14,8 +16,11 @@ import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
+import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
+import com.darcy.kmpdemo.x3dh.usecase.CreateMessageReadStatusUseCase
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetReceiveStepUseCase
+import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +43,8 @@ object WebsocketRepository : IRepository {
     private val webSocketManager: WebSocketManager = WebSocketManager
     private val imGlobalStorage: IMGlobalStorage = IMGlobalStorage
     private val doubleRatchetReceiveStepUseCase = DoubleRatchetReceiveStepUseCase()
+    private val createMessageReadStatusUseCase = CreateMessageReadStatusUseCase()
+    private val markMessageReadStatusUseCase = MarkMessageReadStatusUseCase()
 
     private val _messageFlow = MutableSharedFlow<STOMPMessage>(replay = 0)
     val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
@@ -118,8 +125,7 @@ object WebsocketRepository : IRepository {
                 body: String,
                 headers: Map<String, String>
             ) {
-                // todo 更新数据库已读状态 用于双棘轮 MarkMessageReadStatusUseCase
-                logW("$TAG onMessageReadStatus:更新数据库已读状态 用于双棘轮")
+                handleReceiveMessageReadStatus(body, headers)
             }
 
             override fun onFailure(errorMessage: String) {
@@ -164,8 +170,15 @@ object WebsocketRepository : IRepository {
                 SEND_PRIVATE,
                 headers
             )
-            // todo 创建数据库已读状态 用于双棘轮 CreateMessageReadStatusUseCase
-            logW("$TAG sendMessage:创建数据库已读状态 用于双棘轮")
+            logW("$TAG sendMessage:创建数据库已读状态(未读) 用于双棘轮")
+            createMessageReadStatusUseCase.invoke(
+                mapOf("stompMessage" to JsonHelper.toJson(message))
+            ).onSuccess {
+                logI("$TAG 创建数据库已读状态(未读) 创建成功:${message.msgId}")
+            }.onFailure {
+                logE("$TAG 创建数据库已读状态(未读) 创建失败:${message.msgId} ${it.message}")
+                it.printStackTrace()
+            }.getOrElse { }
         }
     }
 
@@ -214,8 +227,9 @@ object WebsocketRepository : IRepository {
     ) {
         scope.launch {
             logD("$TAG markMessageReadStatus")
-            val messageReadStatusInputDTO = MessageReadStatusInputDTO(
+            val messageReadStatusRequest = MessageReadStatusRequest(
                 userId = messageEntity.receiverId,
+                fromUserName = messageEntity.receiverName,
                 targetId = messageEntity.senderId,
                 targetName = messageEntity.senderName,
                 msgIds = listOf(messageEntity.msgId),
@@ -228,10 +242,32 @@ object WebsocketRepository : IRepository {
                 return@launch
             }
             webSocketManager.send(
-                kotlinxJson.encodeToString(messageReadStatusInputDTO),
+                kotlinxJson.encodeToString(messageReadStatusRequest),
                 SEND_MESSAGE_READ_STATUS,
                 mapOf()
             )
+        }
+    }
+
+    /**
+     * 收到已读状态
+     */
+    private fun handleReceiveMessageReadStatus(body: String, headers: Map<String, String>) {
+        val messageReadStatusResponse = JsonHelper.fromJson<MessageReadStatusResponse>(body)
+        if (messageReadStatusResponse == null || messageReadStatusResponse.msgIds.isEmpty()) {
+            logE("$TAG onMessageReadStatus:messageReadStatusResponseList is null or empty")
+            return
+        }
+        val msgIds = messageReadStatusResponse.msgIds
+        scope.launch {
+            logW("$TAG onMessageReadStatus:更新数据库已读状态(已读) 用于双棘轮")
+            markMessageReadStatusUseCase.invoke(
+                mapOf("messageReadStatusResponse" to body)
+            ).onSuccess {
+                logI("$TAG onMessageReadStatus:更新数据库已读状态(已读) 成功:${msgIds}")
+            }.onFailure {
+                logE("$TAG onMessageReadStatus:更新数据库已读状态(已读) 失败:${msgIds} ${it.message}")
+            }
         }
     }
 }
