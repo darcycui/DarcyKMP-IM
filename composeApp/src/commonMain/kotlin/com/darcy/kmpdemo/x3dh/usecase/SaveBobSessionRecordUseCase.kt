@@ -7,11 +7,11 @@ import com.darcy.kmpdemo.ui.base.IUseCase
 import com.darcy.kmpdemo.utils.EncryptUtil
 import com.darcy.kmpdemo.utils.hexStrToBytes
 
-class SaveBobSessionRecordUseCase : IUseCase<Boolean> {
+class SaveBobSessionRecordUseCase : IUseCase<Unit, Boolean> {
     private val identityKeyDao = getDarcyIMDatabase().identityKeyDao()
     private val signedPreKeyDao = getDarcyIMDatabase().signedPreKeyDao()
     private val sessionRecordDao: SessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
-    override suspend fun invoke(params: Map<String, String>): Result<Boolean> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<Boolean> {
         return runCatching {
             val localUserId = params["localUserId"]?.toLongOrNull() ?: return Result.failure(Exception("localUserId is null"))
             val remoteUserId = params["remoteUserId"]?.toLongOrNull() ?: return Result.failure(Exception("remoteUserId is null"))

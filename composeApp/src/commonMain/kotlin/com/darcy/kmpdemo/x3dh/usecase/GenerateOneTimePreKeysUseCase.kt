@@ -7,9 +7,9 @@ import com.darcy.kmpdemo.utils.UUIDHelper
 import com.darcy.kmpdemo.utils.toBytes
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 
-class GenerateOneTimePreKeysUseCase : IUseCase<List<OneTimePreKeyEntity>> {
+class GenerateOneTimePreKeysUseCase : IUseCase<Unit, List<OneTimePreKeyEntity>> {
     private val oneTimePreKeyDao = getDarcyIMDatabase().oneTimePreKeyDao()
-    override suspend fun invoke(params: Map<String, String>): Result<List<OneTimePreKeyEntity>> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<List<OneTimePreKeyEntity>> {
         val userId =
             params["userId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val oneTimePreKeyList = (0 until 100).map {

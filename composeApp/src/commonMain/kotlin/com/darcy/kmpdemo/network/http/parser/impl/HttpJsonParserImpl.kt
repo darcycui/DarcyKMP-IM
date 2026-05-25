@@ -62,6 +62,7 @@ class HttpJsonParserImpl : IHttpJsonParser {
                 }
             }
 
+
             else -> {
                 throw Exception("json result is not object or array")
             }

@@ -13,9 +13,9 @@ import com.darcy.kmpdemo.x3dh.chain.ChainKey
 import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 
-class DoubleRatchetSendStepUseCase : IUseCase<MessageKey> {
+class DoubleRatchetSendStepUseCase : IUseCase<Unit, MessageKey> {
     private val sessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
-    override suspend fun invoke(params: Map<String, String>): Result<MessageKey> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<MessageKey> {
         val localUserId = params["localUserId"]?.toLongOrNull()
             ?: return Result.failure(Exception("localUserId is null"))
         val remoteUserId = params["remoteUserId"]?.toLongOrNull()

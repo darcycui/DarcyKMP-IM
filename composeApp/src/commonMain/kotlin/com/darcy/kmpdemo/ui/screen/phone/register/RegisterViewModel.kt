@@ -108,7 +108,7 @@ class RegisterViewModel(
         var paramsMap = mapOf(
             "userId" to IMGlobalStorage.getCurrentUserId().toString(),
         )
-        val identityKeyEntity = identityKeyUseCase.invoke(paramsMap).onFailure {
+        val identityKeyEntity = identityKeyUseCase.invoke(paramsMap, Unit).onFailure {
             it.printStackTrace()
             logE("生成X3DH密钥 identityKey 失败：$it")
         }.getOrElse { null }
@@ -118,16 +118,16 @@ class RegisterViewModel(
             return Triple("", "", emptyList())
         }
         val identityKey: String =
-            identityKeyUseCase.invoke(paramsMap).map { it.publicKey }.getOrElse { "" }
+            identityKeyUseCase.invoke(paramsMap, Unit).map { it.publicKey }.getOrElse { "" }
 
         paramsMap = paramsMap + ("identityKeyId" to identityKeyEntity.keyId)
-        val signedPreKey: String = signedPreKeyUseCase.invoke(paramsMap).onFailure {
+        val signedPreKey: String = signedPreKeyUseCase.invoke(paramsMap, Unit).onFailure {
             it.printStackTrace()
             logE("生成X3DH密钥 signedPreKey 失败：$it")
         }.map { it.publicKey }.getOrElse { "" }
 
         val oneTimePreKeys: List<OneTimePreKeyEntity> =
-            oneTimePreKeyUseCase.invoke(paramsMap).onFailure {
+            oneTimePreKeyUseCase.invoke(paramsMap, Unit).onFailure {
                 it.printStackTrace()
                 logE("生成X3DH密钥 oneTimePreKeys 失败：$it")
             }.getOrElse { emptyList() }.map {

@@ -13,7 +13,7 @@ import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 import dev.whyoleg.cryptography.algorithms.XDH
 
-class CalculateAliceX3DHKeyUseCase : IUseCase<Pair<ByteArray, XDH.KeyPair>> {
+class CalculateAliceX3DHKeyUseCase : IUseCase<Unit, Pair<ByteArray, XDH.KeyPair>> {
     private val identityKeyDao: IdentityKeyDao = getDarcyIMDatabase().identityKeyDao()
 
     /**
@@ -21,7 +21,7 @@ class CalculateAliceX3DHKeyUseCase : IUseCase<Pair<ByteArray, XDH.KeyPair>> {
      * @param params
      * @return Pair<ByteArray, XDH.KeyPair>  x3DHKey 和 aliceEphemeralKey
      */
-    override suspend fun invoke(params: Map<String, String>): Result<Pair<ByteArray, XDH.KeyPair>> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<Pair<ByteArray, XDH.KeyPair>> {
         val aliceUserId = params["aliceUserId"]?.toLongOrNull() ?: return Result.failure(Exception("aliceUserId is null"))
         val bobUserId = params["bobUserId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val bobKeysStr = params["bobKeys"] ?: return Result.failure(Exception("bobKeys is null"))

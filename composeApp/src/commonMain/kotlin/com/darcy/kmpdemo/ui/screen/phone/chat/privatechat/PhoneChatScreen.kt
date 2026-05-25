@@ -58,8 +58,6 @@ fun PhoneChatScreen(
                 params = mapOf(
                     "conversationId" to conversationId.toString(),
                     "userId" to userId.toString(),
-                    "userName" to userName,
-                    "userAvatar" to userAvatar
                 )
             )
         )

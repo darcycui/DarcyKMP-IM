@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
-import kotlin.concurrent.Volatile
 
 /**
  * websocket STOMP协议聊天
@@ -144,7 +143,7 @@ object WebsocketRepository : IRepository {
             )
             logW("$TAG sendMessage:创建数据库已读状态(未读) 用于双棘轮")
             createMessageReadStatusUseCase.invoke(
-                mapOf("stompMessage" to JsonHelper.toJson(message))
+                mapOf("stompMessage" to JsonHelper.toJson(message)), Unit
             ).onSuccess {
                 logI("$TAG 创建数据库已读状态(未读) 创建成功:${message.msgId}")
             }.onFailure {
@@ -168,7 +167,7 @@ object WebsocketRepository : IRepository {
                         "localUserId" to localUserId.toString(),
                         "remoteUserId" to messageKey.fromUserId.toString(),
                         "remoteDHKey" to messageKey.dhPublicKey,
-                    )
+                    ), Unit
                 ).onFailure {
                     logE("$TAG 接收时计算messageKey错误: ${it.message}")
                     it.printStackTrace()
@@ -179,7 +178,7 @@ object WebsocketRepository : IRepository {
                 messageEntity?.let {
                     _messageFlow.emit(it)
                     // 发送已读状态
-                    sendMessageReadStatus(it, headers)
+                    receiverPushMessageReadStatus(it, headers)
                 } ?: run {
                     logE("$TAG handleReceiveMessage messageEntity is null after json parse")
                 }
@@ -193,7 +192,7 @@ object WebsocketRepository : IRepository {
     /**
      * 收到消息后 标记消息已读
      */
-    fun sendMessageReadStatus(
+    fun receiverPushMessageReadStatus(
         messageEntity: STOMPMessage,
         headers: Map<String, String>
     ) {
@@ -230,7 +229,7 @@ object WebsocketRepository : IRepository {
         scope.launch {
             logW("$TAG onMessageReadStatus:更新数据库已读状态(已读) 用于双棘轮")
             markMessageReadStatusUseCase.invoke(
-                mapOf("messageReadStatusResponse" to body)
+                mapOf("messageReadStatusResponse" to body), Unit
             ).onSuccess {
                 logI("$TAG onMessageReadStatus:更新数据库已读状态(已读) 成功:${msgIds}")
             }.onFailure {

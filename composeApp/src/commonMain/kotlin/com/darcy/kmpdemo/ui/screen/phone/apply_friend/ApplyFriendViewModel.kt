@@ -100,7 +100,7 @@ class ApplyFriendViewModel(
                             "aliceUserId" to aliceUserId.toString(),
                             "bobUserId" to aliceUserId.toString(),
                             "bobKeys" to JsonHelper.toJson(bobKeys),
-                        )
+                        ),Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { Pair(null, null) }
@@ -124,7 +124,7 @@ class ApplyFriendViewModel(
                             "aliceEphemeralPublicKey" to aliceEphemeralKey.publicKey.toBytes().toHexString(),
                             "bobIdentityKey" to bobKeys.identityKey,
                             "bobSignedPreKey" to bobKeys.signedPreKey,
-                        )
+                        ),Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { false }

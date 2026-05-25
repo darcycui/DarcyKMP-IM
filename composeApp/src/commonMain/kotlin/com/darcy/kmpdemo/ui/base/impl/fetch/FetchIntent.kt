@@ -4,7 +4,8 @@ import com.darcy.kmpdemo.ui.base.IIntent
 
 sealed class FetchIntent : IIntent {
     data class ActionFetchData(
-        val params: Map<String, String> = mapOf(),
+        val targetId: Long,
+        val conversationId: Long,
     ) : FetchIntent()
 
     data class RefreshByFetchData<T>(

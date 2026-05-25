@@ -9,7 +9,7 @@ import androidx.room3.PrimaryKey
         Index(value = ["msgId", "userId", "targetId"], unique = true)
     ]
 )
-data class MessageReadStatus(
+data class MessageReadStatusEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val msgId: String = "",

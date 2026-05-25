@@ -86,7 +86,7 @@ class AcceptFriendViewModel(
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey,
                             "bobOneTimePreKeyId" to alideKeys.bobOneTimePreKeyId
-                        )
+                        ),Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { null }
@@ -103,7 +103,7 @@ class AcceptFriendViewModel(
                             "bobX3DHKey" to x3DHKey.toHexString(),
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey
-                        )
+                        ),Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { false }

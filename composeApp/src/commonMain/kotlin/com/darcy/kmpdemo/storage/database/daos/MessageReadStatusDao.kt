@@ -6,31 +6,31 @@ import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
 import androidx.room3.Update
-import com.darcy.kmpdemo.storage.database.tables.MessageReadStatus
+import com.darcy.kmpdemo.storage.database.tables.MessageReadStatusEntity
 
 @Dao
 interface MessageReadStatusDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(item: MessageReadStatus)
+    suspend fun insert(item: MessageReadStatusEntity)
 
-    @Query("SELECT * FROM MessageReadStatus WHERE userId=:userId AND msgId=:msgId")
-    suspend fun findByUserIdAndMessageId(userId: Long, msgId: String): MessageReadStatus?
+    @Query("SELECT * FROM MessageReadStatusEntity WHERE userId=:userId AND msgId=:msgId")
+    suspend fun findByUserIdAndMessageId(userId: Long, msgId: String): MessageReadStatusEntity?
 
-    @Query("UPDATE MessageReadStatus SET isRead=true, readTime=:readTime WHERE userId=:userId AND msgId IN (:msgIds)")
+    @Query("UPDATE MessageReadStatusEntity SET isRead=true, readTime=:readTime WHERE userId=:userId AND msgId IN (:msgIds)")
     suspend fun markMessagesAsRead(userId: Long, msgIds: List<String>, readTime: String): Int
 
     @Delete
-    suspend fun delete(item: MessageReadStatus)
+    suspend fun delete(item: MessageReadStatusEntity)
 
-    @Query("DELETE FROM MessageReadStatus WHERE userId=:userId AND msgId=:msgId")
+    @Query("DELETE FROM MessageReadStatusEntity WHERE userId=:userId AND msgId=:msgId")
     suspend fun deleteByUserIdAndMessageId(userId: Long, msgId: String)
 
     @Update
-    suspend fun update(item: MessageReadStatus)
+    suspend fun update(item: MessageReadStatusEntity)
 
-    @Query("SELECT * FROM MessageReadStatus WHERE userId=:userId AND msgId IN (:msgIds)")
+    @Query("SELECT * FROM MessageReadStatusEntity WHERE userId=:userId AND msgId IN (:msgIds)")
     suspend fun findByUserIdAndMessageIds(
         userId: Long,
         msgIds: List<String>
-    ): List<MessageReadStatus>
+    ): List<MessageReadStatusEntity>
 }

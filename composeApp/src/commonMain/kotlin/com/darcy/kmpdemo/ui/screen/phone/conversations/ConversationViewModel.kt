@@ -7,11 +7,7 @@ import com.darcy.kmpdemo.bean.http.response.ChatListResponse
 import com.darcy.kmpdemo.bean.http.response.ConversationResponse
 import com.darcy.kmpdemo.bean.ui.ChatListItemBean
 import com.darcy.kmpdemo.exception.BaseException
-import com.darcy.kmpdemo.repository.ConversationDaoRepository
-import com.darcy.kmpdemo.repository.ConversationUserCrossRefDaoRepository
-import com.darcy.kmpdemo.repository.UserDaoRepository
 import com.darcy.kmpdemo.storage.database.tables.ConversationEntity
-import com.darcy.kmpdemo.storage.database.tables.ConversationUserCrossRef
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
@@ -29,9 +25,6 @@ import kotlin.reflect.KClass
 
 class ConversationViewModel(
     private val conversationRepository: ConversationRepository = ConversationRepository(),
-    private val userDaoRepository: UserDaoRepository = UserDaoRepository(),
-    private val conversationDaoRepository: ConversationDaoRepository = ConversationDaoRepository(),
-    private val conversationUserCrossRefDaoRepository: ConversationUserCrossRefDaoRepository = ConversationUserCrossRefDaoRepository(),
 ) : BaseViewModel<ConversationState>() {
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -60,26 +53,6 @@ class ConversationViewModel(
                 actionGoChatPage(intent.response)
             }
 
-            is ConversationIntent.ActionCreateConversation -> { // 创建会话
-                actionCreateConversation(intent.userIdFrom, intent.userIdTo, intent.conversation)
-            }
-
-            is ConversationIntent.ActionDeleteConversation -> { // 删除会话
-                actionDeleteConversation(intent.conversationId)
-            }
-
-            is ConversationIntent.ActionUpdateConversation -> { // 更新会话
-                actionUpdateConversation(intent.conversationId, intent.conversation)
-            }
-
-            is ConversationIntent.ActionQueryUsersByConversationId -> { // 查询会话中的用户
-                actionQueryUsersByConversationId(intent.conversationId)
-            }
-
-            is ConversationIntent.ActionQueryConversationsByUserId -> { // 查询用户会话
-                actionQueryConversationsByUserId(intent.userId)
-            }
-
             is PagingIntent.ActionLoadNewPage -> {
                 // 分页
             }
@@ -87,89 +60,6 @@ class ConversationViewModel(
             else -> {
                 super.dispatch(intent)
             }
-        }
-    }
-
-    private fun actionGoChatPage(response: ConversationResponse) {
-        io {
-            sendEvent(ConversationEvent.GoChatPage(
-                conversationId = response.id,
-                userId = response.target.id,
-                userName = response.target.username,
-                userAvatar = response.target.avatar,
-            ))
-        }
-    }
-
-    private fun actionQueryConversationsByUserId(userId: Long) {
-        io {
-            val crossRef =
-                conversationUserCrossRefDaoRepository.getConversationsByUserId(userId)
-            val uiBeanList = crossRef.conversations.map { item ->
-                val userIdSelected =
-                    if (item.userIdFrom == userId) item.userIdTo else item.userIdFrom
-                val userAvatar = userDaoRepository.getUserById(userIdSelected).avatar
-                ChatListItemBean(
-                    id = item.conversationId ?: -1L,
-                    title = item.name,
-                    subTitle = "",
-                    avatar = userAvatar,
-                )
-            }
-            dispatch(FetchIntent.RefreshByFetchData(ChatListResponse(uiBeanList)))
-        }
-    }
-
-    private fun actionQueryUsersByConversationId(conversationId: Long) {
-        io {
-            val crossRef =
-                conversationUserCrossRefDaoRepository.getUsersByConversationId(conversationId)
-//            val uiBeanList = crossRef.users.map {
-//                ChatDetailItemBean(
-//                )
-//            }
-            //dispatch(ChatListIntent.RefreshByQueryData(users))
-        }
-    }
-
-    private fun actionUpdateConversation(
-        conversationId: Long,
-        conversation: ConversationEntity
-    ) {
-        io {
-            conversationDaoRepository.updateConversation(conversation)
-        }
-    }
-
-    private fun actionDeleteConversation(conversationId: Long) {
-        io {
-            conversationDaoRepository.deleteConversationById(conversationId)
-        }
-    }
-
-    private fun actionCreateConversation(
-        userIdFrom: Long,
-        userIdTo: Long,
-        conversation: ConversationEntity
-    ) {
-        io {
-            conversationDaoRepository.createConversation(conversation)
-            val conversationName = "$userIdFrom-$userIdTo"
-            val conversationId =
-                conversationDaoRepository.getConversationByName(conversationName).conversationId
-                    ?: -1L
-            conversationUserCrossRefDaoRepository.insert(
-                ConversationUserCrossRef(
-                    conversationId = conversationId,
-                    userId = userIdFrom
-                )
-            )
-            conversationUserCrossRefDaoRepository.insert(
-                ConversationUserCrossRef(
-                    conversationId = conversationId,
-                    userId = userIdTo
-                )
-            )
         }
     }
 
@@ -188,6 +78,20 @@ class ConversationViewModel(
                 })
         }
     }
+
+    private fun actionGoChatPage(response: ConversationResponse) {
+        io {
+            sendEvent(
+                ConversationEvent.GoChatPage(
+                    conversationId = response.id,
+                    userId = response.target.id,
+                    userName = response.target.username,
+                    userAvatar = response.target.avatar,
+                )
+            )
+        }
+    }
+
 
     private fun dispatchFailure(throwable: Throwable) {
         val code = if (throwable is BaseException) throwable.errorCode else -1

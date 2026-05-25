@@ -7,10 +7,10 @@ import com.darcy.kmpdemo.utils.UUIDHelper
 import com.darcy.kmpdemo.utils.toBytes
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 
-class GenerateSignedPreKeyUseCase : IUseCase<SignedPreKeyEntity> {
+class GenerateSignedPreKeyUseCase : IUseCase<Unit, SignedPreKeyEntity> {
     private val identityKeyDao = getDarcyIMDatabase().identityKeyDao()
     private val signedPreKeyDao = getDarcyIMDatabase().signedPreKeyDao()
-    override suspend fun invoke(params: Map<String, String>): Result<SignedPreKeyEntity> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<SignedPreKeyEntity> {
         val userId =
             params["userId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val identityKeyId = params["identityKeyId"]

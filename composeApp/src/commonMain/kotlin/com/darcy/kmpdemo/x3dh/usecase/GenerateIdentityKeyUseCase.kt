@@ -7,9 +7,9 @@ import com.darcy.kmpdemo.utils.UUIDHelper
 import com.darcy.kmpdemo.utils.toBytes
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 
-class GenerateIdentityKeyUseCase : IUseCase<IdentityKeyEntity> {
+class GenerateIdentityKeyUseCase : IUseCase<Unit, IdentityKeyEntity> {
     private val identityKeyDao = getDarcyIMDatabase().identityKeyDao()
-    override suspend fun invoke(params: Map<String, String>): Result<IdentityKeyEntity> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<IdentityKeyEntity> {
         val userId =
             params["userId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val identityKey = ECCExchangeHelper.generateKeyPair()

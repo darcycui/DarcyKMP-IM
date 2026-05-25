@@ -8,10 +8,12 @@ import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponsePage
 import com.darcy.kmpdemo.bean.http.response.isSelfSent
+import com.darcy.kmpdemo.bean.http.response.toEntity
 import com.darcy.kmpdemo.bean.http.response.toSTOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -23,6 +25,7 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.ChatRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.WebsocketRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
+import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveOfflineToDBMessageUseCase
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetSendStepUseCase
 import kotlin.reflect.KClass
@@ -31,6 +34,7 @@ class ChatViewModel(
     private val chatRepository: ChatRepository = ChatRepository(),
     private val websocketRepository: WebsocketRepository = WebsocketRepository,
     private val doubleRatchetSendStepUseCase: DoubleRatchetSendStepUseCase = DoubleRatchetSendStepUseCase(),
+    private val saveOfflineToDBMessageUseCase: SaveOfflineToDBMessageUseCase = SaveOfflineToDBMessageUseCase(),
 ) : BaseViewModel<ChatState>() {
     companion object {
         private const val TAG = "ChatViewModel"
@@ -55,7 +59,8 @@ class ChatViewModel(
     override fun dispatch(intent: IIntent) {
         when (intent) {
             is FetchIntent.ActionFetchData -> {
-                actionFetchMessages(intent.params)
+                actionReceiverFetchMessages(intent.targetId, intent.conversationId)
+                actionSenderSyncMessageReadStatus(intent.targetId, intent.conversationId)
             }
 
             is ChatIntent.ActionSendMessage -> {
@@ -73,25 +78,65 @@ class ChatViewModel(
         }
     }
 
-    private fun actionFetchMessages(params: Map<String, String>) {
+    private fun actionSenderSyncMessageReadStatus(targetId: Long, conversationId: Long) {
+        io {
+            chatRepository.senderSyncMessageReadStatusHttp(
+                userId = IMGlobalStorage.getCurrentUserId(),
+                targetId = targetId,
+                conversationId = conversationId,
+                conversationType = 1,
+                since = "",
+                until = "",
+                onSuccess = {
+                    logD("syncMessageReadStatus success")
+                },
+                onError = {
+                    logE("syncMessageReadStatus error: $it")
+                }
+            )
+        }
+    }
+
+    private fun actionReceiverFetchMessages(
+        targetId: Long,
+        conversationId: Long,
+        page: Int = 1,
+        size: Int = 50
+    ) {
         // http拉取最新消息
-        chatRepository.fetchMessages(
+        chatRepository.receiverPullOfflineMessageHttp(
             userId = IMGlobalStorage.getCurrentUserId(),
-            conversationId = params["conversationId"]?.toLongOrNull() ?: 0L,
-            page = 0,
-            size = 10,
+            targetId = targetId,
+            conversationId = conversationId,
+            conversationType = 1,
+            page = page,
+            size = size,
             onSuccess = {
-                sendMessageReadStatusHttp(it)
-                dispatch(FetchIntent.RefreshByFetchData(it))
+                io {
+                    // 保存到数据库
+                    saveOfflineToDBMessageUseCase.invoke(mapOf(), it.content.toEntity())
+                    // 发送已读状态
+                    receiverPushMessageReadStatusHttp(it)
+                    // 刷新UI
+                    main { dispatch(FetchIntent.RefreshByFetchData(it)) }
+                    // 获取下一页
+                    val hasNextPage = it.last.not()
+                    if (hasNextPage) {
+                        logV("拉取离线消息成功:存在下一页,继续拉取")
+                        actionReceiverFetchMessages(targetId, conversationId, it.number + 1, it.size)
+                    } else {
+                        logV("拉取离线消息成功:不存在下一页")
+                    }
+                }
             },
             onError = {
-                logE("拉取消息错误")
+                logE("拉取离线消息错误:${it::class.simpleName} ${it.message}")
                 main { dispatch(it.toTipsIntent()) }
             }
         )
     }
 
-    private fun sendMessageReadStatusHttp(page: PrivateMessageResponsePage) {
+    private fun receiverPushMessageReadStatusHttp(page: PrivateMessageResponsePage) {
         // http发送消息已读
         if (page.content.isEmpty()) {
             logW("没有消息")
@@ -103,8 +148,9 @@ class ChatViewModel(
             logW("没有对方发的消息")
             return
         }
+        logV("需要发送消息已读状态(已读)的消息集合: ${receiveList.map { it.msgId }}")
         val first = receiveList.first()
-        chatRepository.sendMessageReadStatusHttp(
+        chatRepository.receiverPushMessageReadStatusHttp(
             userId = IMGlobalStorage.getCurrentUserId(),
             fromUserName = IMGlobalStorage.getCurrentUser().username,
             targetId = first.senderId,
@@ -138,7 +184,7 @@ class ChatViewModel(
                 mapOf(
                     "localUserId" to localUserId.toString(),
                     "remoteUserId" to remoteUserId.toString()
-                )
+                ), Unit
             ).onFailure {
                 logE("发送时计算messageKey错误: ${it.message}")
                 it.printStackTrace()

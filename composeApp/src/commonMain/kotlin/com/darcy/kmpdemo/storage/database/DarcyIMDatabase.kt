@@ -4,22 +4,20 @@ import androidx.room3.Database
 import androidx.room3.RoomDatabase
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.darcy.kmpdemo.storage.database.daos.ConversationDao
-import com.darcy.kmpdemo.storage.database.daos.ConversationUserCrossRefDao
-import com.darcy.kmpdemo.storage.database.daos.FriendshipUserCrossRefDao
 import com.darcy.kmpdemo.storage.database.daos.FriendshipUserDao
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
 import com.darcy.kmpdemo.storage.database.daos.MessageReadStatusDao
 import com.darcy.kmpdemo.storage.database.daos.OneTimePreKeyDao
+import com.darcy.kmpdemo.storage.database.daos.PrivateMessageDao
 import com.darcy.kmpdemo.storage.database.daos.SessionRecordDao
 import com.darcy.kmpdemo.storage.database.daos.SignedPreKeyDao
 import com.darcy.kmpdemo.storage.database.daos.UserDao
 import com.darcy.kmpdemo.storage.database.tables.ConversationEntity
-import com.darcy.kmpdemo.storage.database.tables.ConversationUserCrossRef
 import com.darcy.kmpdemo.storage.database.tables.FriendshipEntity
-import com.darcy.kmpdemo.storage.database.tables.FriendshipUserCrossRef
 import com.darcy.kmpdemo.storage.database.tables.IdentityKeyEntity
-import com.darcy.kmpdemo.storage.database.tables.MessageReadStatus
+import com.darcy.kmpdemo.storage.database.tables.MessageReadStatusEntity
 import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
+import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
 import com.darcy.kmpdemo.storage.database.tables.SignedPreKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.UserEntity
@@ -31,17 +29,16 @@ import kotlinx.coroutines.IO
         // 添加数据库表
         UserEntity::class,
         ConversationEntity::class,
-        ConversationUserCrossRef::class,
         FriendshipEntity::class,
-        FriendshipUserCrossRef::class,
+        PrivateMessageEntity::class,
         IdentityKeyEntity::class,
         SignedPreKeyEntity::class,
         OneTimePreKeyEntity::class,
         SessionRecordEntity::class,
-        MessageReadStatus::class
+        MessageReadStatusEntity::class
     ],
     // 数据库版本 修改后需要添加对应 Migration
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 
@@ -49,14 +46,13 @@ import kotlinx.coroutines.IO
 abstract class DarcyIMDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun conversationDao(): ConversationDao
-    abstract fun conversationUserCrossRefDao(): ConversationUserCrossRefDao
     abstract fun friendshipDao(): FriendshipUserDao
-    abstract fun friendshipUserCrossRefDao(): FriendshipUserCrossRefDao
     abstract fun identityKeyDao(): IdentityKeyDao
     abstract fun signedPreKeyDao(): SignedPreKeyDao
     abstract fun oneTimePreKeyDao(): OneTimePreKeyDao
     abstract fun sessionRecordDao(): SessionRecordDao
     abstract fun messageReadStatusDao(): MessageReadStatusDao
+    abstract fun privateMessageDao(): PrivateMessageDao
 }
 
 fun getDarcyIMDatabase(): DarcyIMDatabase {

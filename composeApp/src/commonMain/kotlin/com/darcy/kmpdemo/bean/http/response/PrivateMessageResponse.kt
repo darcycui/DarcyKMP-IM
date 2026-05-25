@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.bean.http.response
 
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
+import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.utils.UUIDHelper
 import kotlinx.serialization.Serializable
@@ -76,4 +77,20 @@ fun PrivateMessageResponse.toSTOMPMessage(): STOMPMessage {
         msgId = UUIDHelper.generateMessageId(),
         msgType = this.msgType
     )
+}
+
+fun PrivateMessageResponse.toEntity(): PrivateMessageEntity {
+    return PrivateMessageEntity(
+        msgId = this.msgId,
+        userId = this.senderId,
+        targetId = this.receiverId,
+        content = this.content,
+        messageType = 1,
+        createdTime = this.sendTime,
+        updatedTime = this.sendTime
+    )
+}
+
+fun List<PrivateMessageResponse>.toEntity(): List<PrivateMessageEntity> {
+    return this.map { it.toEntity() }
 }

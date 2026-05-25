@@ -7,9 +7,9 @@ import com.darcy.kmpdemo.ui.base.IUseCase
 import com.darcy.kmpdemo.utils.EncryptUtil
 import com.darcy.kmpdemo.utils.hexStrToBytes
 
-class SaveAliceSessionRecordUseCase : IUseCase<Boolean> {
+class SaveAliceSessionRecordUseCase : IUseCase<Unit, Boolean> {
     private val sessionRecordDao: SessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
-    override suspend fun invoke(params: Map<String, String>): Result<Boolean> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<Boolean> {
         return runCatching {
             val localUserId = params["aliceUserId"]?.toLongOrNull() ?: return Result.failure(
                 Exception("aliceUserId is null")

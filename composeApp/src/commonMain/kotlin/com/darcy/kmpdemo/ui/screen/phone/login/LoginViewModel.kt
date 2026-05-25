@@ -8,7 +8,6 @@ import com.darcy.kmpdemo.bean.ui.LoginBean
 import com.darcy.kmpdemo.bean.http.response.UsersResponse
 import com.darcy.kmpdemo.bean.ui.UserItemBean
 import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.repository.UserDaoRepository
 import com.darcy.kmpdemo.storage.database.tables.UserEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -27,7 +26,6 @@ import org.jetbrains.compose.resources.getString
 import kotlin.reflect.KClass
 
 class LoginViewModel(
-    private val repository: UserDaoRepository = UserDaoRepository(),
     private val loginRepository: LoginRepository = LoginRepository(),
 ) : BaseViewModel<LoginState>() {
     companion object {
@@ -57,23 +55,6 @@ class LoginViewModel(
                 actionGoRegister()
             }
 
-            is LoginIntent.ActionAddUser -> { // 添加用户
-                actionAddUser(intent.userEntity)
-            }
-
-            is LoginIntent.ActionDeleteUser -> { // 删除用户
-                actionDeleteUser(intent.userId)
-            }
-
-            is LoginIntent.ActionUpdateUser -> { // 更新用户
-                actionUpdateUser(intent.userId, intent.name)
-            }
-
-            is LoginIntent.ActionQueryUserList -> { // 查询用户列表
-                actionQueryUserList()
-            }
-
-
             else -> {
                 super.dispatch(intent)
             }
@@ -101,40 +82,6 @@ class LoginViewModel(
                     logE("登录失败：$it")
                     main { dispatch(it.toTipsIntent()) }
                 })
-        }
-    }
-
-    private fun actionQueryUserList() {
-        io {
-            val userEntityList = repository.getAllUser().map { item ->
-                UserItemBean(
-                    id = item.userId,
-                    name = item.name,
-                    avatar = item.avatar,
-                    nickName = item.nickName,
-                    age = item.age,
-                    sex = item.sex,
-                )
-            }
-            dispatch(FetchIntent.RefreshByFetchData(UsersResponse(userEntityList)))
-        }
-    }
-
-    private fun actionUpdateUser(id: Long, name: String) {
-        io {
-            repository.updateUser(id, name)
-        }
-    }
-
-    private fun actionDeleteUser(id: Long) {
-        io {
-            repository.deleteUser(id)
-        }
-    }
-
-    private fun actionAddUser(userEntity: UserEntity) {
-        io {
-            repository.insertUser(userEntity)
         }
     }
 }

@@ -9,11 +9,11 @@ import com.darcy.kmpdemo.utils.toPublicKey
 import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 
-class CalculateBobX3DHKeyUseCase : IUseCase<ByteArray> {
+class CalculateBobX3DHKeyUseCase : IUseCase<Unit, ByteArray> {
     private val identityKeyDao = getDarcyIMDatabase().identityKeyDao()
     private val signedPreKeyDao = getDarcyIMDatabase().signedPreKeyDao()
     private val oneTimePreKeyDao = getDarcyIMDatabase().oneTimePreKeyDao()
-    override suspend fun invoke(params: Map<String, String>): Result<ByteArray> {
+    override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<ByteArray> {
         val bobUserId = params["bobUserId"]?.toLongOrNull() ?: return Result.failure(Exception("userId is null"))
         val aliceIdentityKey = params["aliceIdentityKey"] ?: return Result.failure(Exception("aliceIdentityKey is null"))
         val aliceEphemeralKey = params["aliceEphemeralKey"] ?: return Result.failure(Exception("aliceEphemeralKey is null"))

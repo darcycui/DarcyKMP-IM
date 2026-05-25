@@ -9,11 +9,7 @@ import com.darcy.kmpdemo.bean.http.response.FriendshipResponse
 import com.darcy.kmpdemo.bean.ui.FriendsItemBean
 import com.darcy.kmpdemo.exception.BaseException
 import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.repository.FriendshipDaoRepository
-import com.darcy.kmpdemo.repository.FriendshipUserCrossRefDaoRepository
-import com.darcy.kmpdemo.repository.UserDaoRepository
 import com.darcy.kmpdemo.storage.database.tables.FriendshipEntity
-import com.darcy.kmpdemo.storage.database.tables.FriendshipUserCrossRef
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
