@@ -11,7 +11,7 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
 
 class ChatReducer :
-    ScreenStateFetchPagingTipsCombinedReducer<ChatState, PrivateMessageResponsePage>() {
+    ScreenStateFetchPagingTipsCombinedReducer<ChatState, List<PrivateMessageResponse>>() {
     override fun onReduce(
         intent: IIntent,
         state: ChatState
@@ -46,20 +46,20 @@ class ChatReducer :
 
     override fun onFetch(
         state: ChatState,
-        result: PrivateMessageResponsePage
+        result: List<PrivateMessageResponse>
     ): ChatState {
         return state.copy(
-            items = result.content
+            items = result
         )
     }
 
     override fun onPaging(
         state: ChatState,
         pageNumber: Int,
-        response: PrivateMessageResponsePage
+        response: List<PrivateMessageResponse>
     ): ChatState {
         return state.copy(
-            items = state.items + response.content
+            items = response + state.items
         )
     }
 

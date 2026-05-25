@@ -56,8 +56,8 @@ fun PhoneChatScreen(
         viewModel.dispatch(
             FetchIntent.ActionFetchData(
                 params = mapOf(
+                    "targetId" to userId.toString(),
                     "conversationId" to conversationId.toString(),
-                    "userId" to userId.toString(),
                 )
             )
         )

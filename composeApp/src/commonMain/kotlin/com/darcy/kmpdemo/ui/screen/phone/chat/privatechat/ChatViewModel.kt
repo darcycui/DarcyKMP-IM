@@ -25,6 +25,7 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.ChatRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.WebsocketRepository
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.ChatState
+import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.QueryMessageFromDBByPageUseCase
 import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveOfflineToDBMessageUseCase
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetSendStepUseCase
@@ -35,6 +36,7 @@ class ChatViewModel(
     private val websocketRepository: WebsocketRepository = WebsocketRepository,
     private val doubleRatchetSendStepUseCase: DoubleRatchetSendStepUseCase = DoubleRatchetSendStepUseCase(),
     private val saveOfflineToDBMessageUseCase: SaveOfflineToDBMessageUseCase = SaveOfflineToDBMessageUseCase(),
+    private val queryMessageFromDBByPageUseCase: QueryMessageFromDBByPageUseCase = QueryMessageFromDBByPageUseCase(),
 ) : BaseViewModel<ChatState>() {
     companion object {
         private const val TAG = "ChatViewModel"
@@ -59,8 +61,11 @@ class ChatViewModel(
     override fun dispatch(intent: IIntent) {
         when (intent) {
             is FetchIntent.ActionFetchData -> {
-                actionReceiverFetchMessages(intent.targetId, intent.conversationId)
-                actionSenderSyncMessageReadStatus(intent.targetId, intent.conversationId)
+                val targetId = intent.params["targetId"]?.toLongOrNull() ?: 0
+                val conversationId = intent.params["conversationId"]?.toLongOrNull() ?: 0
+                actionReceiverFetchMessages(targetId, conversationId)
+                actionSenderSyncMessageReadStatus(targetId, conversationId)
+                actionLoadMessageByPage(targetId, conversationId, 1)
             }
 
             is ChatIntent.ActionSendMessage -> {
@@ -75,6 +80,28 @@ class ChatViewModel(
             else -> {
                 super.dispatch(intent)
             }
+        }
+    }
+
+    private fun actionLoadMessageByPage(
+        targetId: Long,
+        conversationId: Long,
+        page: Int,
+        size: Int = 10
+    ) {
+        io {
+            val userId = IMGlobalStorage.getCurrentUserId()
+            // 从数据库 分页读取数据 刷新UI
+            val messageList = queryMessageFromDBByPageUseCase.invoke(
+                mapOf(
+                    "userId" to userId.toString(),
+                    "targetId" to targetId.toString(),
+                    "conversationId" to conversationId.toString(),
+                    "page" to page.toString(),
+                    "size" to size.toString()
+                ), Unit
+            )
+            main { dispatch(FetchIntent.RefreshByFetchData(messageList)) }
         }
     }
 
@@ -103,9 +130,10 @@ class ChatViewModel(
         page: Int = 1,
         size: Int = 50
     ) {
+        val userId = IMGlobalStorage.getCurrentUserId()
         // http拉取最新消息
         chatRepository.receiverPullOfflineMessageHttp(
-            userId = IMGlobalStorage.getCurrentUserId(),
+            userId = userId,
             targetId = targetId,
             conversationId = conversationId,
             conversationType = 1,
@@ -117,13 +145,16 @@ class ChatViewModel(
                     saveOfflineToDBMessageUseCase.invoke(mapOf(), it.content.toEntity())
                     // 发送已读状态
                     receiverPushMessageReadStatusHttp(it)
-                    // 刷新UI
-                    main { dispatch(FetchIntent.RefreshByFetchData(it)) }
                     // 获取下一页
                     val hasNextPage = it.last.not()
                     if (hasNextPage) {
                         logV("拉取离线消息成功:存在下一页,继续拉取")
-                        actionReceiverFetchMessages(targetId, conversationId, it.number + 1, it.size)
+                        actionReceiverFetchMessages(
+                            targetId,
+                            conversationId,
+                            it.number + 1,
+                            it.size
+                        )
                     } else {
                         logV("拉取离线消息成功:不存在下一页")
                     }
