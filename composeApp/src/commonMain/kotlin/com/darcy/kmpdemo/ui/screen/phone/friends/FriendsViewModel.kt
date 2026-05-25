@@ -28,9 +28,7 @@ import com.darcy.kmpdemo.ui.screen.phone.friends.intent.FriendsIntent
 import com.darcy.kmpdemo.ui.screen.phone.friends.reducer.FriendsReducer
 import com.darcy.kmpdemo.ui.screen.phone.friends.repository.FriendsRepository
 import com.darcy.kmpdemo.ui.screen.phone.friends.state.FriendsState
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.confirm
-import org.jetbrains.compose.resources.getString
+import io.ktor.client.utils.EmptyContent.status
 import kotlin.reflect.KClass
 
 class FriendsViewModel(
@@ -80,7 +78,7 @@ class FriendsViewModel(
             }
 
             is FriendsIntent.ActionDeleteFriend -> { // 删除好友
-                actionDeleteFriend()
+                actionDeleteFriend(intent.userId, intent.friendUserId)
             }
 
             is FriendsIntent.ActionUpdateFriend -> { // 更新好友
@@ -163,9 +161,28 @@ class FriendsViewModel(
 
     }
 
-    private fun actionDeleteFriend() {
+    private fun actionDeleteFriend(userId: Long, friendUserId: Long) {
+        io {
+            repository.deleteFriend(
+                userId, friendUserId,
+                onSuccess = {
 
-
+                    main {
+                        val tips = TipsIntent.ShowTips(
+                            title = "提示",
+                            tips = it,
+                            code = 200,
+                            middleButtonText = "确定"
+                        )
+                        dispatch(tips)
+                        dispatch(FetchIntent.ActionFetchData())
+                    }
+                },
+                onError = {
+                    logE("删除好友失败：$it")
+                    main { dispatch(it.toTipsIntent()) }
+                })
+        }
     }
 
     private fun actionAddFriend2(userIdFrom: Long, userIdTo: Long, markName: String) {

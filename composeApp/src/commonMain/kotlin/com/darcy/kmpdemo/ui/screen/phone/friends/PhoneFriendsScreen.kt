@@ -3,6 +3,7 @@ package com.darcy.kmpdemo.ui.screen.phone.friends
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -66,7 +68,8 @@ fun PhoneFriendsScreen() {
                         route = PhoneRoute.AcceptFriend, clearStack = false, includeRoot = true
                     )
                 }
-               is FriendsEvent.GoChat -> {
+
+                is FriendsEvent.GoChat -> {
                     appNavController.customNavigate(
                         route = PhoneRoute.Chat(
                             conversationId = it.conversationId,
@@ -134,10 +137,21 @@ private fun ShowSuccessPage(
         LazyColumn(
             modifier = Modifier.weight(1f)
         ) {
-            items(uiState.items, key = { it.id}) { item->
-                FriendsItem(item, onItemClick = {
-                    viewModel.dispatch(FriendsIntent.GoChatPage(item))
-                })
+            items(uiState.items, key = { it.id }) { item ->
+                FriendsItem(
+                    item,
+                    onItemClick = {
+                        viewModel.dispatch(FriendsIntent.GoChatPage(item))
+
+                    }, onItemLongClick = {
+                        // todo 显示上下文菜单 删除
+                        viewModel.dispatch(
+                            FriendsIntent.ActionDeleteFriend(
+                                item.user.id,
+                                item.friend.id
+                            )
+                        )
+                    })
             }
         }
     }
@@ -147,14 +161,24 @@ private fun ShowSuccessPage(
 private fun FriendsItem(
     bean: FriendshipResponse = FriendshipResponse(),
     modifier: Modifier = Modifier,
-    onItemClick: () -> Unit = {}
+    onItemClick: () -> Unit = {},
+    onItemLongClick: () -> Unit = {},
 ) {
     Column(modifier = Modifier.fillMaxWidth().height(50.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().weight(1f)
-                .clickable(onClick = {
-                    onItemClick()
-                })
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        // 点击事件
+                        onTap = {
+                            onItemClick()
+                        },
+                        // 长按事件
+                        onLongPress = {
+                            onItemLongClick()
+                        }
+                    )
+                }
                 .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.Top
         ) {

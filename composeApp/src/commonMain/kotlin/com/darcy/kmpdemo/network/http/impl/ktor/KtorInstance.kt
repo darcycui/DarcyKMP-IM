@@ -80,7 +80,8 @@ val ktorClient: HttpClient
         // SSL证书配置
         engine {
             dispatcher = Dispatchers.Default
-            configureEngineTLS(this) // 不同平台单独实现
+            // todo PKCS12格式证书不支持 改为 JKS格式
+            // configureEngineTLS(this) // 不同平台单独实现
         }
         // 开启 websocket
         install(WebSockets) {

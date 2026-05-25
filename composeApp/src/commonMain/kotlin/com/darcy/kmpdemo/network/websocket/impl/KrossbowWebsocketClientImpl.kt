@@ -3,10 +3,13 @@ package com.darcy.kmpdemo.network.websocket.impl
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
+import com.darcy.kmpdemo.log.logV
+import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.impl.ktor.ktorClient
 import com.darcy.kmpdemo.network.websocket.IWebSocketClient
 import com.darcy.kmpdemo.network.websocket.frame.toJsonString
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
+import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +20,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.StompSession
 import org.hildan.krossbow.stomp.WebSocketClosedUnexpectedly
@@ -31,6 +35,7 @@ import org.hildan.krossbow.stomp.subscribe
 import org.hildan.krossbow.websocket.WebSocketClient
 import org.hildan.krossbow.websocket.WebSocketFrame
 import org.hildan.krossbow.websocket.ktor.KtorWebSocketClient
+import kotlin.concurrent.Volatile
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -56,6 +61,9 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     private var topicSubscriptionJob: Job? = null
     private var statusSubscriptionJob: Job? = null
 
+    @Volatile
+    private var isConnected = false
+
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocket-stomp")
     private val exceptionHandler: CoroutineExceptionHandler =
@@ -63,19 +71,26 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             logE("$TAG exceptionHandler: ${throwable.message}")
             throwable.printStackTrace()
             dispatchException(throwable)
+//            onClosed()
         }
 
     fun dispatchException(throwable: Throwable) {
-        outListener?.onFailure(throwable.message ?: "")
+        logE("$TAG dispatchException: ${throwable::class.simpleName} ${throwable.message}")
         when (throwable) {
             // 连接已断开 手动调用 disconnect
-            is WebSocketClosedUnexpectedly -> {
-                scope.launch {
+            is WebSocketClosedUnexpectedly,
+            is CancellationException -> {
+                logE("阻塞异常 需要断开websocket连接")
+                // 注意在异常handler中 不能使用scope开启协程
+                runBlocking {
                     disconnect()
                 }
             }
 
-            else -> {}
+            else -> {
+                logW("非阻塞异常")
+                outListener?.onFailure(throwable.message ?: "")
+            }
         }
     }
 
@@ -114,7 +129,6 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                     decodedFrame: StompFrame
                 ) {
                     super.onFrameDecoded(originalFrame, decodedFrame)
-                    //logD("$TAG originalFrame --> ${originalFrame.toString()}")
                     logD("$TAG onFrameDecoded --> ${decodedFrame.toString()}")
                 }
 
@@ -128,11 +142,11 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                 override suspend fun onWebSocketClosed(cause: Throwable?) {
                     super.onWebSocketClosed(cause)
                     logD("$TAG onWebSocketClosed --> ${cause?.message}")
+                    cause?.printStackTrace()
                 }
 
                 override suspend fun onWebSocketFrameReceived(frame: WebSocketFrame) {
                     super.onWebSocketFrameReceived(frame)
-                    //logD("$TAG onWebSocketFrameReceived <-- ${frame.toString()}")
                 }
 
             }
@@ -141,14 +155,19 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
     @OptIn(ExperimentalHeadersApi::class)
     override suspend fun connect() {
+        logV("$TAG connect...")
         if (outListener == null) {
             throw NullPointerException("outListener is null. please call setOutListener() first.")
         }
+        if (isConnected) {
+            logW("$TAG already connected")
+            return
+        }
         if (session != null) {
+            session?.disconnect()
             session = null
         }
         runCatching {
-            logD("$TAG connect...")
             session = stompClient.connect(
                 this.url,
                 // 设置认证token header
@@ -200,22 +219,39 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             onFailure(it.message ?: "")
             // 确保在连接失败时清理资源
             disconnect()
+        }.onSuccess {
+            logD("$TAG connect success.")
         }
     }
 
     override suspend fun disconnect() {
-        logD("$TAG disconnect...")
-        // 先取消订阅任务
-        cleanupSubscriptions()
-        session?.let {
-            it.disconnect()
+        logV("$TAG disconnect...")
+        if (isConnected.not()) {
+            logW("$TAG already disconnected")
+            return
+        }
+        runCatching {
+            // 先取消订阅任务
+            cleanupSubscriptions()
             onClosed()
+            runCatching {
+                session?.disconnect()
+            }.onFailure {
+                logE("$TAG session disconnect error: ${it.message}")
+                it.printStackTrace()
+            }.onSuccess {
+                logD("$TAG session disconnect success")
+            }
             session = null
-        } ?: run {
-            logD("$TAG already disconnected!")
-            onFailure("already disconnected!")
+            isConnected = false
+        }.onFailure {
+            logE("$TAG disconnect error: $it")
+            it.printStackTrace()
+        }.onSuccess {
+            logV("$TAG disconnect success")
         }
     }
+
 
     /**
      * 清理订阅相关的协程任务
@@ -231,33 +267,44 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
     override suspend fun send(message: String, destination: String, headers: Map<String, String>) {
         logD("$TAG send message... --> $message")
+        if (isConnected.not()) {
+            logE("$TAG 无法发送消息，当前未连接")
+            onFailure("无法发送消息，当前未连接")
+            return
+        }
         val jsonMessage = (message)
-        session?.let {
-            runCatching {
-                // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
-                val receipt = it.send(
-                    headers = StompSendHeaders(destination) { setAll(headers) },
-                    body = FrameBody.Text(jsonMessage)
-                )
-                logD("$TAG 收到receipt: $receipt")
-                onSend(jsonMessage)
-            }.onFailure { exception ->
-                onFailure("send error: ${exception::class.simpleName} ${exception.message}")
-            }
-        } ?: run {
-            logD("$TAG session is null.")
-            onFailure("session is null")
+        runCatching {
+            // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
+            val receipt = session?.send(
+                headers = StompSendHeaders(destination) { setAll(headers) },
+                body = FrameBody.Text(jsonMessage)
+            )
+            logD("$TAG 收到receipt: $receipt")
+            onSend(jsonMessage)
+        }.onFailure { it ->
+            onFailure("send error: ${it::class.simpleName} ${it.message}")
+            it.printStackTrace()
+        }.onSuccess {
+            logD("$TAG 发送成功")
         }
     }
+
 
     override suspend fun send(bytes: ByteArray) {
         TODO("Not yet implemented")
     }
 
     override suspend fun reconnect() {
-        disconnect()
-        delay(1_000)
-        connect()
+        runCatching {
+            disconnect()
+            delay(1_000)
+            connect()
+        }.onFailure {
+            logE("重连失败: ${it::class.simpleName} ${it.message}")
+            it.printStackTrace()
+        }.onSuccess {
+            logD("重连成功")
+        }
     }
 
     /**
@@ -269,26 +316,29 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
     override fun onOpen() {
         logI("$TAG onOpen")
-        outListener?.onOpen()
+        if (isConnected.not()) {
+            isConnected = true
+            outListener?.onOpen()
+        }
     }
 
     override fun onSend(message: String) {
-        //logD("$TAG onSend... $message")
+        logD("$TAG onSend... text")
         outListener?.onSend(message)
     }
 
     override fun onSend(bytes: ByteArray) {
-        logE("$TAG onSend2... $bytes")
+        logE("$TAG onSend2... bytes")
         TODO("Not yet implemented")
     }
 
     override fun onMessage(body: String, headers: Map<String, String>) {
-        //logD("$TAG onMessage... $headers $body")
+        logD("$TAG onMessage... text")
         outListener?.onMessage(body, headers)
     }
 
     override fun onMessage(bytes: ByteArray, headers: Map<String, String>) {
-        logE("$TAG onMessage2... $bytes")
+        logE("$TAG onMessage... bytes")
         TODO("Not yet implemented")
     }
 
@@ -307,6 +357,8 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
     override fun onClosed() {
         logE("$TAG onClosed")
-        outListener?.onClosed()
+        if (isConnected) {
+            outListener?.onClosed()
+        }
     }
 }

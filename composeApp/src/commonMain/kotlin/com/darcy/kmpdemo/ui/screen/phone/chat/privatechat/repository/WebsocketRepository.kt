@@ -28,8 +28,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
 import kotlin.concurrent.Volatile
@@ -47,12 +49,10 @@ object WebsocketRepository : IRepository {
 
     private val _messageFlow = MutableSharedFlow<STOMPMessage>(replay = 0)
     val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
-    private val _connectionStateFlow = MutableSharedFlow<WebSocketConnectionState>(replay = 1)
+    private val _connectionStateFlow =
+        MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     val connectionStateFlow: SharedFlow<WebSocketConnectionState> =
-        _connectionStateFlow.asSharedFlow()
-
-    @Volatile
-    private var isConnected = false
+        _connectionStateFlow.asStateFlow()
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocketRepository")
@@ -67,19 +67,9 @@ object WebsocketRepository : IRepository {
     fun connect() {
         scope.launch {
             logD("$TAG connect")
-            if (isConnected) {
-                logW("$TAG already connected")
-                return@launch
-            }
-            runCatching {
-                init()
-                setupListener()
-                webSocketManager.connect()
-            }.onFailure {
-                logE("$TAG Connection failed: ${it.message}")
-                it.printStackTrace()
-                isConnected = false
-            }
+            init()
+            setupListener()
+            webSocketManager.connect()
         }
     }
 
@@ -96,15 +86,12 @@ object WebsocketRepository : IRepository {
         logD("$TAG setupListener")
         webSocketManager.setOuterListener(object : IOuterListener {
             override fun onOpen() {
-                //logI("$TAG onOpen")
-                isConnected = true
                 scope.launch {
                     _connectionStateFlow.emit(WebSocketConnectionState.Connected)
                 }
             }
 
             override fun onSend(message: String) {
-                //logD("WebsocketRepository onSend:$message")
             }
 
             override fun onSend(bytes: ByteArray) {
@@ -112,7 +99,6 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onMessage(body: String, headers: Map<String, String>) {
-                //logV("$TAG onMessage:$headers $body")
                 handleReceiveMessage(body, headers)
             }
 
@@ -128,7 +114,6 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onFailure(errorMessage: String) {
-                //logE("$TAG onFailure:$errorMessage")
                 scope.launch {
                     _connectionStateFlow.emit(WebSocketConnectionState.Error(errorMessage))
                 }
@@ -136,8 +121,6 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onClosed() {
-                //logW("$TAG onClosed")
-                isConnected = false
                 scope.launch {
                     _connectionStateFlow.emit(WebSocketConnectionState.Disconnected)
                 }
@@ -147,23 +130,13 @@ object WebsocketRepository : IRepository {
 
     fun disconnect() {
         scope.launch {
-            //logD("$TAG disconnect")
-            if (!isConnected) {
-                logW("$TAG already disconnected")
-                return@launch
-            }
             webSocketManager.disconnect()
-            isConnected = false
         }
     }
 
     fun sendMessage(message: STOMPMessage, headers: Map<String, String>) {
         scope.launch {
             logD("$TAG sendMessage toUser:${message.receiverName}")
-            if (!isConnected) {
-                logE("$TAG Cannot send message: not connected")
-                return@launch
-            }
             webSocketManager.send(
                 JsonHelper.toJson(message),
                 SEND_PRIVATE,
@@ -179,10 +152,6 @@ object WebsocketRepository : IRepository {
                 it.printStackTrace()
             }.getOrElse { }
         }
-    }
-
-    fun isConnected(): Boolean {
-        return isConnected
     }
 
     /**
@@ -211,7 +180,7 @@ object WebsocketRepository : IRepository {
                     _messageFlow.emit(it)
                     // 发送已读状态
                     sendMessageReadStatus(it, headers)
-                }?: run {
+                } ?: run {
                     logE("$TAG handleReceiveMessage messageEntity is null after json parse")
                 }
             }
@@ -230,10 +199,6 @@ object WebsocketRepository : IRepository {
     ) {
         scope.launch {
             logD("$TAG markMessageReadStatus")
-            if (!isConnected) {
-                logE("$TAG Cannot mark message read status: not connected")
-                return@launch
-            }
             val messageReadStatusRequest = MessageReadStatusRequest(
                 userId = messageEntity.receiverId,
                 fromUserName = messageEntity.receiverName,

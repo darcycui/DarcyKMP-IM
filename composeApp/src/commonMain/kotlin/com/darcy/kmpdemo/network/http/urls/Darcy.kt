@@ -14,6 +14,7 @@ object Darcy {
     const val QUERY_FRIEND_TO_URL = "$HOME_URL/api/friend-requests/query/to"
     const val ACCEPT_FRIEND_URL = "$HOME_URL/api/friend-requests/accept"
     const val QUERY_FRIENDSHIP_LIST_URL = "$HOME_URL/api/friendships/query/all"
+    const val DELETE_FRIENDSHIP_URL = "$HOME_URL/api/friendships/delete"
     const val QUERY_CONVERSATION_LIST_URL = "$HOME_URL/api/conversations/query/all"
     const val CREATE_CONVERSATION_URL = "$HOME_URL/api/conversations/create"
 
