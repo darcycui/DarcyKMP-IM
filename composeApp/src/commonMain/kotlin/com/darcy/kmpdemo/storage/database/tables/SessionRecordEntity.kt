@@ -24,6 +24,8 @@ data class SessionRecordEntity(
     var sendingChainKey: String = "",
     var receivingChainKey: String = "",
 
+    var lastSharedSecret: String = "",
+
     var sendingChainIndex: Long = 0,
     var receivingChainIndex: Long = 0,
     var createdTime: Long = 0,

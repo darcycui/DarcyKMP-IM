@@ -31,14 +31,14 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveMessageToDBUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.utils.UUIDHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
-import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetSendStepUseCase
+import com.darcy.kmpdemo.x3dh.usecase.SendDoubleRatchetStepUseCase
 import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
 import kotlin.reflect.KClass
 
 class ChatViewModel(
     private val chatRepository: ChatRepository = ChatRepository(),
     private val websocketRepository: WebsocketRepository = WebsocketRepository,
-    private val doubleRatchetSendStepUseCase: DoubleRatchetSendStepUseCase = DoubleRatchetSendStepUseCase(),
+    private val sendDoubleRatchetStepUseCase: SendDoubleRatchetStepUseCase = SendDoubleRatchetStepUseCase(),
     private val saveMessageToDBUseCase: SaveMessageToDBUseCase = SaveMessageToDBUseCase(),
     private val queryMessageFromDBByPageUseCase: QueryMessageFromDBByPageUseCase = QueryMessageFromDBByPageUseCase(),
     private val markMessageReadStatusUseCase: MarkMessageReadStatusUseCase = MarkMessageReadStatusUseCase(),
@@ -233,7 +233,7 @@ class ChatViewModel(
             // websocket发送消息 添加 DH棘轮 公钥
             val localUserId = IMGlobalStorage.getCurrentUserId()
             val remoteUserId = message.receiverId
-            val messageKeyLocal = doubleRatchetSendStepUseCase.invoke(
+            val messageKeyLocal = sendDoubleRatchetStepUseCase.invoke(
                 mapOf(
                     "localUserId" to localUserId.toString(),
                     "remoteUserId" to remoteUserId.toString()

@@ -21,9 +21,8 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveMessageToDBUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.CreateMessageReadStatusUseCase
-import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetReceiveStepUseCase
+import com.darcy.kmpdemo.x3dh.usecase.ReceiveDoubleRatchetStepUseCase
 import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
-import io.github.aakira.napier.Napier.e
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -46,7 +45,7 @@ object WebsocketRepository : IRepository {
     private const val TAG = "WebsocketRepository"
     private val webSocketManager: WebSocketManager = WebSocketManager
     private val imGlobalStorage: IMGlobalStorage = IMGlobalStorage
-    private val doubleRatchetReceiveStepUseCase = DoubleRatchetReceiveStepUseCase()
+    private val receiveDoubleRatchetStepUseCase = ReceiveDoubleRatchetStepUseCase()
     private val createMessageReadStatusUseCase = CreateMessageReadStatusUseCase()
     private val markMessageReadStatusUseCase = MarkMessageReadStatusUseCase()
     private val saveMessageToDBUseCase: SaveMessageToDBUseCase = SaveMessageToDBUseCase()
@@ -170,11 +169,12 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleMessage fromUser:${headers["fromUser"]}")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
-                val messageKeyLocal = doubleRatchetReceiveStepUseCase.invoke(
+                val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
                     mapOf(
                         "localUserId" to localUserId.toString(),
                         "remoteUserId" to messageKey.fromUserId.toString(),
                         "remoteDHKey" to messageKey.dhPublicKey,
+                        "remoteSendingIndex" to messageKey.sendingIndex.toString(),
                     ), Unit
                 ).onFailure {
                     logE("$TAG 接收时计算messageKey错误: ${it.message}")

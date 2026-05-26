@@ -16,9 +16,6 @@ interface MessageReadStatusDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(itemList: List<MessageReadStatusEntity>)
 
-    @Query("SELECT * FROM MessageReadStatusEntity WHERE userId=:userId AND msgId=:msgId")
-    suspend fun findByUserIdAndMessageId(userId: Long, msgId: String): MessageReadStatusEntity?
-
     @Query("UPDATE MessageReadStatusEntity SET isRead=true, readTime=:readTime WHERE userId=:userId AND msgId=:msgId")
     suspend fun markMessageAsRead(userId: Long, msgId: String, readTime: String): Int
 
@@ -34,8 +31,11 @@ interface MessageReadStatusDao {
     @Update
     suspend fun update(item: MessageReadStatusEntity)
 
+    @Query("SELECT * FROM MessageReadStatusEntity WHERE userId=:userId AND msgId=:msgId")
+    suspend fun findByUserIdAndMessageId(userId: Long, msgId: String): MessageReadStatusEntity?
+
     @Query("SELECT * FROM MessageReadStatusEntity WHERE userId=:userId AND msgId IN (:msgIds)")
-    suspend fun findByUserIdAndMessageIds(
+    suspend fun findByUserIdAndMessageIdList(
         userId: Long,
         msgIds: List<String>
     ): List<MessageReadStatusEntity>

@@ -7,14 +7,16 @@ import com.darcy.kmpdemo.ui.base.IUseCase
 import com.darcy.kmpdemo.utils.EncryptUtil
 import com.darcy.kmpdemo.utils.hexStrToBytes
 import com.darcy.kmpdemo.utils.toBytes
+import com.darcy.kmpdemo.utils.toPrivateKey
 import com.darcy.kmpdemo.utils.toPublicKey
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.chain.ChainKey
 import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 
-class DoubleRatchetSendStepUseCase : IUseCase<Unit, MessageKey> {
+class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
     private val sessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
+    private val messageReadStatusDao = getDarcyIMDatabase().messageReadStatusDao()
     override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<MessageKey> {
         val localUserId = params["localUserId"]?.toLongOrNull()
             ?: return Result.failure(Exception("localUserId is null"))
@@ -28,15 +30,33 @@ class DoubleRatchetSendStepUseCase : IUseCase<Unit, MessageKey> {
         EncryptUtil.log("$localUserId 根密钥(旧):", lastRootKey)
         val remoteDHKey = sessionRecord.remoteDHKey.hexStrToBytes().toPublicKey()
 
+        var localEphemeralPublicKeyBytes: ByteArray = ByteArray(0)
         // DH 棘轮步进
-        val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
-        val localEphemeralPrivateKey = localEphemeralKey.privateKey
-        val localEphemeralPublicKey = localEphemeralKey.publicKey
-        EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
-        EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
-        EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
-        val newDH = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
-        EncryptUtil.log("$localUserId DH 棘轮步进:", newDH)
+        val newDH = if (needDHStep(localUserId, remoteUserId)) {
+            val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
+            val localEphemeralPrivateKey = localEphemeralKey.privateKey
+            val localEphemeralPublicKey = localEphemeralKey.publicKey
+            localEphemeralPublicKeyBytes = localEphemeralPublicKey.toBytes()
+            EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
+            EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
+            EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+            val result = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
+            EncryptUtil.log("$localUserId DH 棘轮步进:", result)
+            result
+        } else {
+            val localEphemeralPrivateKey =
+                sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
+            val localEphemeralPublicKey =
+                sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
+            localEphemeralPublicKeyBytes = localEphemeralPublicKey.toBytes()
+            EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
+            EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
+            EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+            val result = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
+            EncryptUtil.log("$localUserId DH 棘轮无需步进:", result)
+            result
+        }
+
         // KDF 棘轮步进
         val hkdf = HKDF1()
         val dhRatchetAlice =
@@ -58,7 +78,7 @@ class DoubleRatchetSendStepUseCase : IUseCase<Unit, MessageKey> {
         EncryptUtil.log("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyAlice)
         val messageKey = MessageKey(
             fromUserId = localUserId,
-            dhPublicKey = localEphemeralPublicKey.toBytes().toHexString(),
+            dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
             sendingIndex = newSendingChainIndex,
             receivingIndex = sessionRecord.receivingChainIndex,
             messageKey = messageKeyAlice.toHexString(),
@@ -78,5 +98,15 @@ class DoubleRatchetSendStepUseCase : IUseCase<Unit, MessageKey> {
             sendingChainKey = K4.toHexString()
         )
         sessionRecordDao.update(newSessionRecord)
+    }
+
+    private suspend fun needDHStep(localUserId: Long, remoteUserId: Long): Boolean {
+        val lastMessageReadStatus = messageReadStatusDao.findByUserIdAndMessageId(
+            localUserId, remoteUserId.toString()
+        )
+        if (lastMessageReadStatus == null) {
+            return true
+        }
+        return lastMessageReadStatus.isRead
     }
 }

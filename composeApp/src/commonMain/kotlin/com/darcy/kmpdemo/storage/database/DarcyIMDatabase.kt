@@ -8,6 +8,7 @@ import com.darcy.kmpdemo.storage.database.daos.FriendshipUserDao
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
 import com.darcy.kmpdemo.storage.database.daos.MessageReadStatusDao
 import com.darcy.kmpdemo.storage.database.daos.OneTimePreKeyDao
+import com.darcy.kmpdemo.storage.database.daos.OutOfOrderKeyCacheDao
 import com.darcy.kmpdemo.storage.database.daos.PrivateMessageDao
 import com.darcy.kmpdemo.storage.database.daos.SessionRecordDao
 import com.darcy.kmpdemo.storage.database.daos.SignedPreKeyDao
@@ -17,6 +18,7 @@ import com.darcy.kmpdemo.storage.database.tables.FriendshipEntity
 import com.darcy.kmpdemo.storage.database.tables.IdentityKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.MessageReadStatusEntity
 import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
+import com.darcy.kmpdemo.storage.database.tables.OutOfOrderKeyCacheEntity
 import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
 import com.darcy.kmpdemo.storage.database.tables.SignedPreKeyEntity
@@ -35,10 +37,11 @@ import kotlinx.coroutines.IO
         SignedPreKeyEntity::class,
         OneTimePreKeyEntity::class,
         SessionRecordEntity::class,
-        MessageReadStatusEntity::class
+        MessageReadStatusEntity::class,
+        OutOfOrderKeyCacheEntity::class
     ],
     // 数据库版本 修改后需要添加对应 Migration
-    version = 8,
+    version = 9,
     exportSchema = true
 )
 
@@ -53,6 +56,7 @@ abstract class DarcyIMDatabase : RoomDatabase() {
     abstract fun sessionRecordDao(): SessionRecordDao
     abstract fun messageReadStatusDao(): MessageReadStatusDao
     abstract fun privateMessageDao(): PrivateMessageDao
+    abstract fun outOfOrderKeyCacheDao(): OutOfOrderKeyCacheDao
 }
 
 fun getDarcyIMDatabase(): DarcyIMDatabase {

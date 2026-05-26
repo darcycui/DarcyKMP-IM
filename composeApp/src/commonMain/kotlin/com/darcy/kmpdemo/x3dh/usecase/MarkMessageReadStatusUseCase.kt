@@ -41,7 +41,7 @@ class MarkMessageReadStatusUseCase : IUseCase<Unit, List<MessageReadStatusEntity
                 )
             )
         }
-        val readList = messageReadStatusDao.findByUserIdAndMessageIds(userId, msgIds)
+        val readList = messageReadStatusDao.findByUserIdAndMessageIdList(userId, msgIds)
         logE("更新了${readList.size} 条消息为已读")
         return Result.success(readList)
     }
