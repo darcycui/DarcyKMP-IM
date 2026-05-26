@@ -113,7 +113,7 @@ fun UserApplyListComponent(uiState: ApplyFriendState, viewModel: ApplyFriendView
 @Preview
 @Composable
 private fun SearchUserComponent(
-    nameTextFieldState: TextFieldState = TextFieldState(""),
+    nameTextFieldState: TextFieldState = TextFieldState("155000111222"),
     viewModel: ApplyFriendViewModel? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -174,7 +174,6 @@ fun UserItemComponent(
 }
 
 
-@Preview
 @Composable
 fun UserSearchComponent(
     user: UserResponse = UserResponse(),

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.darcy.kmpdemo.bean.ui.LoginBean
+import com.darcy.kmpdemo.platform.isPhonePlatform
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
 import com.darcy.kmpdemo.ui.screen.phone.login.event.LoginEvent
@@ -46,6 +47,7 @@ fun PhoneLoginScreen() {
                             route = PhoneRoute.AppMain, clearStack = true, includeRoot = true
                         )
                     }
+
                     is LoginEvent.GoRegisterEvent -> {
                         appNavController.customNavigate(
                             route = PhoneRoute.Register, clearStack = false, includeRoot = true
@@ -61,8 +63,9 @@ fun PhoneLoginScreen() {
 
 @Composable
 fun PhoneLoginInnerPage(viewModel: LoginViewModel) {
+    val phone = remember { if (isPhonePlatform()) "156000111222" else "155000111222" }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("155000111222")) }
+    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState(phone)) }
     val passwordTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("123456")) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {

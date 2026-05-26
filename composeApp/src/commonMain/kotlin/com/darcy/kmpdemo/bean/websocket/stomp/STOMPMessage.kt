@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.bean.websocket.stomp
 
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
+import com.darcy.kmpdemo.platform.TimePlatform
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
@@ -14,7 +15,7 @@ data class STOMPMessage(
     val senderId: Long = 0,
     val receiverId: Long = 0,
     val msgType: String = "TEXT",
-    val sendTime: String = Clock.System.now().epochSeconds.toString(),
+    val sendTime: String = TimePlatform.getCurrentTimeStamp(),
     val isRead: Boolean = false,
     val isRecalled: Boolean = false
 )

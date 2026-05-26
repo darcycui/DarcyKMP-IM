@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.bean.http.response
 
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
+import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.utils.UUIDHelper
@@ -55,7 +56,7 @@ data class PrivateMessageResponse(
     val receiverName: String = "",
     val content: String = "",
     val msgType: String = "TEXT",
-    val sendTime: String = Clock.System.now().epochSeconds.toString(),
+    val sendTime: String = TimePlatform.getCurrentTimeStamp(),
     val isRead: Boolean = false,
     val isRecalled: Boolean = false
 )
@@ -74,7 +75,7 @@ fun PrivateMessageResponse.toSTOMPMessage(): STOMPMessage {
         sendTime = this.sendTime,
         isRead = this.isRead,
         isRecalled = this.isRecalled,
-        msgId = UUIDHelper.generateMessageId(),
+        msgId = this.msgId,
         msgType = this.msgType
     )
 }

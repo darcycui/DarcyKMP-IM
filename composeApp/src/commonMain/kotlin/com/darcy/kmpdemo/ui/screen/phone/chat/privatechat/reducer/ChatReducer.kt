@@ -32,6 +32,17 @@ class ChatReducer :
                     webSocketConnectionState = intent.state
                 )
             }
+            is ChatIntent.RefreshByReceiveMessageReadStatus -> {
+                state.copy(
+                    items = state.items.map {
+                        if (it.msgId in intent.response.msgIds) {
+                            it.copy(isRead = true)
+                        } else {
+                            it
+                        }
+                    }
+                )
+            }
 
             else -> super.reduce(intent, state)
         }

@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +47,7 @@ import com.darcy.kmpdemo.ui.colors.AppColors
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import kmpdarcydemo.composeapp.generated.resources.Res
+import kmpdarcydemo.composeapp.generated.resources.check
 import kmpdarcydemo.composeapp.generated.resources.icon_header_default
 import org.jetbrains.compose.resources.painterResource
 
@@ -133,6 +141,20 @@ fun SendComponent(
             state = textState,
             placeholder = { Text("请输入内容") },
             modifier = Modifier.weight(1f)
+                .onPreviewKeyEvent { keyEvent ->
+                    // 监听回车键
+                    if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
+                        val text = textState.text.toString().trim()
+                        if (text.isNotEmpty()) {
+                            onSendClick(text)
+                            // 发送以后清空输入框
+                            textState.clearText()
+                        }
+                        true
+                    } else {
+                        false
+                    }
+                }
         )
         Spacer(modifier = Modifier.width(8.dp))
         Button(
@@ -158,7 +180,7 @@ fun PrivateMessageListComponent(
     LazyColumn(modifier = modifier) {
         items(
             messageList,
-//            key = { it.msgId }
+            key = { it.msgId }
         ) { item ->
             if (item.isSelfSent()) {
                 SendMessageComponent(item)
@@ -211,6 +233,11 @@ fun SendMessageComponent(item: PrivateMessageResponse) {
                     textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth()
                 )
+                // 显示消息已读
+                if (item.isRead) {
+                    Image(painter = painterResource(Res.drawable.check), contentDescription = null,
+                        modifier = Modifier.align(Alignment.End))
+                }
             }
             Spacer(modifier = Modifier.width(10.dp))
             AsyncImage(

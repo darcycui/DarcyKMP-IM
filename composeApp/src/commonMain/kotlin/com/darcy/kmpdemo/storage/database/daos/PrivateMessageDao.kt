@@ -26,8 +26,9 @@ interface PrivateMessageDao {
     suspend fun getByMsgId(msgId: String): PrivateMessageEntity?
 
     @Query(
-        "SELECT * FROM PrivateMessageEntity WHERE userId=:userId " +
-                "AND targetId=:targetId " +
+        "SELECT * FROM PrivateMessageEntity " +
+                "WHERE (userId=:userId AND targetId=:targetId) " +
+                "OR (userId=:targetId AND targetId=:userId) " +
                 "ORDER BY createdTime DESC " +
                 "LIMIT :limit " +
                 "OFFSET :offset"

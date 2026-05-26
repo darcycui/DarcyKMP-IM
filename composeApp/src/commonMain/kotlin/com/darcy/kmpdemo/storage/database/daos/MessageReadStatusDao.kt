@@ -13,11 +13,17 @@ interface MessageReadStatusDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(item: MessageReadStatusEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(itemList: List<MessageReadStatusEntity>)
+
     @Query("SELECT * FROM MessageReadStatusEntity WHERE userId=:userId AND msgId=:msgId")
     suspend fun findByUserIdAndMessageId(userId: Long, msgId: String): MessageReadStatusEntity?
 
+    @Query("UPDATE MessageReadStatusEntity SET isRead=true, readTime=:readTime WHERE userId=:userId AND msgId=:msgId")
+    suspend fun markMessageAsRead(userId: Long, msgId: String, readTime: String): Int
+
     @Query("UPDATE MessageReadStatusEntity SET isRead=true, readTime=:readTime WHERE userId=:userId AND msgId IN (:msgIds)")
-    suspend fun markMessagesAsRead(userId: Long, msgIds: List<String>, readTime: String): Int
+    suspend fun markMessageListAsRead(userId: Long, msgIds: List<String>, readTime: String): Int
 
     @Delete
     suspend fun delete(item: MessageReadStatusEntity)

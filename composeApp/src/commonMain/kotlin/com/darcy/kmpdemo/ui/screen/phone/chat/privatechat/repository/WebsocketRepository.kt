@@ -2,7 +2,9 @@ package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository
 
 import com.darcy.kmpdemo.bean.http.request.MessageReadStatusRequest
 import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
+import com.darcy.kmpdemo.bean.http.response.toEntity
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
+import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
@@ -15,11 +17,13 @@ import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
+import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveMessageToDBUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.CreateMessageReadStatusUseCase
 import com.darcy.kmpdemo.x3dh.usecase.DoubleRatchetReceiveStepUseCase
 import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
+import io.github.aakira.napier.Napier.e
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -45,9 +49,13 @@ object WebsocketRepository : IRepository {
     private val doubleRatchetReceiveStepUseCase = DoubleRatchetReceiveStepUseCase()
     private val createMessageReadStatusUseCase = CreateMessageReadStatusUseCase()
     private val markMessageReadStatusUseCase = MarkMessageReadStatusUseCase()
+    private val saveMessageToDBUseCase: SaveMessageToDBUseCase = SaveMessageToDBUseCase()
 
     private val _messageFlow = MutableSharedFlow<STOMPMessage>(replay = 0)
     val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
+
+    private val _messageReadStatusFlow = MutableSharedFlow<MessageReadStatusResponse>(replay = 1)
+    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> = _messageReadStatusFlow.asSharedFlow()
     private val _connectionStateFlow =
         MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     val connectionStateFlow: SharedFlow<WebSocketConnectionState> =
@@ -157,8 +165,8 @@ object WebsocketRepository : IRepository {
      * 收到消息
      */
     private fun handleReceiveMessage(message: String, headers: Map<String, String>) {
-        runCatching {
-            scope.launch(Dispatchers.Default) {
+        scope.launch(Dispatchers.Default) {
+            runCatching {
                 logD("$TAG handleMessage fromUser:${headers["fromUser"]}")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
@@ -176,16 +184,24 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
                 val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
                 messageEntity?.let {
+                    // 保存到数据库
+                    val response = messageEntity.toPrivateMessageResponse()
+                    saveMessageToDBUseCase.invoke(mapOf(), listOf(response.toEntity()))
+                        .onSuccess {
+                            logI("$TAG 接收后 保存到数据库成功: ${response.msgId}")
+                        }.onFailure {e->
+                            logE("$TAG 接收后 保存到数据库错误: ${response.msgId} ${e::class.simpleName} ${e.message}")
+                        }
                     _messageFlow.emit(it)
                     // 发送已读状态
                     receiverPushMessageReadStatus(it, headers)
                 } ?: run {
                     logE("$TAG handleReceiveMessage messageEntity is null after json parse")
                 }
+            }.onFailure {
+                logE("$TAG handle message failed: ${it.message}")
+                it.printStackTrace()
             }
-        }.onFailure {
-            logE("$TAG handle message failed: ${it.message}")
-            it.printStackTrace()
         }
     }
 
@@ -232,6 +248,7 @@ object WebsocketRepository : IRepository {
                 mapOf("messageReadStatusResponse" to body), Unit
             ).onSuccess {
                 logI("$TAG onMessageReadStatus:更新数据库已读状态(已读) 成功:${msgIds}")
+                _messageReadStatusFlow.emit(messageReadStatusResponse)
             }.onFailure {
                 logE("$TAG onMessageReadStatus:更新数据库已读状态(已读) 失败:${msgIds} ${it.message}")
             }

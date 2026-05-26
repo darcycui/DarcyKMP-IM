@@ -1,12 +1,14 @@
 package com.darcy.kmpdemo.ui.screen.phone.chat.usecase
 
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
+import com.darcy.kmpdemo.storage.database.daos.MessageReadStatusDao
 import com.darcy.kmpdemo.storage.database.daos.PrivateMessageDao
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.ui.base.IUseCase
 
 class QueryMessageFromDBByPageUseCase : IUseCase<Unit, List<PrivateMessageResponse>> {
     private val privateMessageDao: PrivateMessageDao = getDarcyIMDatabase().privateMessageDao()
+    private val messageReadStatusDao: MessageReadStatusDao = getDarcyIMDatabase().messageReadStatusDao()
     override suspend fun invoke(
         params: Map<String, String>,
         bean: Unit
@@ -28,7 +30,11 @@ class QueryMessageFromDBByPageUseCase : IUseCase<Unit, List<PrivateMessageRespon
                 content = entity.content,
                 msgType = "TEXT",
                 sendTime = entity.createdTime,
-                isRead = true,
+                isRead = if (entity.isSelfSend()) {
+                    messageReadStatusDao.findByUserIdAndMessageId(userId, entity.msgId)?.isRead ?: false
+                } else {
+                    false
+                },
                 isRecalled = false
             )
         }

@@ -55,7 +55,7 @@ class ChatRepository : IRepository {
         onSuccess: (PrivateMessageResponsePage) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doGetRequest(
+        HttpManager.doPostRequest(
             serializer = PrivateMessageResponsePage.serializer(),
             url = Darcy.RECEIVER_PULL_OFFLINE_MESSAGE_URL,
             params = mapOf(

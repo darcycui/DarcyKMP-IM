@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.darcy.kmpdemo.bean.ui.RegisterBean
+import com.darcy.kmpdemo.platform.isPhonePlatform
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
@@ -55,12 +56,16 @@ fun PhoneRegisterScreen() {
 
 @Composable
 fun PhoneRegisterInnerPage(viewModel: RegisterViewModel) {
+    val username = remember { if (isPhonePlatform()) "手机" else "电脑" }
+    val nickname = remember { if (isPhonePlatform()) "手机手机" else "电脑电脑" }
+    val phone = remember { if (isPhonePlatform()) "156000111222" else "155000111222" }
+    val email = remember { if (isPhonePlatform()) "phone@email.com" else "computer@email.com" }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
-    val nickNameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
+    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState(username)) }
+    val nickNameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState(nickname)) }
     val passwordTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("123456")) }
-    val phoneTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
-    val emailTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
+    val phoneTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState(phone)) }
+    val emailTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState(email)) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             RegisterComponent(

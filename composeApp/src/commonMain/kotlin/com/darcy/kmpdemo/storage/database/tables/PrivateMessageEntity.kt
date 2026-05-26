@@ -3,6 +3,7 @@ package com.darcy.kmpdemo.storage.database.tables
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
+import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 
 @Entity(
     indices = [
@@ -19,4 +20,8 @@ data class PrivateMessageEntity(
     val messageType: Int = 1,
     val createdTime: String = "",
     val updatedTime: String = ""
-)
+) {
+    fun isSelfSend(): Boolean {
+        return userId != 0L && userId == IMGlobalStorage.getCurrentUserId()
+    }
+}
