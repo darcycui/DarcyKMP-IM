@@ -33,6 +33,7 @@ import com.darcy.kmpdemo.utils.UUIDHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.SendDoubleRatchetStepUseCase
 import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
+import com.darcy.kmpdemo.x3dh.usecase.ReceiveDoubleRatchetStepUseCase
 import kotlin.reflect.KClass
 
 class ChatViewModel(
@@ -42,6 +43,7 @@ class ChatViewModel(
     private val saveMessageToDBUseCase: SaveMessageToDBUseCase = SaveMessageToDBUseCase(),
     private val queryMessageFromDBByPageUseCase: QueryMessageFromDBByPageUseCase = QueryMessageFromDBByPageUseCase(),
     private val markMessageReadStatusUseCase: MarkMessageReadStatusUseCase = MarkMessageReadStatusUseCase(),
+    private val receiveDoubleRatchetStepUseCase: ReceiveDoubleRatchetStepUseCase = ReceiveDoubleRatchetStepUseCase(),
 ) : BaseViewModel<ChatState>() {
     companion object {
         private const val TAG = "ChatViewModel"
@@ -68,7 +70,7 @@ class ChatViewModel(
             is FetchIntent.ActionFetchData -> {
                 val targetId = intent.params["targetId"]?.toLongOrNull() ?: 0
                 val conversationId = intent.params["conversationId"]?.toLongOrNull() ?: 0
-                actionReceiverFetchMessages(targetId, conversationId)
+                actionReceiverPullOfflineMessages(targetId, conversationId)
             }
 
             is ChatIntent.ActionSendMessage -> {
@@ -117,7 +119,7 @@ class ChatViewModel(
             conversationType = 1,
             since = "",
             until = "",
-            onSuccess = { response->
+            onSuccess = { response ->
                 logD("syncMessageReadStatus success")
                 io {
                     logW("$TAG http:更新数据库已读状态(已读) 用于双棘轮")
@@ -138,7 +140,7 @@ class ChatViewModel(
         )
     }
 
-    private fun actionReceiverFetchMessages(
+    private fun actionReceiverPullOfflineMessages(
         targetId: Long,
         conversationId: Long,
         page: Int = 1,
@@ -155,6 +157,25 @@ class ChatViewModel(
             size = size,
             onSuccess = { response ->
                 io {
+                    // http收到消息的处理
+                    response.content.forEach { item ->
+                        logV("$TAG http:接收到消息: ${item.msgId}")
+                        val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
+                            mapOf(
+                                "localUserId" to userId.toString(),
+                                "remoteUserId" to targetId.toString(),
+                                "remoteDHKey" to item.dhPublicKey,
+                                "msgId" to item.msgId,
+                                "N" to item.nKey.toString(),
+                                "PN" to item.pnKey.toString(),
+                            ), Unit
+                        ).onFailure {
+                            logE("$TAG 接收时计算messageKey错误: ${it.message}")
+                            it.printStackTrace()
+                            return@io
+                        }.getOrElse { MessageKey() }
+                        logD("$TAG pullOfflineMessages messageKeyLocal=$messageKeyLocal")
+                    }
                     // 保存到数据库
                     val msgIds = response.content.map { it.msgId }
                     saveMessageToDBUseCase.invoke(mapOf(), response.content.toEntity())
@@ -169,7 +190,7 @@ class ChatViewModel(
                     val hasNextPage = response.last.not()
                     if (hasNextPage) {
                         logV("拉取离线消息成功:存在下一页,继续拉取")
-                        actionReceiverFetchMessages(
+                        actionReceiverPullOfflineMessages(
                             targetId,
                             conversationId,
                             response.number + 1,
@@ -282,7 +303,7 @@ class ChatViewModel(
             }
         }
         io {
-            websocketRepository.messageReadStatusFlow.collect {response ->
+            websocketRepository.messageReadStatusFlow.collect { response ->
                 logE("接收到已读消息: ${response.msgIds}")
                 dispatch(ChatIntent.RefreshByReceiveMessageReadStatus(response))
             }

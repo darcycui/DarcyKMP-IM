@@ -24,10 +24,12 @@ data class SessionRecordEntity(
     var sendingChainKey: String = "",
     var receivingChainKey: String = "",
 
-    var lastSharedSecret: String = "",
-
     var sendingChainIndex: Long = 0,
     var receivingChainIndex: Long = 0,
-    var createdTime: Long = 0,
-    var updatedTime: Long = 0
+
+    var sendingChainMessageCount: Long = 0, // N
+    var previousSendingChainLength: Long = 0,// PN
+
+    var createdTime: String = "",
+    var updatedTime: String = ""
 )

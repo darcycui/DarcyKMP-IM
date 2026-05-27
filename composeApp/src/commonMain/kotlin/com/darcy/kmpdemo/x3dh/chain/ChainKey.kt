@@ -26,6 +26,14 @@ class ChainKey(
     }
 
     fun getMessageKeys(): ByteArray {
+        val triple: Triple<ByteArray, ByteArray, ByteArray> = getMessageKeyTriple()
+        val messageKey: ByteArray = triple.first
+        val macKey: ByteArray = triple.second
+        val iv: ByteArray = triple.third
+        return messageKey
+    }
+
+    fun getMessageKeyTriple(): Triple<ByteArray, ByteArray, ByteArray> {
         val inputKeyMaterial = HMAC1.getBaseMaterial(key, MESSAGE_KEY_SEED)
         val keyMaterialBytes: ByteArray =
             kdf.deriveSecrets(
@@ -36,10 +44,7 @@ class ChainKey(
             )
         val triple: Triple<ByteArray, ByteArray, ByteArray> =
             EncryptUtil.splitArray80(keyMaterialBytes, 32, 32, 16)
-        val messageKey: ByteArray = triple.first
-        val macKey: ByteArray = triple.second
-        val iv: ByteArray = triple.third
-        return messageKey
+        return triple
     }
 
 }

@@ -17,7 +17,11 @@ data class STOMPMessage(
     val msgType: String = "TEXT",
     val sendTime: String = TimePlatform.getCurrentTimeStamp(),
     val isRead: Boolean = false,
-    val isRecalled: Boolean = false
+    val isRecalled: Boolean = false,
+
+    val dhPublicKey: String = "",
+    val nKey: Long = 0L,
+    val pnKey: Long = 0L
 )
 
 fun STOMPMessage.toPrivateMessageResponse(): PrivateMessageResponse {

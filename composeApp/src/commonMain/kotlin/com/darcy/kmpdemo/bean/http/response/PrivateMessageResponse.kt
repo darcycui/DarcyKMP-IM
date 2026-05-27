@@ -58,7 +58,10 @@ data class PrivateMessageResponse(
     val msgType: String = "TEXT",
     val sendTime: String = TimePlatform.getCurrentTimeStamp(),
     val isRead: Boolean = false,
-    val isRecalled: Boolean = false
+    val isRecalled: Boolean = false,
+    val dhPublicKey: String = "",
+    val nKey: Long = 0L,
+    val pnKey: Long = 0L
 )
 
 fun PrivateMessageResponse.isSelfSent(): Boolean {
@@ -76,7 +79,10 @@ fun PrivateMessageResponse.toSTOMPMessage(): STOMPMessage {
         isRead = this.isRead,
         isRecalled = this.isRecalled,
         msgId = this.msgId,
-        msgType = this.msgType
+        msgType = this.msgType,
+        dhPublicKey = this.dhPublicKey,
+        nKey = this.nKey,
+        pnKey = this.pnKey
     )
 }
 
@@ -88,7 +94,10 @@ fun PrivateMessageResponse.toEntity(): PrivateMessageEntity {
         content = this.content,
         messageType = 1,
         createdTime = this.sendTime,
-        updatedTime = this.sendTime
+        updatedTime = this.sendTime,
+        dhPublicKey = this.dhPublicKey,
+        nKey = this.nKey,
+        pnKey = this.pnKey
     )
 }
 

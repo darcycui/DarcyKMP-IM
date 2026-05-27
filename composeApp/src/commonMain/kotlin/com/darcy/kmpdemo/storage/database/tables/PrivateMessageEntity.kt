@@ -19,7 +19,11 @@ data class PrivateMessageEntity(
     val content: String = "",
     val messageType: Int = 1,
     val createdTime: String = "",
-    val updatedTime: String = ""
+    val updatedTime: String = "",
+    // 添加三个字段
+    val dhPublicKey: String = "",
+    val nKey: Long = 0L,
+    val pnKey: Long = 0L
 ) {
     fun isSelfSend(): Boolean {
         return userId != 0L && userId == IMGlobalStorage.getCurrentUserId()

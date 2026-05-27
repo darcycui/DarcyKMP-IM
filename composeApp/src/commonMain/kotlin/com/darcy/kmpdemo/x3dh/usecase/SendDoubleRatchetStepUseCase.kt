@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.x3dh.usecase
 
 import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
 import com.darcy.kmpdemo.ui.base.IUseCase
@@ -17,22 +18,32 @@ import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
     private val sessionRecordDao = getDarcyIMDatabase().sessionRecordDao()
     private val messageReadStatusDao = getDarcyIMDatabase().messageReadStatusDao()
+
     override suspend fun invoke(params: Map<String, String>, bean: Unit): Result<MessageKey> {
         val localUserId = params["localUserId"]?.toLongOrNull()
             ?: return Result.failure(Exception("localUserId is null"))
         val remoteUserId = params["remoteUserId"]?.toLongOrNull()
             ?: return Result.failure(Exception("remoteUserId is null"))
+
         val sessionRecord =
             sessionRecordDao.getByUserId(localUserId, remoteUserId) ?: return Result.failure(
                 Exception("sessionRecord is null")
             )
+
         val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
         EncryptUtil.log("$localUserId 根密钥(旧):", lastRootKey)
         val remoteDHKey = sessionRecord.remoteDHKey.hexStrToBytes().toPublicKey()
 
         var localEphemeralPublicKeyBytes: ByteArray = ByteArray(0)
-        // DH 棘轮步进
-        val newDH = if (needDHStep(localUserId, remoteUserId)) {
+        var newSendingChainIndex = sessionRecord.sendingChainIndex
+        var newSendingChainMessageCount = sessionRecord.sendingChainMessageCount
+        var newPreviousSendingChainLength = sessionRecord.previousSendingChainLength
+
+        val needsDHStep = needDHStep(localUserId, remoteUserId)
+
+        val newDHSharedSecret = if (needsDHStep) {
+            newPreviousSendingChainLength = sessionRecord.sendingChainMessageCount
+
             val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
             val localEphemeralPrivateKey = localEphemeralKey.privateKey
             val localEphemeralPublicKey = localEphemeralKey.publicKey
@@ -40,6 +51,10 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
             EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
             EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+
+            newSendingChainIndex = sessionRecord.sendingChainIndex + 1
+            newSendingChainMessageCount = 0
+
             val result = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
             EncryptUtil.log("$localUserId DH 棘轮步进:", result)
             result
@@ -52,50 +67,71 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
             EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
             EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+
+            newSendingChainMessageCount = sessionRecord.sendingChainMessageCount + 1
+
             val result = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
             EncryptUtil.log("$localUserId DH 棘轮无需步进:", result)
             result
         }
 
-        // KDF 棘轮步进
         val hkdf = HKDF1()
         val dhRatchetAlice =
-            hkdf.deriveSecrets(newDH, lastRootKey, "DHInfo".encodeToByteArray(), 64) // 盐:K1
+            hkdf.deriveSecrets(newDHSharedSecret, lastRootKey, "DHInfo".encodeToByteArray(), 64)
         val pairAlice = EncryptUtil.splitArray64(dhRatchetAlice, 32)
-        // 根密钥(新)
+
         val K3 = pairAlice.first
         EncryptUtil.log("$localUserId 根密钥(新):", K3)
-        // 发送链密钥
+
         val K4 = pairAlice.second
         EncryptUtil.log("$localUserId 发送链密钥:", K4)
-        // 更新 sessionRecord 数据库
-        val newSendingChainIndex = sessionRecord.sendingChainIndex + 1
-        logD("$localUserId 发送链索引: $newSendingChainIndex")
-        updateSessionRecordBySend(sessionRecord, K3, K4, newSendingChainIndex)
-        // KDF 棘轮(发送链)步进一次
-        val senderChainAlice = ChainKey(hkdf, K4, newSendingChainIndex)
-        val messageKeyAlice = senderChainAlice.getMessageKeys() // 计算消息密钥
-        EncryptUtil.log("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyAlice)
+
+        val N = newSendingChainMessageCount
+        val PN = newPreviousSendingChainLength
+
+        logD("$localUserId 发送链索引: $newSendingChainIndex, N=$N, PN=$PN")
+
+        updateSessionRecordBySend(
+            sessionRecord,
+            K3, K4,
+            newSendingChainIndex,
+            newSendingChainMessageCount,
+            newPreviousSendingChainLength
+        )
+
+        val senderChainAlice = ChainKey(hkdf, K4, N)
+        val messageKeyTriple = senderChainAlice.getMessageKeyTriple()
+        val messageKeyBytes = messageKeyTriple.first
+        EncryptUtil.log("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyBytes)
+
         val messageKey = MessageKey(
             fromUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
             sendingIndex = newSendingChainIndex,
             receivingIndex = sessionRecord.receivingChainIndex,
-            messageKey = messageKeyAlice.toHexString(),
+            messageKey = messageKeyBytes.toHexString(),
+            N = N,
+            PN = PN,
         )
+
         return Result.success(messageKey)
     }
 
     private suspend fun updateSessionRecordBySend(
         sessionRecord: SessionRecordEntity,
-        K3: ByteArray,
-        K4: ByteArray,
-        newSendingChainIndex: Long
+        newRootKey: ByteArray,
+        newSendingChainKey: ByteArray,
+        newSendingChainIndex: Long,
+        newSendingChainMessageCount: Long,
+        newPreviousSendingChainLength: Long
     ) {
         val newSessionRecord = sessionRecord.copy(
-            rootKey = K3.toHexString(),
+            rootKey = newRootKey.toHexString(),
+            sendingChainKey = newSendingChainKey.toHexString(),
             sendingChainIndex = newSendingChainIndex,
-            sendingChainKey = K4.toHexString()
+            sendingChainMessageCount = newSendingChainMessageCount,
+            previousSendingChainLength = newPreviousSendingChainLength,
+            updatedTime = TimePlatform.getCurrentTimeStamp()
         )
         sessionRecordDao.update(newSessionRecord)
     }
