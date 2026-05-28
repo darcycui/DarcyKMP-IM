@@ -63,7 +63,7 @@ fun PhoneAddFriendScreen() {
 @Composable
 fun PhoneAddFriendInnerPage(viewModel: ApplyFriendViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
+    val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("155000111222")) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchUserComponent(
@@ -113,7 +113,7 @@ fun UserApplyListComponent(uiState: ApplyFriendState, viewModel: ApplyFriendView
 @Preview
 @Composable
 private fun SearchUserComponent(
-    nameTextFieldState: TextFieldState = TextFieldState("155000111222"),
+    nameTextFieldState: TextFieldState = TextFieldState(""),
     viewModel: ApplyFriendViewModel? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
