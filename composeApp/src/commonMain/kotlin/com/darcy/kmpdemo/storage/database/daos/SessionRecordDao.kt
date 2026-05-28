@@ -29,6 +29,6 @@ interface SessionRecordDao {
     suspend fun deleteById(id: Long)
 
     @Update
-    suspend fun update(item: SessionRecordEntity)
+    suspend fun update(item: SessionRecordEntity): Int
 
 }

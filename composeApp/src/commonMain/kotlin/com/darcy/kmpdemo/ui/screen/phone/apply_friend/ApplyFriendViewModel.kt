@@ -25,6 +25,7 @@ import com.darcy.kmpdemo.x3dh.repository.X3DHRepository
 import com.darcy.kmpdemo.x3dh.usecase.CalculateAliceX3DHKeyUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.utils.toBytes
+import com.darcy.kmpdemo.x3dh.usecase.InitAliceDHRatchetUseCase
 import com.darcy.kmpdemo.x3dh.usecase.SaveAliceSessionRecordUseCase
 import kotlin.reflect.KClass
 
@@ -36,6 +37,7 @@ class ApplyFriendViewModel(
     private val calculateAliceX3DHKeyUseCase: CalculateAliceX3DHKeyUseCase = CalculateAliceX3DHKeyUseCase(),
     private val saveAliceX3DHKeyUseCase: SaveAliceSessionRecordUseCase = SaveAliceSessionRecordUseCase(),
     private val sessionRecordDao: SessionRecordDao = getDarcyIMDatabase().sessionRecordDao(),
+    private val initAliceDHRatchetUseCase: InitAliceDHRatchetUseCase = InitAliceDHRatchetUseCase(),
 ) : BaseViewModel<ApplyFriendState>() {
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -92,7 +94,7 @@ class ApplyFriendViewModel(
         x3DHRepository.pullX3DHBobKeys(
             aliceUserId = aliceUserId,
             bobUserId = bobUserId,
-            onSuccess = {bobKeys->
+            onSuccess = { bobKeys ->
                 io {
                     logE("拉取 BobKeys 成功：$bobKeys")
                     val resultPair = calculateAliceX3DHKeyUseCase.invoke(
@@ -100,7 +102,7 @@ class ApplyFriendViewModel(
                             "aliceUserId" to aliceUserId.toString(),
                             "bobUserId" to aliceUserId.toString(),
                             "bobKeys" to JsonHelper.toJson(bobKeys),
-                        ),Unit
+                        ), Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { Pair(null, null) }
@@ -113,28 +115,35 @@ class ApplyFriendViewModel(
                         main { dispatch(error.toTipsIntent()) }
                         return@io
                     }
-                    logV("aliceEphemeralKey 公钥：${aliceEphemeralKey.publicKey.toBytes().toHexString()}")
+                    logV(
+                        "aliceEphemeralKey 公钥：${
+                            aliceEphemeralKey.publicKey.toBytes().toHexString()
+                        }"
+                    )
                     // todo 保存 sessionRecord 到数据库
                     val saveSessionResult = saveAliceX3DHKeyUseCase.invoke(
                         mapOf(
                             "aliceUserId" to aliceUserId.toString(),
                             "bobUserId" to bobUserId.toString(),
                             "aliceX3DHKey" to x3DHKey.toHexString(),
-                            "aliceEphemeralPrivateKey" to aliceEphemeralKey.privateKey.toBytes().toHexString(),
-                            "aliceEphemeralPublicKey" to aliceEphemeralKey.publicKey.toBytes().toHexString(),
+                            "aliceEphemeralPrivateKey" to aliceEphemeralKey.privateKey.toBytes()
+                                .toHexString(),
+                            "aliceEphemeralPublicKey" to aliceEphemeralKey.publicKey.toBytes()
+                                .toHexString(),
                             "bobIdentityKey" to bobKeys.identityKey,
                             "bobSignedPreKey" to bobKeys.signedPreKey,
-                        ),Unit
+                        ), Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { false }
                     if (saveSessionResult.not()) {
-                        val error = ErrorResponse.create(message = "保存 sessionRecord 到数据库失败")
+                        val error =
+                            ErrorResponse.create(message = "保存 sessionRecord 到数据库失败")
                         logE("保存 sessionRecord 到数据库失败：")
                         main { dispatch(error.toTipsIntent()) }
                         return@io
                     }
-                    pushAliceHello(aliceUserId, bobUserId, bobKeys.oneTimePreKeyId)
+                    pushAliceHello(aliceUserId, bobUserId, bobKeys.oneTimePreKeyId, bobKeys.signedPreKey)
                 }
             },
             onError = {
@@ -144,7 +153,12 @@ class ApplyFriendViewModel(
         )
     }
 
-    private suspend fun pushAliceHello(aliceUserId: Long, bobUserId: Long, oneTimePreKeyId: String) {
+    private suspend fun pushAliceHello(
+        aliceUserId: Long,
+        bobUserId: Long,
+        oneTimePreKeyId: String,
+        bobSignedPreKey: String,
+    ) {
         val session = sessionRecordDao.getByUserId(aliceUserId, bobUserId)
         if (session == null) {
             logE("sessionRecord 不存在")
@@ -169,7 +183,7 @@ class ApplyFriendViewModel(
             onSuccess = {
                 logE("发送 AliceHello 成功：$it")
                 // hello消息发送成功后 再发送好友申请
-                doApplyFriendInner(aliceUserId, bobUserId)
+                doApplyFriendInner(aliceUserId, bobUserId, bobSignedPreKey)
             },
             onError = {
                 logE("发送 AliceHello 失败：$it")
@@ -178,11 +192,31 @@ class ApplyFriendViewModel(
         )
     }
 
-    private fun doApplyFriendInner(formUserId: Long, toUserId: Long) {
+    private fun doApplyFriendInner(formUserId: Long, toUserId: Long, bobSignedPreKey: String) {
         applyFriendRepository.applyFriend(
             AddFriendBean(formUserId, toUserId),
-            onSuccess = {
-                dispatch(ApplyFriendIntent.RefreshByApplyFriend(it))
+            onSuccess = { response ->
+                dispatch(ApplyFriendIntent.RefreshByApplyFriend(response))
+                // alice 初始化DH棘轮 为发送消息做准备
+                io {
+                    val initAliceDHRatchetResult = initAliceDHRatchetUseCase.invoke(
+                        mapOf(
+                            "aliceUserId" to formUserId.toString(),
+                            "bobUserId" to toUserId.toString(),
+                            "bobSignedPreKey" to bobSignedPreKey,
+                        ), Unit
+                    ).onSuccess {
+                        logV("alice初始化DH棘轮成功")
+                    }.onFailure {
+                        logE("alice初始化DH棘轮失败：${it::class.simpleName} ${it.message}")
+                        it.printStackTrace()
+                    }.getOrElse { false }
+                    if (initAliceDHRatchetResult.not()) {
+                        val error = ErrorResponse.create(message = "alice初始化DH棘轮失败")
+                        main { dispatch(error.toTipsIntent()) }
+                        return@io
+                    }
+                }
             },
             onError = {
                 logE("申请失败：$it")
