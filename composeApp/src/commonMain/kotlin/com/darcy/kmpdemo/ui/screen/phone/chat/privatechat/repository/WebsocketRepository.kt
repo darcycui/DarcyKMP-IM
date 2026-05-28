@@ -166,7 +166,7 @@ object WebsocketRepository : IRepository {
     private fun handleReceiveMessage(message: String, headers: Map<String, String>) {
         scope.launch(Dispatchers.Default) {
             runCatching {
-                logD("$TAG handleMessage fromUser:${headers["fromUser"]}")
+                logD("$TAG handleMessage fromUser:$headers")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
 

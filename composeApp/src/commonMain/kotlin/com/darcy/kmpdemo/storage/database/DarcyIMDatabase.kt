@@ -41,7 +41,7 @@ import kotlinx.coroutines.IO
         SkippedMessageKeyEntity::class
     ],
     // 数据库版本 修改后需要添加对应 Migration
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 

@@ -26,8 +26,8 @@ data class SessionRecordEntity(
 
     var receivingChainIndex: Long = 0,
 
-    var sendingChainMessageIndex: Long = 0, // N
-    var previousSendingChainLength: Long = 0,// PN
+    var N: Long = 0, // N sendingChainMessageIndex
+    var PN: Long = 0,// PN previousSendingChainLength
 
     var createdTime: String = "",
     var updatedTime: String = ""
