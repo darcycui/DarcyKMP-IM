@@ -33,9 +33,9 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 Exception("remoteDHKey is null")
             )
         val msgId = params["msgId"] ?: return Result.failure(Exception("msgId is null"))
-        val N = params["N"]?.toLongOrNull()
+        val N = params["N_KEY"]?.toLongOrNull()
             ?: return Result.failure(Exception("N (message number in sending chain) is null"))
-        val PN = params["PN"]?.toLongOrNull()
+        val PN = params["PN_KEY"]?.toLongOrNull()
             ?: return Result.failure(Exception("PN (previous chain length) is null"))
 
         val sessionRecord =
@@ -86,8 +86,6 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             val messageKey = MessageKey(
                 fromUserId = remoteUserId,
                 dhPublicKey = skippedKey.dhPublicKey,
-                sendingIndex = sessionRecord.sendingChainIndex,
-                receivingIndex = N,
                 messageKey = skippedKey.messageKey,
                 macKey = skippedKey.macKey,
                 iv = skippedKey.iv,
@@ -176,8 +174,6 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val messageKey = MessageKey(
             fromUserId = remoteUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
-            sendingIndex = sessionRecord.sendingChainIndex,
-            receivingIndex = newReceivingChainIndex,
             messageKey = messageKeyBytes.toHexString()
         )
         logD("$localUserId 处理消息成功 - 索引:$newReceivingChainIndex, 消息ID:$msgId")

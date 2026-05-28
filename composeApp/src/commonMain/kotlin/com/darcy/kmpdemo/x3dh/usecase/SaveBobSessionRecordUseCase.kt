@@ -36,8 +36,9 @@ class SaveBobSessionRecordUseCase : IUseCase<Unit, Boolean> {
                 rootKey = K1.toHexString(),
                 receivingChainKey = "", // 第一次保存的时候 bob接收链密钥为空
                 sendingChainKey = K2.toHexString(),
-                sendingChainIndex = 0,
-                receivingChainIndex = 0
+                receivingChainIndex = -1,
+                sendingChainMessageIndex = 0,
+                previousSendingChainLength = 0
             ))
 
             Result.success(true)

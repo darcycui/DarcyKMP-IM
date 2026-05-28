@@ -169,21 +169,24 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleMessage fromUser:${headers["fromUser"]}")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
-                val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
-                    mapOf(
-                        "localUserId" to localUserId.toString(),
-                        "remoteUserId" to messageKey.fromUserId.toString(),
-                        "remoteDHKey" to messageKey.dhPublicKey,
-                        "remoteSendingIndex" to messageKey.sendingIndex.toString(),
-                    ), Unit
-                ).onFailure {
-                    logE("$TAG 接收时计算messageKey错误: ${it.message}")
-                    it.printStackTrace()
-                    return@launch
-                }.getOrElse { MessageKey() }
-                logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
+
                 val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
                 messageEntity?.let {
+                    val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
+                        mapOf(
+                            "localUserId" to localUserId.toString(),
+                            "remoteUserId" to messageKey.fromUserId.toString(),
+                            "remoteDHKey" to messageKey.dhPublicKey,
+                            "N_KEY" to messageKey.nKey.toString(),
+                            "PN_KEY" to messageKey.pnKey.toString(),
+                            "msgId" to it.msgId,
+                        ), Unit
+                    ).onFailure {
+                        logE("$TAG 接收时计算messageKey错误: ${it.message}")
+                        it.printStackTrace()
+                        return@launch
+                    }.getOrElse { MessageKey() }
+                    logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
                     // 保存到数据库
                     val response = messageEntity.toPrivateMessageResponse()
                     saveMessageToDBUseCase.invoke(mapOf(), listOf(response.toEntity()))

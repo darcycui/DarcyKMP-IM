@@ -45,8 +45,9 @@ class SaveAliceSessionRecordUseCase : IUseCase<Unit, Boolean> {
                     rootKey = K1.toHexString(),
                     receivingChainKey = K2.toHexString(),
                     sendingChainKey = "", // 第一次保存的时候 alice发送链密钥为空
-                    sendingChainIndex = 0,
-                    receivingChainIndex = 0,
+                    receivingChainIndex = -1,
+                    sendingChainMessageIndex = 0,
+                    previousSendingChainLength = 0
                 )
             )
             Result.success(true)

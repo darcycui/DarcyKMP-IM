@@ -35,14 +35,13 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val remoteDHKey = sessionRecord.remoteDHKey.hexStrToBytes().toPublicKey()
 
         var localEphemeralPublicKeyBytes: ByteArray = ByteArray(0)
-        var newSendingChainIndex = sessionRecord.sendingChainIndex
-        var newSendingChainMessageCount = sessionRecord.sendingChainMessageCount
+        var newSendingChainMessageIndex = sessionRecord.sendingChainMessageIndex
         var newPreviousSendingChainLength = sessionRecord.previousSendingChainLength
 
         val needsDHStep = needDHStep(localUserId, remoteUserId)
 
         val newDHSharedSecret = if (needsDHStep) {
-            newPreviousSendingChainLength = sessionRecord.sendingChainMessageCount
+            newPreviousSendingChainLength = sessionRecord.sendingChainMessageIndex
 
             val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
             val localEphemeralPrivateKey = localEphemeralKey.privateKey
@@ -52,8 +51,7 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
             EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
 
-            newSendingChainIndex = sessionRecord.sendingChainIndex + 1
-            newSendingChainMessageCount = 0
+            newSendingChainMessageIndex = 0
 
             val result = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
             EncryptUtil.log("$localUserId DH 棘轮步进:", result)
@@ -68,7 +66,7 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
             EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
 
-            newSendingChainMessageCount = sessionRecord.sendingChainMessageCount + 1
+            newSendingChainMessageIndex = sessionRecord.sendingChainMessageIndex + 1
 
             val result = ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
             EncryptUtil.log("$localUserId DH 棘轮无需步进:", result)
@@ -80,26 +78,26 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             hkdf.deriveSecrets(newDHSharedSecret, lastRootKey, "DHInfo".encodeToByteArray(), 64)
         val pairAlice = EncryptUtil.splitArray64(dhRatchetAlice, 32)
 
-        val K3 = pairAlice.first
-        EncryptUtil.log("$localUserId 根密钥(新):", K3)
+        val newRootKey = pairAlice.first
+        EncryptUtil.log("$localUserId 根密钥(新):", newRootKey)
 
-        val K4 = pairAlice.second
-        EncryptUtil.log("$localUserId 发送链密钥:", K4)
+        val newSendingChainKey = pairAlice.second
+        EncryptUtil.log("$localUserId 发送链密钥:", newSendingChainKey)
 
-        val N = newSendingChainMessageCount
+        val N = newSendingChainMessageIndex
         val PN = newPreviousSendingChainLength
 
-        logD("$localUserId 发送链索引: $newSendingChainIndex, N=$N, PN=$PN")
+        logD("$localUserId 发送链索引: N=$N, PN=$PN")
 
         updateSessionRecordBySend(
             sessionRecord,
-            K3, K4,
-            newSendingChainIndex,
-            newSendingChainMessageCount,
+            newRootKey,
+            newSendingChainKey,
+            newSendingChainMessageIndex,
             newPreviousSendingChainLength
         )
 
-        val senderChainAlice = ChainKey(hkdf, K4, N)
+        val senderChainAlice = ChainKey(hkdf, newSendingChainKey, N)
         val messageKeyTriple = senderChainAlice.getMessageKeyTriple()
         val messageKeyBytes = messageKeyTriple.first
         EncryptUtil.log("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyBytes)
@@ -107,13 +105,10 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val messageKey = MessageKey(
             fromUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
-            sendingIndex = newSendingChainIndex,
-            receivingIndex = sessionRecord.receivingChainIndex,
             messageKey = messageKeyBytes.toHexString(),
-            N = N,
-            PN = PN,
+            nKey = N,
+            pnKey = PN,
         )
-
         return Result.success(messageKey)
     }
 
@@ -121,15 +116,13 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         sessionRecord: SessionRecordEntity,
         newRootKey: ByteArray,
         newSendingChainKey: ByteArray,
-        newSendingChainIndex: Long,
-        newSendingChainMessageCount: Long,
+        newSendingChainMessageIndex: Long,
         newPreviousSendingChainLength: Long
     ) {
         val newSessionRecord = sessionRecord.copy(
             rootKey = newRootKey.toHexString(),
             sendingChainKey = newSendingChainKey.toHexString(),
-            sendingChainIndex = newSendingChainIndex,
-            sendingChainMessageCount = newSendingChainMessageCount,
+            sendingChainMessageIndex = newSendingChainMessageIndex,
             previousSendingChainLength = newPreviousSendingChainLength,
             updatedTime = TimePlatform.getCurrentTimeStamp()
         )

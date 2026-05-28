@@ -111,33 +111,75 @@ class ChatViewModel(
         }
     }
 
-    private fun actionSenderSyncMessageReadStatus(targetId: Long, conversationId: Long) {
-        chatRepository.senderSyncMessageReadStatusHttp(
-            userId = IMGlobalStorage.getCurrentUserId(),
-            targetId = targetId,
-            conversationId = conversationId,
-            conversationType = 1,
-            since = "",
-            until = "",
-            onSuccess = { response ->
-                logD("syncMessageReadStatus success")
-                io {
-                    logW("$TAG http:更新数据库已读状态(已读) 用于双棘轮")
-                    markMessageReadStatusUseCase.invoke(
-                        mapOf("messageReadStatusResponse" to JsonHelper.toJson(response)), Unit
-                    ).onSuccess {
-                        logI("$TAG http:更新数据库已读状态(已读) 成功:${response.msgIds}")
-                    }.onFailure {
-                        logE("$TAG http:更新数据库已读状态(已读) 失败:${response.msgIds} ${it.message}")
-                    }
-                    // 刷新UI
-                    actionLoadMessageByPage(targetId, conversationId, 1)
-                }
-            },
-            onError = {
-                logE("syncMessageReadStatus error: $it")
+    private fun actionSendMessage(message: PrivateMessageResponse) {
+        io {
+            if (message.content.isEmpty() or message.content.isBlank()) {
+                logE("发送消息内容为空")
+                val error = ErrorResponse(
+                    status = 400,
+                    message = "发送消息内容为空"
+                )
+                main { dispatch(error.toTipsIntent()) }
+                return@io
             }
-        )
+            // websocket发送消息 添加 DH棘轮 公钥
+            val localUserId = IMGlobalStorage.getCurrentUserId()
+            val remoteUserId = message.receiverId
+            val messageKeyLocal = sendDoubleRatchetStepUseCase.invoke(
+                mapOf(
+                    "localUserId" to localUserId.toString(),
+                    "remoteUserId" to remoteUserId.toString()
+                ), Unit
+            ).onFailure {
+                logE("发送时计算messageKey错误: ${it.message}")
+                it.printStackTrace()
+                return@io
+            }.getOrElse { MessageKey() }
+            logD("$TAG sendMessage messageKeyLocal: $messageKeyLocal")
+            // 保存到数据库
+            saveMessageToDBUseCase.invoke(mapOf(), listOf(message.toEntity()))
+                .onSuccess {
+                    logI("$TAG 发送前 保存到数据库成功: ${message.msgId}")
+                }.onFailure {
+                    logE("$TAG 发送前 保存到数据库错误: ${message.msgId} ${it::class.simpleName} ${it.message}")
+                }
+            /**
+             * 发送消息
+             */
+            websocketRepository.sendMessage(
+                message.toSTOMPMessage(),
+                messageKeyLocal.toMap()
+            )
+            dispatch(ChatIntent.RefreshBySendMessage(message))
+        }
+    }
+
+    private fun actionRegisterConnectionState() {
+        io {
+            websocketRepository.connect()
+            websocketRepository.connectionStateFlow.collect { state ->
+                main {
+                    logW("$TAG WebSocket 状态改变: ${state.message}")
+                    dispatch(ChatIntent.WebSocketState(state))
+                }
+            }
+        }
+    }
+
+    private fun actionRegisterReceiveMessage() {
+        io {
+            websocketRepository.messageFlow.collect { message ->
+                logE("接收到消息: $message")
+                dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
+            }
+        }
+        io {
+            websocketRepository.messageReadStatusFlow.collect { response ->
+                logE("接收到已读消息: ${response.msgIds}")
+                dispatch(ChatIntent.RefreshByReceiveMessageReadStatus(response))
+            }
+
+        }
     }
 
     private fun actionReceiverPullOfflineMessages(
@@ -166,8 +208,8 @@ class ChatViewModel(
                                 "remoteUserId" to targetId.toString(),
                                 "remoteDHKey" to item.dhPublicKey,
                                 "msgId" to item.msgId,
-                                "N" to item.nKey.toString(),
-                                "PN" to item.pnKey.toString(),
+                                "N_KEY" to item.nKey.toString(),
+                                "PN_KEY" to item.pnKey.toString(),
                             ), Unit
                         ).onFailure {
                             logE("$TAG 接收时计算messageKey错误: ${it.message}")
@@ -240,75 +282,33 @@ class ChatViewModel(
         )
     }
 
-    private fun actionSendMessage(message: PrivateMessageResponse) {
-        io {
-            if (message.content.isEmpty() or message.content.isBlank()) {
-                logE("发送消息内容为空")
-                val error = ErrorResponse(
-                    status = 400,
-                    message = "发送消息内容为空"
-                )
-                main { dispatch(error.toTipsIntent()) }
-                return@io
-            }
-            // websocket发送消息 添加 DH棘轮 公钥
-            val localUserId = IMGlobalStorage.getCurrentUserId()
-            val remoteUserId = message.receiverId
-            val messageKeyLocal = sendDoubleRatchetStepUseCase.invoke(
-                mapOf(
-                    "localUserId" to localUserId.toString(),
-                    "remoteUserId" to remoteUserId.toString()
-                ), Unit
-            ).onFailure {
-                logE("发送时计算messageKey错误: ${it.message}")
-                it.printStackTrace()
-                return@io
-            }.getOrElse { MessageKey() }
-            logD("$TAG sendMessage messageKeyLocal: $messageKeyLocal")
-            // 保存到数据库
-            saveMessageToDBUseCase.invoke(mapOf(), listOf(message.toEntity()))
-                .onSuccess {
-                    logI("$TAG 发送前 保存到数据库成功: ${message.msgId}")
-                }.onFailure {
-                    logE("$TAG 发送前 保存到数据库错误: ${message.msgId} ${it::class.simpleName} ${it.message}")
+    private fun actionSenderSyncMessageReadStatus(targetId: Long, conversationId: Long) {
+        chatRepository.senderSyncMessageReadStatusHttp(
+            userId = IMGlobalStorage.getCurrentUserId(),
+            targetId = targetId,
+            conversationId = conversationId,
+            conversationType = 1,
+            since = "",
+            until = "",
+            onSuccess = { response ->
+                logD("syncMessageReadStatus success")
+                io {
+                    logW("$TAG http:更新数据库已读状态(已读) 用于双棘轮")
+                    markMessageReadStatusUseCase.invoke(
+                        mapOf("messageReadStatusResponse" to JsonHelper.toJson(response)), Unit
+                    ).onSuccess {
+                        logI("$TAG http:更新数据库已读状态(已读) 成功:${response.msgIds}")
+                    }.onFailure {
+                        logE("$TAG http:更新数据库已读状态(已读) 失败:${response.msgIds} ${it.message}")
+                    }
+                    // 刷新UI
+                    actionLoadMessageByPage(targetId, conversationId, 1)
                 }
-            /**
-             * 发送消息
-             */
-            websocketRepository.sendMessage(
-                message.toSTOMPMessage(),
-                messageKeyLocal.toMap()
-            )
-            dispatch(ChatIntent.RefreshBySendMessage(message))
-        }
-    }
-
-    private fun actionRegisterConnectionState() {
-        io {
-            websocketRepository.connect()
-            websocketRepository.connectionStateFlow.collect { state ->
-                main {
-                    logW("$TAG WebSocket 状态改变: ${state.message}")
-                    dispatch(ChatIntent.WebSocketState(state))
-                }
+            },
+            onError = {
+                logE("syncMessageReadStatus error: $it")
             }
-        }
-    }
-
-    private fun actionRegisterReceiveMessage() {
-        io {
-            websocketRepository.messageFlow.collect { message ->
-                logE("接收到消息: $message")
-                dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
-            }
-        }
-        io {
-            websocketRepository.messageReadStatusFlow.collect { response ->
-                logE("接收到已读消息: ${response.msgIds}")
-                dispatch(ChatIntent.RefreshByReceiveMessageReadStatus(response))
-            }
-
-        }
+        )
     }
 
     override fun onCleared() {

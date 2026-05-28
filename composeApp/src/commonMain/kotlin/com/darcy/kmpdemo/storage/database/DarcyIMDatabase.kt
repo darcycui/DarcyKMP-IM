@@ -18,7 +18,6 @@ import com.darcy.kmpdemo.storage.database.tables.FriendshipEntity
 import com.darcy.kmpdemo.storage.database.tables.IdentityKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.MessageReadStatusEntity
 import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
-import com.darcy.kmpdemo.storage.database.tables.OutOfOrderKeyCacheEntity
 import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.database.tables.SessionRecordEntity
 import com.darcy.kmpdemo.storage.database.tables.SignedPreKeyEntity
