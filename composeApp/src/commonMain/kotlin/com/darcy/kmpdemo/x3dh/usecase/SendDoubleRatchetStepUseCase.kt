@@ -62,7 +62,7 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         )
         val messageKeyTriple = newSendingChainKey.getMessageKeyTriple()
         val messageKeyBytes = messageKeyTriple.first
-        EncryptUtil.log("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyBytes)
+        EncryptUtil.logI("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyBytes)
         val messageKey = MessageKey(
             fromUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),

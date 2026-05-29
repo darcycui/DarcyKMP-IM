@@ -115,12 +115,7 @@ class ApplyFriendViewModel(
                         main { dispatch(error.toTipsIntent()) }
                         return@io
                     }
-                    logV(
-                        "aliceEphemeralKey 公钥：${
-                            aliceEphemeralKey.publicKey.toBytes().toHexString()
-                        }"
-                    )
-                    // todo 保存 sessionRecord 到数据库
+                    // 保存 sessionRecord 到数据库
                     val saveSessionResult = saveAliceX3DHKeyUseCase.invoke(
                         mapOf(
                             "aliceUserId" to aliceUserId.toString(),
