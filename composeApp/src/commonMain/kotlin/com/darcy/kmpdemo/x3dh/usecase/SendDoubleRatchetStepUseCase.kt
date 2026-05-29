@@ -29,13 +29,10 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             sessionRecordDao.getByUserId(localUserId, remoteUserId) ?: return Result.failure(
                 Exception("sessionRecord is null")
             )
-
         val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
         EncryptUtil.log("$localUserId 根密钥:", lastRootKey)
         val remoteDHKey = sessionRecord.remoteDHKey.hexStrToBytes().toPublicKey()
-
         var localEphemeralPublicKeyBytes: ByteArray
-
         val localEphemeralPrivateKey =
             sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
         val localEphemeralPublicKey =
@@ -54,12 +51,12 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             sessionRecord.N
         ).getNextChainKey()
         EncryptUtil.log("$localUserId 发送链密钥:", newSendingChainKey.getKey())
-        updateSessionRecordBySend(
-            sessionRecord,
-            sessionRecord.rootKey.hexStrToBytes(),
-            newSendingChainKey.getKey(),
-            newN, newPN
-        )
+        sessionRecordDao.update(sessionRecord.copy(
+            sendingChainKey = newSendingChainKey.getKey().toHexString(),
+            N = newN,
+            PN = newPN,
+            updatedTime = TimePlatform.getCurrentTimeStamp()
+        ))
         val messageKeyTriple = newSendingChainKey.getMessageKeyTriple()
         val messageKeyBytes = messageKeyTriple.first
         EncryptUtil.logI("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyBytes)
@@ -71,22 +68,5 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             pnKey = newPN,
         )
         return Result.success(messageKey)
-    }
-
-    private suspend fun updateSessionRecordBySend(
-        sessionRecord: SessionRecordEntity,
-        newRootKey: ByteArray,
-        newSendingChainKey: ByteArray,
-        newN: Long,
-        newPN: Long
-    ) {
-        val newSessionRecord = sessionRecord.copy(
-            rootKey = newRootKey.toHexString(),
-            sendingChainKey = newSendingChainKey.toHexString(),
-            N = newN,
-            PN = newPN,
-            updatedTime = TimePlatform.getCurrentTimeStamp()
-        )
-        sessionRecordDao.update(newSessionRecord)
     }
 }

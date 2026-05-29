@@ -156,20 +156,13 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
                 messageKey = messageKeyBytes.toHexString()
             )
-//            updateSessionRecordByReceive(
-//                sessionRecord,
-//                receivingNewRootKey,
-//                receiverChain.getKey(),
-//                sessionRecord.sendingChainKey.hexStrToBytes(),
-//                N,
-//                remoteDHKey
-//            )
             sessionRecordDao.update(
                 sessionRecord.copy(
                     remoteDHKey = remoteDHKey.toBytes().toHexString(),
                     rootKey = receivingNewRootKey.toHexString(),
                     receivingChainKey = receiverChain.getKey().toHexString(),
                     receivingChainIndex = N,
+                    updatedTime = TimePlatform.getCurrentTimeStamp()
                 )
             )
             logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
@@ -201,14 +194,6 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             EncryptUtil.log("$localUserId 发送链初始化密钥:", sendingNewChainKey)
             val senderChain = ChainKey(HKDF1(), sendingNewChainKey, 0)
             EncryptUtil.log("$localUserId 发送链密钥:", senderChain.getKey())
-//            updateSessionRecordByReceive(
-//                sessionRecord,
-//                sendingNewRootKey,
-//                receiverChain.getKey(),
-//                senderChain.getKey(),
-//                N,
-//                remoteDHKey
-//            )
             sessionRecordDao.update(
                 sessionRecord.copy(
                     remoteDHKey = remoteDHKey.toBytes().toHexString(),
@@ -218,16 +203,12 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                     receivingChainIndex = N,
                     localEphemeralPrivateKey = newLocalEphemeralPrivateKey.toBytes().toHexString(),
                     localEphemeralPublicKey = newLocalEphemeralPublicKey.toBytes().toHexString(),
+                    updatedTime = TimePlatform.getCurrentTimeStamp()
                 )
             )
 
             return Result.success(messageKey)
         } else {
-//            cacheSkippedMessageKeysWithoutDHStep(
-//                localUserId, remoteUserId,
-//                sessionRecord, N, remoteDHKey
-//            )
-
             localEphemeralPublicKeyBytes = sessionRecord.localEphemeralPublicKey.hexStrToBytes()
             logW("$localUserId DH 棘轮无需步进")
             val localEphemeralPrivateKey =
@@ -251,14 +232,6 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 messageKey = messageKeyBytes.toHexString()
             )
             logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
-//            updateSessionRecordByReceive(
-//                sessionRecord,
-//                sessionRecord.rootKey.hexStrToBytes(),
-//                newReceivingChainKey.getKey(),
-//                sessionRecord.sendingChainKey.hexStrToBytes(),
-//                N,
-//                remoteDHKey
-//            )
             sessionRecordDao.update(
                 sessionRecord.copy(
                     remoteDHKey = remoteDHKey.toBytes().toHexString(),
@@ -270,7 +243,6 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             return Result.success(messageKey)
         }
     }
-
 
     private suspend fun cleanupOldSkippedKeys(
         localUserId: Long,
@@ -286,25 +258,6 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 logI("$localUserId 清理过期跳过密钥 $deletedCount 条（阈值:$threshold）")
             }
         }
-    }
-
-    private suspend fun updateSessionRecordByReceive(
-        sessionRecord: SessionRecordEntity,
-        newRootKey: ByteArray,
-        newReceivingChainKey: ByteArray,
-        newSendingChainKey: ByteArray,
-        newN: Long,
-        newRemoteDHKey: XDH.PublicKey
-    ) {
-        val newSessionRecord = sessionRecord.copy(
-            rootKey = newRootKey.toHexString(),
-            receivingChainKey = newReceivingChainKey.toHexString(),
-            receivingChainIndex = newN,
-            sendingChainKey = newSendingChainKey.toHexString(),
-            remoteDHKey = newRemoteDHKey.toBytes().toHexString(),
-            updatedTime = TimePlatform.getCurrentTimeStamp()
-        )
-        sessionRecordDao.update(newSessionRecord)
     }
 
     private fun needDHStep(newRemoteDHKey: XDH.PublicKey, localRemoteDHKey: String): Boolean {
