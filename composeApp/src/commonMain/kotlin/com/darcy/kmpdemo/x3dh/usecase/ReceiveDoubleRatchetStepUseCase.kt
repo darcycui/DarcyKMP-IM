@@ -127,6 +127,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             val localEphemeralPublicKey =
                 sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
             logW("$localUserId DH 棘轮步进开始")
+            logD("$localUserId 对方发送链信息: N=$N, PN=$PN")
             localEphemeralPublicKeyBytes = localEphemeralPublicKey.toBytes()
             EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
             EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
@@ -203,7 +204,9 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                     receivingChainIndex = N,
                     localEphemeralPrivateKey = newLocalEphemeralPrivateKey.toBytes().toHexString(),
                     localEphemeralPublicKey = newLocalEphemeralPublicKey.toBytes().toHexString(),
-                    updatedTime = TimePlatform.getCurrentTimeStamp()
+                    updatedTime = TimePlatform.getCurrentTimeStamp(),
+                    N = 0,  // 重置N
+                    PN = PN, // todo 更新 PN ?
                 )
             )
 
