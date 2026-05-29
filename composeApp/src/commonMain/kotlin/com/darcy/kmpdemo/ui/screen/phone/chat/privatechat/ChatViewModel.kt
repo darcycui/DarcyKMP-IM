@@ -214,18 +214,19 @@ class ChatViewModel(
                         ).onFailure {
                             logE("$TAG 接收时计算messageKey错误: ${it.message}")
                             it.printStackTrace()
-                            return@io
-                        }.getOrElse { MessageKey() }
+                        }.getOrElse { null }
                         logD("$TAG pullOfflineMessages messageKeyLocal=$messageKeyLocal")
-                    }
-                    // 保存到数据库
-                    val msgIds = response.content.map { it.msgId }
-                    saveMessageToDBUseCase.invoke(mapOf(), response.content.toEntity())
-                        .onSuccess {
-                            logI("$TAG 离线消息保存到数据库成功: $msgIds")
-                        }.onFailure {
-                            logE("$TAG 离线消息保存到数据库错误: $msgIds ${it::class.simpleName} ${it.message}")
+                        messageKeyLocal?.let { messageKey ->
+                            // 保存到数据库
+                            val msgIds = response.content.map { it.msgId }
+                            saveMessageToDBUseCase.invoke(mapOf(), response.content.toEntity())
+                                .onSuccess {
+                                    logI("$TAG 离线消息保存到数据库成功: $msgIds")
+                                }.onFailure {
+                                    logE("$TAG 离线消息保存到数据库错误: $msgIds ${it::class.simpleName} ${it.message}")
+                                }
                         }
+                    }
                     // 发送已读状态
                     receiverPushMessageReadStatusHttp(response)
                     // 获取下一页
@@ -303,6 +304,7 @@ class ChatViewModel(
                     }
                     // 刷新UI
                     actionLoadMessageByPage(targetId, conversationId, 1)
+                    dispatch(ChatIntent.ActionRegisterReceiveMessage)
                 }
             },
             onError = {

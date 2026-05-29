@@ -69,7 +69,7 @@ fun PhoneChatScreen(
                 )
             )
         )
-        viewModel.dispatch(ChatIntent.ActionRegisterReceiveMessage)
+//        viewModel.dispatch(ChatIntent.ActionRegisterReceiveMessage)
     }
     PhoneChatInnerPage(viewModel, conversationId, userId, userName, userAvatar)
 }

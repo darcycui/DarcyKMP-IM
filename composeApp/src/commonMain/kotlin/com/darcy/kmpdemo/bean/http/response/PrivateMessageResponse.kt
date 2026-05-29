@@ -5,6 +5,7 @@ import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.utils.UUIDHelper
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 
@@ -60,6 +61,7 @@ data class PrivateMessageResponse(
     val isRead: Boolean = false,
     val isRecalled: Boolean = false,
     val dhPublicKey: String = "",
+    @SerialName("NKey")
     val nKey: Long = 0L,
     val pnKey: Long = 0L
 )
