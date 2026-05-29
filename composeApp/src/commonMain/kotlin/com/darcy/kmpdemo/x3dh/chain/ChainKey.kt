@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.x3dh.chain
 
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.utils.EncryptUtil
 
 class ChainKey(
@@ -10,6 +11,9 @@ class ChainKey(
     companion object {
         private val MESSAGE_KEY_SEED: ByteArray = byteArrayOf(0x01)
         private val CHAIN_KEY_SEED: ByteArray = byteArrayOf(0x02)
+    }
+    init {
+        logD("构造ChainKey: key=${key.toHexString()} index=$index")
     }
 
     fun getKey(): ByteArray {

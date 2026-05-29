@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.x3dh.exchange
 
+import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.XDH
 import kotlinx.coroutines.runBlocking
@@ -8,7 +9,7 @@ import kotlinx.coroutines.runBlocking
 object ECCExchangeHelper {
     // 初始化 指定使用 X25519 曲线
     const val ALGORITHM: String = "X25519"
-    private val provider = CryptographyProvider.Default
+    private val provider = KotlinCryptoPlatform.getCryptographyProvider()
     fun generateKeyPair(): XDH.KeyPair {
         return runBlocking {
             val xdh = provider.get(XDH)

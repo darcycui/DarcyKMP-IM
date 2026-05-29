@@ -1,12 +1,13 @@
 package com.darcy.kmpdemo.utils
 
 import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.XDH
 import kotlinx.coroutines.runBlocking
 
 object KeyUtil {
-    private val provider = CryptographyProvider.Default
+    private val provider = KotlinCryptoPlatform.getCryptographyProvider()
     private val xdh = provider.get(XDH)
     fun bytesToPrivateKey(privateKeyBytes: ByteArray): XDH.PrivateKey {
         logD("privateKeyBytes长度: ${privateKeyBytes.size}")

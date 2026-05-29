@@ -1,12 +1,13 @@
 package com.darcy.kmpdemo.x3dh.chain
 
+import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.SHA256
 import kotlinx.coroutines.runBlocking
 import kotlin.experimental.xor
 
 object HMAC1 {
-    private val provider = CryptographyProvider.Default
+    private val provider = KotlinCryptoPlatform.getCryptographyProvider()
 
     fun getBaseMaterial(key: ByteArray, seed: ByteArray): ByteArray {
         return runBlocking {

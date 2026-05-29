@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.x3dh.exchange
 
+import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.EdDSA
 import kotlinx.coroutines.runBlocking
@@ -10,7 +11,7 @@ object EdDSASignHelper {
     private const val ALGORITHM_EDDSA: String = "Ed25519" // 椭圆曲线算法 EdDSA
     private const val ALGORITHM_SIGN: String = "Ed25519" // 签名算法
 
-    private val provider = CryptographyProvider.Default
+    private val provider = KotlinCryptoPlatform.getCryptographyProvider()
 
     fun generateKeyPairEdDSA(): EdDSA.KeyPair {
         return runBlocking {

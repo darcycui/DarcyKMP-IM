@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.x3dh.chain
 
+import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import dev.whyoleg.cryptography.BinarySize.Companion.bytes
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.HKDF
@@ -11,7 +12,7 @@ class HKDF1 {
         private const val HASH_OUTPUT_SIZE: Int = 32
     }
 
-    private val provider = CryptographyProvider.Default
+    private val provider = KotlinCryptoPlatform.getCryptographyProvider()
 
     fun deriveSecrets(
         inputKeyMaterial: ByteArray,

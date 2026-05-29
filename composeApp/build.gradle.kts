@@ -78,6 +78,10 @@ kotlin {
 //            implementation(libs.androidx.room.sqlite.wrapper)
             // SLF4J simple implementation for Napier
             implementation(libs.slf4j.simple)
+            // Bouncy Castle for Android
+            implementation(libs.cryptography.provider.bouncycastle)
+            implementation(libs.bouncycastle.bcprov)
+            implementation(libs.bouncycastle.bcpkix)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -147,7 +151,6 @@ kotlin {
             implementation(libs.cryptography.core)
             implementation(libs.cryptography.provider.optimal)
             // UUID
-
 
         }
         desktopMain.dependencies {

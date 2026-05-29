@@ -1,13 +1,17 @@
 package com.darcy.kmpdemo.platform
 
+import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.ssl.SslSettings
+import io.ktor.client.engine.cio.CIOEngineConfig
 
 actual fun configureEngineTLS(engineConfig: Any) {
-    if (engineConfig is io.ktor.client.engine.cio.CIOEngineConfig) {
+    if (engineConfig is CIOEngineConfig) {
         engineConfig.https{
             trustManager = SslSettings.getTrustManager()
         }
+    } else {
+        logE("configureEngineTLS 错误: engineConfig is not CIOEngineConfig")
     }
 }
 

@@ -38,6 +38,7 @@ roomVersion = "3.0.0-alpha04"
 slf4jSimple = "2.0.18"
 sqlite = "2.7.0-alpha04"
 ksp = "2.3.7"
+bouncyCastle = "1.84"
 
 [libraries]
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
@@ -46,8 +47,13 @@ androidx-room-compiler = { module = "androidx.room3:room3-compiler", version.ref
 # Optional SQLite Wrapper available in version 2.8.0 and higher
 #androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "roomVersion" }
 
+# 加密
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptographyCore" }
 cryptography-provider-optimal = { module = "dev.whyoleg.cryptography:cryptography-provider-optimal", version.ref = "cryptographyCore" }
+cryptography-provider-bouncycastle = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk-bc", version.ref = "cryptographyCore" }
+bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle" }
+
 hash-bom = { module = "org.kotlincrypto.hash:bom", version.ref = "hashBomVersion" }
 hash-md = { module = "org.kotlincrypto.hash:md" }
 hash-sha2 = { module = "org.kotlincrypto.hash:sha2" }
@@ -124,6 +130,7 @@ krossbow-stomp-core = { module = "org.hildan.krossbow:krossbow-stomp-core", vers
 krossbow-websocket-builtin = { module = "org.hildan.krossbow:krossbow-websocket-builtin", version.ref = "krossbowStompCore" }
 krossbow-websocket-ktor = { module = "org.hildan.krossbow:krossbow-websocket-ktor", version.ref = "krossbowStompCore" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
