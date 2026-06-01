@@ -4,4 +4,5 @@ import com.darcy.kmpdemo.ui.base.IEvent
 
 sealed class AcceptFriendEvent : IEvent {
     object AcceptFriendSuccess : AcceptFriendEvent()
+    object PageBack : AcceptFriendEvent()
 }

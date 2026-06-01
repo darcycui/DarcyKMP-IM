@@ -16,6 +16,7 @@ import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
+import com.darcy.kmpdemo.ui.screen.phone.apply_friend.event.ApplyFriendEvent
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.intent.ApplyFriendIntent
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.reducer.ApplyFriendReducer
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.repository.ApplyFriendRepository
@@ -68,6 +69,12 @@ class ApplyFriendViewModel(
 
             is ApplyFriendIntent.ActionApplyFriend -> {
                 pullX3DHBobKeys(IMGlobalStorage.getCurrentUserId(), intent.toUserId)
+            }
+
+            is ApplyFriendIntent.ActionPageBack -> {
+                io {
+                    sendEvent(ApplyFriendEvent.PageBack)
+                }
             }
 
             else -> {

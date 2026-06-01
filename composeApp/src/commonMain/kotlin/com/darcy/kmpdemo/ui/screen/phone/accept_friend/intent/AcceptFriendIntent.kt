@@ -7,4 +7,6 @@ sealed class AcceptFriendIntent : IIntent {
     data class ActionAcceptFriend(val applyId: Long, val targetUserId: Long) : AcceptFriendIntent()
 
     data class RefreshByAcceptFriend(val response: ApplyFriendResponse) : AcceptFriendIntent()
+
+    data object ActionPageBack : AcceptFriendIntent()
 }

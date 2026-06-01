@@ -33,11 +33,16 @@ import com.darcy.kmpdemo.bean.http.response.ApplyFriendResponse
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.colors.AppColors
+import com.darcy.kmpdemo.ui.components.atom.PageBackButton
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
+import com.darcy.kmpdemo.ui.screen.phone.accept_friend.event.AcceptFriendEvent
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.intent.AcceptFriendIntent
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.state.AcceptFriendState
+import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
+import com.darcy.kmpdemo.ui.screen.phone.navigation.customGoBack
 import kmpdarcydemo.composeapp.generated.resources.Res
 import kmpdarcydemo.composeapp.generated.resources.icon_header_default
+import kmpdarcydemo.composeapp.generated.resources.page_back
 import kmpdarcydemo.composeapp.generated.resources.page_mine
 import org.jetbrains.compose.resources.stringResource
 import kotlin.text.ifEmpty
@@ -47,8 +52,16 @@ fun PhoneAcceptFriendScreen() {
     val viewModel: AcceptFriendViewModel = viewModel(
         factory = AcceptFriendViewModel.Factory
     )
-    LaunchedEffect(viewModel){
+    val appNavController = AppNavigation.navController()
+    LaunchedEffect(viewModel) {
         viewModel.dispatch(FetchIntent.ActionFetchData())
+        viewModel.event.collect {
+            when (it) {
+                is AcceptFriendEvent.PageBack -> {
+                    appNavController.customGoBack()
+                }
+            }
+        }
     }
     PhoneAcceptFriendInnerPage(viewModel)
 }
@@ -59,7 +72,10 @@ fun PhoneAcceptFriendInnerPage(viewModel: AcceptFriendViewModel) {
     val nameTextFieldState: TextFieldState by remember { mutableStateOf(TextFieldState("")) }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            ApplyListComponent(uiState, viewModel)
+            ApplyListComponent(uiState, viewModel, modifier = Modifier.fillMaxWidth().weight(1f))
+            PageBackButton(onClick = {
+                viewModel.dispatch(AcceptFriendIntent.ActionPageBack)
+            })
         }
 
         if (uiState.tipsState.showTips) {
@@ -82,12 +98,16 @@ fun PhoneAcceptFriendInnerPage(viewModel: AcceptFriendViewModel) {
 }
 
 @Composable
-private fun ApplyListComponent(uiState: AcceptFriendState, viewModel: AcceptFriendViewModel) {
+private fun ApplyListComponent(
+    uiState: AcceptFriendState,
+    viewModel: AcceptFriendViewModel,
+    modifier: Modifier
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        items(uiState.applys, key = { it.id}) {
+        items(uiState.applys, key = { it.id }) {
             ApplyItemComponent(it, viewModel)
         }
     }

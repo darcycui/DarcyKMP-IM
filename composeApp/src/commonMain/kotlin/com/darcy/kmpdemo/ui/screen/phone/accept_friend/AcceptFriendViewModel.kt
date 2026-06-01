@@ -12,6 +12,7 @@ import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
+import com.darcy.kmpdemo.ui.screen.phone.accept_friend.event.AcceptFriendEvent
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.intent.AcceptFriendIntent
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.reducer.AcceptFriendReducer
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.repository.AcceptFriendRepository
@@ -47,11 +48,17 @@ class AcceptFriendViewModel(
     override fun dispatch(intent: IIntent) {
         when (intent) {
             is AcceptFriendIntent.ActionAcceptFriend -> {
-                pullAliceHello( intent.applyId, intent.targetUserId)
+                pullAliceHello(intent.applyId, intent.targetUserId)
             }
 
             is FetchIntent.ActionFetchData -> {
                 actionFetchFriendApplys()
+            }
+
+            is AcceptFriendIntent.ActionPageBack -> {
+                io {
+                    sendEvent(AcceptFriendEvent.PageBack)
+                }
             }
 
             else -> {
@@ -86,7 +93,7 @@ class AcceptFriendViewModel(
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey,
                             "bobOneTimePreKeyId" to alideKeys.bobOneTimePreKeyId
-                        ),Unit
+                        ), Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { null }
@@ -103,7 +110,7 @@ class AcceptFriendViewModel(
                             "bobX3DHKey" to x3DHKey.toHexString(),
                             "aliceIdentityKey" to alideKeys.aliceIdentityKey,
                             "aliceEphemeralKey" to alideKeys.aliceEphemeralKey
-                        ),Unit
+                        ), Unit
                     ).onFailure {
                         it.printStackTrace()
                     }.getOrElse { false }

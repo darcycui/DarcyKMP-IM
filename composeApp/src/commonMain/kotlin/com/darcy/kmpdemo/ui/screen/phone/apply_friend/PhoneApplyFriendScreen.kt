@@ -41,9 +41,13 @@ import com.darcy.kmpdemo.bean.http.response.UserResponse
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.colors.AppColors
+import com.darcy.kmpdemo.ui.components.atom.PageBackButton
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
+import com.darcy.kmpdemo.ui.screen.phone.apply_friend.event.ApplyFriendEvent
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.intent.ApplyFriendIntent
 import com.darcy.kmpdemo.ui.screen.phone.apply_friend.state.ApplyFriendState
+import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
+import com.darcy.kmpdemo.ui.screen.phone.navigation.customGoBack
 import kmpdarcydemo.composeapp.generated.resources.Res
 import kmpdarcydemo.composeapp.generated.resources.icon_header_default
 import kmpdarcydemo.composeapp.generated.resources.page_mine
@@ -54,8 +58,16 @@ fun PhoneAddFriendScreen() {
     val viewModel: ApplyFriendViewModel = viewModel(
         factory = ApplyFriendViewModel.Factory
     )
+    val appController = AppNavigation.navController()
     LaunchedEffect(viewModel) {
         viewModel.dispatch(FetchIntent.ActionFetchData())
+        viewModel.event.collect {
+            when (it) {
+                is ApplyFriendEvent.PageBack -> {
+                    appController.customGoBack()
+                }
+             }
+        }
     }
     PhoneAddFriendInnerPage(viewModel)
 }
@@ -75,7 +87,10 @@ fun PhoneAddFriendInnerPage(viewModel: ApplyFriendViewModel) {
             HorizontalDivider(
                 modifier = Modifier.height(4.dp).background(AppColors.bg_color_blue_409eff)
             )
-            UserApplyListComponent(uiState, viewModel)
+            UserApplyListComponent(uiState, viewModel, modifier = Modifier.fillMaxWidth().weight(1f))
+            PageBackButton(onClick = {
+                viewModel.dispatch(ApplyFriendIntent.ActionPageBack)
+            })
         }
 
         if (uiState.tipsState.showTips) {
@@ -98,9 +113,13 @@ fun PhoneAddFriendInnerPage(viewModel: ApplyFriendViewModel) {
 }
 
 @Composable
-fun UserApplyListComponent(uiState: ApplyFriendState, viewModel: ApplyFriendViewModel) {
+fun UserApplyListComponent(
+    uiState: ApplyFriendState,
+    viewModel: ApplyFriendViewModel,
+    modifier: Modifier
+) {
     LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         items(uiState.applys, key = { it.id }) { item ->

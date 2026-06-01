@@ -53,4 +53,5 @@
     <string name="page_login">登录</string>
     <string name="page_register">注册</string>
     <string name="go_register">去注册</string>
+    <string name="page_back">返回</string>
 </resources>

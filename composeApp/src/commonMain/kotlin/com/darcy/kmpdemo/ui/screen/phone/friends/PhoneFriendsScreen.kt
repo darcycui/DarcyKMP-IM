@@ -123,12 +123,12 @@ private fun ShowSuccessPage(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         Row {
-            Button(onClick = {
+            Button(modifier = Modifier.weight(1f), onClick = {
                 viewModel.dispatch(FriendsIntent.GoAddFriendPage)
             }) {
                 Text(text = "申请好友")
             }
-            Button(onClick = {
+            Button(modifier = Modifier.weight(1f), onClick = {
                 viewModel.dispatch(FriendsIntent.GoAcceptFriendPage)
             }) {
                 Text(text = "同意好友")

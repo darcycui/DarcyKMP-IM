@@ -21,6 +21,7 @@ import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
+import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.event.ChatEvent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository.ChatRepository
@@ -44,6 +45,7 @@ class ChatViewModel(
     private val queryMessageFromDBByPageUseCase: QueryMessageFromDBByPageUseCase = QueryMessageFromDBByPageUseCase(),
     private val markMessageReadStatusUseCase: MarkMessageReadStatusUseCase = MarkMessageReadStatusUseCase(),
     private val receiveDoubleRatchetStepUseCase: ReceiveDoubleRatchetStepUseCase = ReceiveDoubleRatchetStepUseCase(),
+    private var messageTotalCount: Int = 0
 ) : BaseViewModel<ChatState>() {
     companion object {
         private const val TAG = "ChatViewModel"
@@ -63,6 +65,14 @@ class ChatViewModel(
         return listOf(
             ChatReducer(),
         )
+    }
+
+    init {
+        io {
+            uiState.collect {
+                messageTotalCount = it.items.size
+            }
+        }
     }
 
     override fun dispatch(intent: IIntent) {
@@ -151,6 +161,7 @@ class ChatViewModel(
                 messageKeyLocal.toMap()
             )
             dispatch(ChatIntent.RefreshBySendMessage(message))
+            sendEvent(ChatEvent.ScrollToBottom(messageTotalCount - 1))
         }
     }
 

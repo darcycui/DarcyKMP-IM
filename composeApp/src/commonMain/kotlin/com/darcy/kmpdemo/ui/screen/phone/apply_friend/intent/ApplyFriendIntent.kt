@@ -20,4 +20,6 @@ sealed class ApplyFriendIntent : IIntent {
     data class RefreshByApplyFriend(
         val response: ApplyFriendResponse
     ): ApplyFriendIntent()
+
+    data object ActionPageBack : ApplyFriendIntent()
 }

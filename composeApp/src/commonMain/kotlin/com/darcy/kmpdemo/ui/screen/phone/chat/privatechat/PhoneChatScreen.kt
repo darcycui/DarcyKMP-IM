@@ -6,14 +6,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
@@ -23,13 +25,13 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextAlign
@@ -45,6 +47,7 @@ import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.colors.AppColors
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
+import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.event.ChatEvent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import kmpdarcydemo.composeapp.generated.resources.Res
 import kmpdarcydemo.composeapp.generated.resources.check
@@ -59,8 +62,8 @@ fun PhoneChatScreen(
     userAvatar: String
 ) {
     val viewModel: ChatViewModel = viewModel(factory = ChatViewModel.Factory)
-//    val viewModel: ChatViewModel = viewModel()
-    LaunchedEffect(Unit) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(viewModel) {
         viewModel.dispatch(
             FetchIntent.ActionFetchData(
                 params = mapOf(
@@ -71,7 +74,20 @@ fun PhoneChatScreen(
         )
 //        viewModel.dispatch(ChatIntent.ActionRegisterReceiveMessage)
     }
-    PhoneChatInnerPage(viewModel, conversationId, userId, userName, userAvatar)
+    LaunchedEffect(viewModel) {
+        viewModel.event.collect {
+            when (it) {
+                is ChatEvent.ScrollToBottom -> {
+                    // 滚动到最后一个 item
+                    val lastIndex = it.bottomItemIndex
+                    if (lastIndex >= 0) {
+                        listState.animateScrollToItem(lastIndex)
+                    }
+                }
+            }
+        }
+    }
+    PhoneChatInnerPage(viewModel, conversationId, userId, userName, userAvatar, listState)
 }
 
 @Composable
@@ -80,7 +96,8 @@ private fun PhoneChatInnerPage(
     conversationId: Long,
     userId: Long,
     userName: String,
-    userAvatar: String
+    userAvatar: String,
+    listState: LazyListState
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     Box(modifier = Modifier.fillMaxSize()) {
@@ -95,7 +112,8 @@ private fun PhoneChatInnerPage(
                 userId = userId,
                 userName = userName,
                 userAvatar = userAvatar,
-                modifier = Modifier.fillMaxWidth().weight(1f)
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                listState = listState
             )
             SendComponent(onSendClick = { text ->
                 val self = IMGlobalStorage.getCurrentUser()
@@ -111,7 +129,7 @@ private fun PhoneChatInnerPage(
                         )
                     )
                 )
-            }, modifier = Modifier.fillMaxWidth())
+            }, modifier = Modifier.fillMaxWidth().imePadding())
             if (uiState.tipsState.showTips) {
                 TipsDialog(
                     titleStr = uiState.tipsState.title,
@@ -136,6 +154,7 @@ fun SendComponent(
     modifier: Modifier,
 ) {
     val textState = TextFieldState("")
+
     Row(modifier = modifier.height(60.dp), verticalAlignment = Alignment.CenterVertically) {
         TextField(
             state = textState,
@@ -176,8 +195,9 @@ fun PrivateMessageListComponent(
     userName: String,
     userAvatar: String,
     modifier: Modifier,
+    listState: LazyListState,
 ) {
-    LazyColumn(modifier = modifier) {
+    LazyColumn(modifier = modifier, state = listState) {
         items(
             messageList,
             key = { it.msgId }
@@ -235,8 +255,10 @@ fun SendMessageComponent(item: PrivateMessageResponse) {
                 )
                 // 显示消息已读
                 if (item.isRead) {
-                    Image(painter = painterResource(Res.drawable.check), contentDescription = null,
-                        modifier = Modifier.align(Alignment.End))
+                    Image(
+                        painter = painterResource(Res.drawable.check), contentDescription = null,
+                        modifier = Modifier.align(Alignment.End)
+                    )
                 }
             }
             Spacer(modifier = Modifier.width(10.dp))
