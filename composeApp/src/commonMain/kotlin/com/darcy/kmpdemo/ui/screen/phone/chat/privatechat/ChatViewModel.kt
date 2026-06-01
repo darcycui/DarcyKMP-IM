@@ -180,7 +180,7 @@ class ChatViewModel(
     private fun actionRegisterReceiveMessage() {
         io {
             websocketRepository.messageFlow.collect { message ->
-                logE("接收到消息: $message")
+                logV("websocket 接收到消息: $message")
                 dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
             }
         }
@@ -212,7 +212,7 @@ class ChatViewModel(
                 io {
                     // http收到消息的处理
                     response.content.forEach { item ->
-                        logV("$TAG http:接收到消息: ${item.msgId}")
+                        logV("$TAG http 接收到消息: ${item.msgId}")
                         val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
                             mapOf(
                                 "localUserId" to userId.toString(),
@@ -305,7 +305,7 @@ class ChatViewModel(
             onSuccess = { response ->
                 logD("syncMessageReadStatus success")
                 io {
-                    logW("$TAG http:更新数据库已读状态(已读) 用于双棘轮")
+                    logW("$TAG http:更新数据库已读状态(已读)")
                     markMessageReadStatusUseCase.invoke(
                         mapOf("messageReadStatusResponse" to JsonHelper.toJson(response)), Unit
                     ).onSuccess {

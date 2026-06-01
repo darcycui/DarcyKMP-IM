@@ -6,7 +6,6 @@ import androidx.room3.PrimaryKey
 
 
 @Entity(
-    tableName = "skipped_message_keys",
     indices = [
         Index(value = ["userId", "targetId", "dhPublicKey", "chainIndex"], unique = true)
     ]
@@ -16,6 +15,7 @@ data class SkippedMessageKeyEntity(
     val id: Long = 0,
     val userId: Long = 0,
     val targetId: Long = 0,
+    val msgId: String = "",
 
     val dhPublicKey: String = "",
     val chainIndex: Long = 0,

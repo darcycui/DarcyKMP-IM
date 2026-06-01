@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.x3dh.usecase
 
 import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
@@ -45,32 +46,33 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             )
 
         logD("$localUserId 收到消息 - 消息ID:$msgId, N=$N, PN=$PN, 当前接收链索引:${sessionRecord.receivingChainIndex}")
-
-        return when {
-            N > sessionRecord.receivingChainIndex -> {
+        val needsDHStep = needDHStep(remoteDHKey, sessionRecord.remoteDHKey)
+        return if (needsDHStep) {
+            logW("$localUserId 需要进行 DH棘轮步进")
+            logI("$localUserId 顺序或未来消息，处理并缓存跳过密钥")
+            handleInOrderMessageWithDH(
+                localUserId, remoteUserId, msgId,
+                sessionRecord, remoteDHKey, N, PN,
+            )
+        } else {
+            logW("$localUserId 不需要进行 DH棘轮步进")
+            if (N > sessionRecord.receivingChainIndex) {
                 logI("$localUserId 顺序或未来消息，处理并缓存跳过密钥")
                 handleInOrderMessage(
                     localUserId, remoteUserId, msgId,
                     sessionRecord, remoteDHKey, N, PN,
                 )
-            }
-
-            N <= sessionRecord.receivingChainIndex -> {
-                logW("$localUserId 重复消息或过期消息（N:$N <= 当前:${sessionRecord.receivingChainIndex}）")
-                handleDuplicateOrSkippedMessage(
+            } else {
+                logW("$localUserId 跳过的消息 (N:$N <= 当前:${sessionRecord.receivingChainIndex})")
+                handleSkippedMessage(
                     localUserId, remoteUserId, msgId,
                     sessionRecord, remoteDHKey, N
                 )
             }
-
-            else -> {
-                logW("$localUserId 异常情况")
-                Result.failure(Exception("消息索引异常"))
-            }
         }
     }
 
-    private suspend fun handleDuplicateOrSkippedMessage(
+    private suspend fun handleSkippedMessage(
         localUserId: Long,
         remoteUserId: Long,
         msgId: String,
@@ -104,7 +106,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         }
     }
 
-    private suspend fun handleInOrderMessage(
+    private suspend fun handleInOrderMessageWithDH(
         localUserId: Long,
         remoteUserId: Long,
         msgId: String,
@@ -115,165 +117,171 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
     ): Result<MessageKey> {
         val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
         var localEphemeralPublicKeyBytes: ByteArray
+        cacheSkippedMessageKeysForDHStep(
+            localUserId, remoteUserId, sessionRecord,
+            N, PN
+        )
+        val localEphemeralPrivateKey =
+            sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
+        val localEphemeralPublicKey =
+            sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
+        logW("$localUserId DH 棘轮步进开始")
+        logD("$localUserId 对方发送链信息: N=$N, PN=$PN")
+        localEphemeralPublicKeyBytes = localEphemeralPublicKey.toBytes()
+        EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
+        EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
+        EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+        val receivingNewDHSharedSecret =
+            ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
+        logW("$localUserId DH 棘轮步进完成 ${receivingNewDHSharedSecret.toHexString()}")
+        EncryptUtil.log("$localUserId 根密钥(旧):", lastRootKey)
+        val receivingDHRatchetResult = HKDF1().deriveSecrets(
+            receivingNewDHSharedSecret,
+            lastRootKey,
+            "DHInfo".encodeToByteArray(),
+            64
+        )
+        val receivingPair = EncryptUtil.splitArray64(receivingDHRatchetResult, 32)
+        val receivingNewRootKey = receivingPair.first
+        EncryptUtil.log("$localUserId 根密钥(新):", receivingNewRootKey)
+        val receivingNewChainKey = receivingPair.second
+        EncryptUtil.log("$localUserId 接收链初始化密钥:", receivingNewChainKey)
+        val receiverChainInit = ChainKey(HKDF1(), receivingNewChainKey, 0)
 
-        val needsDHStep = needDHStep(remoteDHKey, sessionRecord.remoteDHKey)
-
-        if (needsDHStep) {
-            cacheSkippedMessageKeysForDHStep(
-                localUserId, remoteUserId, sessionRecord,
-                N, PN
+        val skippedCount = N - 1
+        if (skippedCount > 0) {
+            logE("$localUserId 新接收链需要跳过 $skippedCount 个消息密钥 (索引 0 到 ${skippedCount - 1})")
+            cacheSkippedKeysForCurrentChain(
+                localUserId, remoteUserId,
+                receiverChainInit, skippedCount,
+                remoteDHKey.toBytes().toHexString()
             )
-            val localEphemeralPrivateKey =
-                sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
-            val localEphemeralPublicKey =
-                sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
-            logW("$localUserId DH 棘轮步进开始")
-            logD("$localUserId 对方发送链信息: N=$N, PN=$PN")
-            localEphemeralPublicKeyBytes = localEphemeralPublicKey.toBytes()
-            EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
-            EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
-            EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
-            val receivingNewDHSharedSecret =
-                ECCExchangeHelper.getSharedSecret(localEphemeralPrivateKey, remoteDHKey)
-            logW("$localUserId DH 棘轮步进完成 ${receivingNewDHSharedSecret.toHexString()}")
-            EncryptUtil.log("$localUserId 根密钥(旧):", lastRootKey)
-            val receivingDHRatchetResult = HKDF1().deriveSecrets(
-                receivingNewDHSharedSecret,
-                lastRootKey,
-                "DHInfo".encodeToByteArray(),
-                64
+        }
+        val receiverChain = receiverChainInit.getNextChainKey()
+        EncryptUtil.log("$localUserId 接收链密钥:", receiverChain.getKey())
+
+        val messageKeyBytes = receiverChain.getMessageKeys()
+        EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
+        val messageKey = MessageKey(
+            fromUserId = remoteUserId,
+            dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
+            messageKey = messageKeyBytes.toHexString()
+        )
+        sessionRecordDao.update(
+            sessionRecord.copy(
+                remoteDHKey = remoteDHKey.toBytes().toHexString(),
+                rootKey = receivingNewRootKey.toHexString(),
+                receivingChainKey = receiverChain.getKey().toHexString(),
+                receivingChainIndex = N,
+                updatedTime = TimePlatform.getCurrentTimeStamp()
             )
-            val receivingPair = EncryptUtil.splitArray64(receivingDHRatchetResult, 32)
-            val receivingNewRootKey = receivingPair.first
-            EncryptUtil.log("$localUserId 根密钥(新):", receivingNewRootKey)
-            val receivingNewChainKey = receivingPair.second
-            EncryptUtil.log("$localUserId 接收链初始化密钥:", receivingNewChainKey)
-            val receiverChainInit = ChainKey(HKDF1(), receivingNewChainKey, 0)
+        )
+        logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
+        // cleanupOldSkippedKeys(localUserId, remoteUserId)
 
-            val skippedCount = N - 1
-            if (skippedCount > 0) {
-                logD("$localUserId 新接收链需要跳过 $skippedCount 个消息密钥 (索引 0 到 ${skippedCount - 1})")
-                cacheSkippedKeysForCurrentChain(
-                    localUserId, remoteUserId,
-                    receiverChainInit, skippedCount,
-                    remoteDHKey.toBytes().toHexString()
-                )
-            }
-            val receiverChain = receiverChainInit.getNextChainKey()
-            EncryptUtil.log("$localUserId 接收链密钥:", receiverChain.getKey())
+        logW("$localUserId DH 棘轮步进开始")
+        val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
+        val newLocalEphemeralPrivateKey = localEphemeralKey.privateKey
+        val newLocalEphemeralPublicKey = localEphemeralKey.publicKey
+        localEphemeralPublicKeyBytes = newLocalEphemeralPublicKey.toBytes()
+        EncryptUtil.log("$localUserId 本地新公钥:", newLocalEphemeralPublicKey)
+        EncryptUtil.log("$localUserId DH 新私钥:", newLocalEphemeralPrivateKey)
+        EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+        val sendingNewDHSharedSecret =
+            ECCExchangeHelper.getSharedSecret(newLocalEphemeralPrivateKey, remoteDHKey)
+        logW("$localUserId DH 棘轮步进完成 ${sendingNewDHSharedSecret.toHexString()}")
 
-            val messageKeyBytes = receiverChain.getMessageKeys()
-            EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
-            val messageKey = MessageKey(
-                fromUserId = remoteUserId,
-                dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
-                messageKey = messageKeyBytes.toHexString()
+        EncryptUtil.log("$localUserId 根密钥(旧):", receivingNewRootKey)
+        val sendingDHRatchetResult = HKDF1().deriveSecrets(
+            sendingNewDHSharedSecret,
+            receivingNewRootKey,
+            "DHInfo".encodeToByteArray(),
+            64
+        )
+        val sendingPair = EncryptUtil.splitArray64(sendingDHRatchetResult, 32)
+        val sendingNewRootKey = sendingPair.first
+        EncryptUtil.log("$localUserId 根密钥(新):", sendingNewRootKey)
+        val sendingNewChainKey = sendingPair.second
+        EncryptUtil.log("$localUserId 发送链初始化密钥:", sendingNewChainKey)
+        val senderChain = ChainKey(HKDF1(), sendingNewChainKey, 0)
+        EncryptUtil.log("$localUserId 发送链密钥:", senderChain.getKey())
+        sessionRecordDao.update(
+            sessionRecord.copy(
+                remoteDHKey = remoteDHKey.toBytes().toHexString(),
+                rootKey = sendingNewRootKey.toHexString(),
+                receivingChainKey = receiverChain.getKey().toHexString(),
+                sendingChainKey = senderChain.getKey().toHexString(),
+                receivingChainIndex = 0, // 重置 receivingChainIndex
+                localEphemeralPrivateKey = newLocalEphemeralPrivateKey.toBytes().toHexString(),
+                localEphemeralPublicKey = newLocalEphemeralPublicKey.toBytes().toHexString(),
+                updatedTime = TimePlatform.getCurrentTimeStamp(),
+                PN = sessionRecord.N, // 更新 PN
+                N = 0,  // 重置N
             )
-            sessionRecordDao.update(
-                sessionRecord.copy(
-                    remoteDHKey = remoteDHKey.toBytes().toHexString(),
-                    rootKey = receivingNewRootKey.toHexString(),
-                    receivingChainKey = receiverChain.getKey().toHexString(),
-                    receivingChainIndex = N,
-                    updatedTime = TimePlatform.getCurrentTimeStamp()
-                )
-            )
-            logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
-            // cleanupOldSkippedKeys(localUserId, remoteUserId)
+        )
 
-            logW("$localUserId DH 棘轮步进开始")
-            val localEphemeralKey = ECCExchangeHelper.generateKeyPair()
-            val newLocalEphemeralPrivateKey = localEphemeralKey.privateKey
-            val newLocalEphemeralPublicKey = localEphemeralKey.publicKey
-            localEphemeralPublicKeyBytes = newLocalEphemeralPublicKey.toBytes()
-            EncryptUtil.log("$localUserId 本地新公钥:", newLocalEphemeralPublicKey)
-            EncryptUtil.log("$localUserId DH 新私钥:", newLocalEphemeralPrivateKey)
-            EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
-            val sendingNewDHSharedSecret =
-                ECCExchangeHelper.getSharedSecret(newLocalEphemeralPrivateKey, remoteDHKey)
-            logW("$localUserId DH 棘轮步进完成 ${sendingNewDHSharedSecret.toHexString()}")
+        return Result.success(messageKey)
+    }
 
-            EncryptUtil.log("$localUserId 根密钥(旧):", receivingNewRootKey)
-            val sendingDHRatchetResult = HKDF1().deriveSecrets(
-                sendingNewDHSharedSecret,
-                receivingNewRootKey,
-                "DHInfo".encodeToByteArray(),
-                64
-            )
-            val sendingPair = EncryptUtil.splitArray64(sendingDHRatchetResult, 32)
-            val sendingNewRootKey = sendingPair.first
-            EncryptUtil.log("$localUserId 根密钥(新):", sendingNewRootKey)
-            val sendingNewChainKey = sendingPair.second
-            EncryptUtil.log("$localUserId 发送链初始化密钥:", sendingNewChainKey)
-            val senderChain = ChainKey(HKDF1(), sendingNewChainKey, 0)
-            EncryptUtil.log("$localUserId 发送链密钥:", senderChain.getKey())
-            sessionRecordDao.update(
-                sessionRecord.copy(
-                    remoteDHKey = remoteDHKey.toBytes().toHexString(),
-                    rootKey = sendingNewRootKey.toHexString(),
-                    receivingChainKey = receiverChain.getKey().toHexString(),
-                    sendingChainKey = senderChain.getKey().toHexString(),
-                    receivingChainIndex = N,
-                    localEphemeralPrivateKey = newLocalEphemeralPrivateKey.toBytes().toHexString(),
-                    localEphemeralPublicKey = newLocalEphemeralPublicKey.toBytes().toHexString(),
-                    updatedTime = TimePlatform.getCurrentTimeStamp(),
-                    PN = sessionRecord.N, // todo 更新 PN ?
-                    N = 0,  // 重置N
-                )
-            )
+    private suspend fun handleInOrderMessage(
+        localUserId: Long,
+        remoteUserId: Long,
+        msgId: String,
+        sessionRecord: SessionRecordEntity,
+        remoteDHKey: XDH.PublicKey,
+        N: Long,
+        PN: Long,
+    ): Result<MessageKey> {
+        val lastRootKey = sessionRecord.rootKey.hexStrToBytes()
+        val localEphemeralPublicKeyBytes: ByteArray = sessionRecord.localEphemeralPublicKey.hexStrToBytes()
+        logW("$localUserId DH 棘轮无需步进")
+        val currentChainIndex = sessionRecord.receivingChainIndex + 1
+        val skippedCount = N - currentChainIndex
 
-            return Result.success(messageKey)
-        } else {
-            localEphemeralPublicKeyBytes = sessionRecord.localEphemeralPublicKey.hexStrToBytes()
-            logW("$localUserId DH 棘轮无需步进")
-            val currentChainIndex = sessionRecord.receivingChainIndex + 1
-            val skippedCount = N - currentChainIndex
-
-            if (skippedCount > 0) {
-                logV("$localUserId 当前接收链需要跳过 $skippedCount 个消息密钥 (索引 $currentChainIndex 到 ${N - 1})")
-                val currentChainKey = ChainKey(
-                    HKDF1(),
-                    sessionRecord.receivingChainKey.hexStrToBytes(),
-                    currentChainIndex
-                )
-                cacheSkippedKeysForCurrentChain(
-                    localUserId, remoteUserId,
-                    currentChainKey, skippedCount,
-                    sessionRecord.remoteDHKey
-                )
-            }
-
-            val localEphemeralPrivateKey =
-                sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
-            val localEphemeralPublicKey =
-                sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
-            EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
-            EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
-            EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
-            val newReceivingChainKey = ChainKey(
+        if (skippedCount > 0) {
+            logE("$localUserId 当前接收链需要跳过 $skippedCount 个消息密钥 (索引 $currentChainIndex 到 ${N - 1})")
+            val currentChainKey = ChainKey(
                 HKDF1(),
                 sessionRecord.receivingChainKey.hexStrToBytes(),
-                sessionRecord.receivingChainIndex
-            ).getNextChainKey()
-            EncryptUtil.log("$localUserId 接收链密钥:", newReceivingChainKey.getKey())
-            val messageKeyBytes = newReceivingChainKey.getMessageKeys()
-            EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
-            val messageKey = MessageKey(
-                fromUserId = remoteUserId,
-                dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
-                messageKey = messageKeyBytes.toHexString()
+                currentChainIndex
             )
-            logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
-            sessionRecordDao.update(
-                sessionRecord.copy(
-                    remoteDHKey = remoteDHKey.toBytes().toHexString(),
-                    receivingChainKey = newReceivingChainKey.getKey().toHexString(),
-                    receivingChainIndex = N,
-                    updatedTime = TimePlatform.getCurrentTimeStamp()
-                )
+            cacheSkippedKeysForCurrentChain(
+                localUserId, remoteUserId,
+                currentChainKey, skippedCount,
+                sessionRecord.remoteDHKey
             )
-            return Result.success(messageKey)
         }
+
+        val localEphemeralPrivateKey =
+            sessionRecord.localEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
+        val localEphemeralPublicKey =
+            sessionRecord.localEphemeralPublicKey.hexStrToBytes().toPublicKey()
+        EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
+        EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
+        EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
+        val newReceivingChainKey = ChainKey(
+            HKDF1(),
+            sessionRecord.receivingChainKey.hexStrToBytes(),
+            sessionRecord.receivingChainIndex
+        ).getNextChainKey()
+        EncryptUtil.log("$localUserId 接收链密钥:", newReceivingChainKey.getKey())
+        val messageKeyBytes = newReceivingChainKey.getMessageKeys()
+        EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
+        val messageKey = MessageKey(
+            fromUserId = remoteUserId,
+            dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
+            messageKey = messageKeyBytes.toHexString()
+        )
+        logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
+        sessionRecordDao.update(
+            sessionRecord.copy(
+                remoteDHKey = remoteDHKey.toBytes().toHexString(),
+                receivingChainKey = newReceivingChainKey.getKey().toHexString(),
+                receivingChainIndex = N,
+                updatedTime = TimePlatform.getCurrentTimeStamp()
+            )
+        )
+        return Result.success(messageKey)
     }
 
     private suspend fun cacheSkippedMessageKeysForDHStep(
@@ -286,7 +294,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val currentReceivingChainLength = sessionRecord.receivingChainIndex + 1
         val oldChainSkipCount = PN - currentReceivingChainLength
         if (oldChainSkipCount > 0) {
-            logD("$localUserId 旧接收链需要跳过 $oldChainSkipCount 个消息密钥")
+            logE("$localUserId 旧接收链需要跳过 $oldChainSkipCount 个消息密钥")
             val oldChainKey = ChainKey(
                 HKDF1(),
                 sessionRecord.receivingChainKey.hexStrToBytes(),
@@ -298,9 +306,8 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 sessionRecord.remoteDHKey
             )
         } else {
-            logD("$localUserId 旧接收链无需跳过消息 (PN=$PN, currentLength=$currentReceivingChainLength)")
+            logV("$localUserId 旧接收链无需跳过消息")
         }
-        logD("$localUserId 新接收链将跳过 $N 个消息密钥 (索引 0 到 ${N - 1})")
     }
 
     private suspend fun cacheSkippedKeysForCurrentChain(

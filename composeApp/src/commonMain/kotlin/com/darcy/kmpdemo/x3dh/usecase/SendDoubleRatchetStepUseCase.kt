@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.x3dh.usecase
 
 import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
@@ -44,7 +45,7 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val newN: Long = sessionRecord.N + 1
         val newPN: Long = sessionRecord.PN
         logW("$localUserId DH 棘轮无需步进:")
-        logD("$localUserId 发送链索引: N=$newN, PN=$newPN")
+        logV("$localUserId 发送链索引: N=$newN, PN=$newPN")
         val newSendingChainKey = ChainKey(
             HKDF1(),
             sessionRecord.sendingChainKey.hexStrToBytes(),

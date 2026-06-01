@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 10,
-    "identityHash": "6f9f8f7cabbeb3930e1bd4a05872928a",
+    "identityHash": "ebd2cdf22549a12a7a75dbf691cb90d3",
     "entities": [
       {
         "tableName": "UserEntity",
@@ -638,8 +638,8 @@
         ]
       },
       {
-        "tableName": "skipped_message_keys",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `targetId` INTEGER NOT NULL, `dhPublicKey` TEXT NOT NULL, `chainIndex` INTEGER NOT NULL, `messageKey` TEXT NOT NULL, `macKey` TEXT NOT NULL, `iv` TEXT NOT NULL, `createdTime` TEXT NOT NULL)",
+        "tableName": "SkippedMessageKeyEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `targetId` INTEGER NOT NULL, `msgId` TEXT NOT NULL, `dhPublicKey` TEXT NOT NULL, `chainIndex` INTEGER NOT NULL, `messageKey` TEXT NOT NULL, `macKey` TEXT NOT NULL, `iv` TEXT NOT NULL, `createdTime` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -657,6 +657,12 @@
             "fieldPath": "targetId",
             "columnName": "targetId",
             "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "msgId",
+            "columnName": "msgId",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -704,7 +710,7 @@
         },
         "indices": [
           {
-            "name": "index_skipped_message_keys_userId_targetId_dhPublicKey_chainIndex",
+            "name": "index_SkippedMessageKeyEntity_userId_targetId_dhPublicKey_chainIndex",
             "unique": true,
             "columnNames": [
               "userId",
@@ -713,14 +719,14 @@
               "chainIndex"
             ],
             "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_skipped_message_keys_userId_targetId_dhPublicKey_chainIndex` ON `${TABLE_NAME}` (`userId`, `targetId`, `dhPublicKey`, `chainIndex`)"
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_SkippedMessageKeyEntity_userId_targetId_dhPublicKey_chainIndex` ON `${TABLE_NAME}` (`userId`, `targetId`, `dhPublicKey`, `chainIndex`)"
           }
         ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6f9f8f7cabbeb3930e1bd4a05872928a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ebd2cdf22549a12a7a75dbf691cb90d3')"
     ]
   }
 }

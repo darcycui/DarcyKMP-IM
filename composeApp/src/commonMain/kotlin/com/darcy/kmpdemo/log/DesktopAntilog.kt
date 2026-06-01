@@ -11,7 +11,7 @@ class DesktopAntilog : Antilog() {
     private val ANSI_GREEN = "\u001B[32m"     // INFO
     private val ANSI_YELLOW = "\u001B[33m"    // WARN
     private val ANSI_RED = "\u001B[31m"       // ERROR
-    private val ANSI_CYAN = "\u001B[36m"      // VERBOSE
+    private val ANSI_WHITE = "\u001B[38;5;250m"      // VERBOSE
 
     override fun performLog(
         priority: LogLevel,
@@ -22,7 +22,7 @@ class DesktopAntilog : Antilog() {
         val timestamp = TimePlatform.getCurrentTimeStamp()
 
         val color = when (priority) {
-            LogLevel.VERBOSE -> ANSI_CYAN
+            LogLevel.VERBOSE -> ANSI_WHITE
             LogLevel.DEBUG -> ANSI_BLUE
             LogLevel.INFO -> ANSI_GREEN
             LogLevel.WARNING -> ANSI_YELLOW

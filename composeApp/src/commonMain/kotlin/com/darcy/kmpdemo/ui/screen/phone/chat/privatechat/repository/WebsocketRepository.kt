@@ -148,7 +148,7 @@ object WebsocketRepository : IRepository {
                 SEND_PRIVATE,
                 headers
             )
-            logW("$TAG sendMessage:创建数据库已读状态(未读) 用于双棘轮")
+            logW("$TAG sendMessage:创建数据库已读状态(未读)")
             createMessageReadStatusUseCase.invoke(
                 mapOf("stompMessage" to JsonHelper.toJson(message)), Unit
             ).onSuccess {
@@ -246,7 +246,7 @@ object WebsocketRepository : IRepository {
         }
         val msgIds = messageReadStatusResponse.msgIds
         scope.launch {
-            logW("$TAG onMessageReadStatus:更新数据库已读状态(已读) 用于双棘轮")
+            logW("$TAG onMessageReadStatus:更新数据库已读状态(已读)")
             markMessageReadStatusUseCase.invoke(
                 mapOf("messageReadStatusResponse" to body), Unit
             ).onSuccess {

@@ -16,7 +16,7 @@ interface SkippedMessageKeyDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(itemList: List<SkippedMessageKeyEntity>)
 
-    @Query("SELECT * FROM skipped_message_keys WHERE userId=:userId AND targetId=:targetId AND dhPublicKey=:dhPublicKey AND chainIndex=:chainIndex LIMIT 1")
+    @Query("SELECT * FROM SkippedMessageKeyEntity WHERE userId=:userId AND targetId=:targetId AND dhPublicKey=:dhPublicKey AND chainIndex=:chainIndex LIMIT 1")
     suspend fun findByIndexAndDHKey(
         userId: Long,
         targetId: Long,
@@ -24,7 +24,7 @@ interface SkippedMessageKeyDao {
         dhPublicKey: String
     ): SkippedMessageKeyEntity?
 
-    @Query("SELECT * FROM skipped_message_keys WHERE userId=:userId AND targetId=:targetId ORDER BY chainIndex ASC")
+    @Query("SELECT * FROM SkippedMessageKeyEntity WHERE userId=:userId AND targetId=:targetId ORDER BY chainIndex ASC")
     suspend fun queryByUserIdAndTargetId(
         userId: Long,
         targetId: Long
@@ -33,7 +33,7 @@ interface SkippedMessageKeyDao {
     @Delete
     suspend fun delete(item: SkippedMessageKeyEntity): Int
 
-    @Query("DELETE FROM skipped_message_keys WHERE userId=:userId AND targetId=:targetId AND dhPublicKey=:dhPublicKey AND chainIndex=:chainIndex")
+    @Query("DELETE FROM SkippedMessageKeyEntity WHERE userId=:userId AND targetId=:targetId AND dhPublicKey=:dhPublicKey AND chainIndex=:chainIndex")
     suspend fun deleteByKey(
         userId: Long,
         targetId: Long,
@@ -41,12 +41,12 @@ interface SkippedMessageKeyDao {
         chainIndex: Long
     ): Int
 
-    @Query("DELETE FROM skipped_message_keys WHERE userId=:userId AND targetId=:targetId AND chainIndex < :threshold")
+    @Query("DELETE FROM SkippedMessageKeyEntity WHERE userId=:userId AND targetId=:targetId AND chainIndex < :threshold")
     suspend fun deleteOlderThan(userId: Long, targetId: Long, threshold: Long): Int
 
-    @Query("SELECT COUNT(*) FROM skipped_message_keys WHERE userId=:userId AND targetId=:targetId")
+    @Query("SELECT COUNT(*) FROM SkippedMessageKeyEntity WHERE userId=:userId AND targetId=:targetId")
     suspend fun countByUserIdAndTargetId(userId: Long, targetId: Long): Int
 
-    @Query("DELETE FROM skipped_message_keys WHERE userId=:userId AND targetId=:targetId")
+    @Query("DELETE FROM SkippedMessageKeyEntity WHERE userId=:userId AND targetId=:targetId")
     suspend fun clearByUserIdAndTargetId(userId: Long, targetId: Long): Int
 }
