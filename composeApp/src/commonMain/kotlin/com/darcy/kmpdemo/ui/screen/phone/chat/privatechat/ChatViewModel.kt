@@ -161,6 +161,7 @@ class ChatViewModel(
                 messageKeyLocal.toMap()
             )
             dispatch(ChatIntent.RefreshBySendMessage(message))
+            // 发送消息 滚动到底部
             sendEvent(ChatEvent.ScrollToBottom(messageTotalCount - 1))
         }
     }
@@ -182,6 +183,8 @@ class ChatViewModel(
             websocketRepository.messageFlow.collect { message ->
                 logV("websocket 接收到消息: $message")
                 dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
+                // 收到消息 滚动到底部
+                sendEvent(ChatEvent.ScrollToBottom(messageTotalCount - 1))
             }
         }
         io {
@@ -189,7 +192,6 @@ class ChatViewModel(
                 logE("接收到已读消息: ${response.msgIds}")
                 dispatch(ChatIntent.RefreshByReceiveMessageReadStatus(response))
             }
-
         }
     }
 
