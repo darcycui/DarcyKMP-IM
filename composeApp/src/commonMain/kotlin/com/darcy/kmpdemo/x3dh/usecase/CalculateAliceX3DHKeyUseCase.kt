@@ -49,7 +49,7 @@ class CalculateAliceX3DHKeyUseCase : IUseCase<Unit, Pair<ByteArray, XDH.KeyPair>
         val sharedSecret = EncryptUtil.appendArrays(dh1, dh2, dh3, dh4)
         val x3DHKey =
             HKDF1().deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
-        EncryptUtil.log("$aliceUserId x3DHKey", x3DHKey)
+        EncryptUtil.logI("$aliceUserId x3DHKey", x3DHKey)
         return Result.success(Pair(x3DHKey, aliceEphemeralKey))
     }
 }

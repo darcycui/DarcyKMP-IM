@@ -5,7 +5,7 @@ object Hosts {
     const val DOMAIN_IP_2 = "192.168.0.106:7443"
     const val DOMAIN_IP_3 = "192.168.0.103:7443"
     const val DOMAIN_HOST = "www.darcycui.com.cn"
-//    const val DOMAIN = DOMAIN_IP
+    const val DOMAIN = DOMAIN_IP
 //    const val DOMAIN = DOMAIN_IP_2
-    const val DOMAIN = DOMAIN_IP_3
+//    const val DOMAIN = DOMAIN_IP_3
 }

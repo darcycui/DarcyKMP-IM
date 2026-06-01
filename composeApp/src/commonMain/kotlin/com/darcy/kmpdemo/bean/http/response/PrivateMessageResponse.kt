@@ -61,7 +61,7 @@ data class PrivateMessageResponse(
     val isRead: Boolean = false,
     val isRecalled: Boolean = false,
     val dhPublicKey: String = "",
-    @SerialName("NKey")
+    @SerialName("nKey")
     val nKey: Long = 0L,
     val pnKey: Long = 0L
 )
