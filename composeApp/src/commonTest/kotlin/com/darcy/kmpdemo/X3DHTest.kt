@@ -46,7 +46,7 @@ class X3DHTest {
         val dh3 = ECCExchangeHelper.getSharedSecret(aliceEphemeralPrivate, bobSignedPreKeyPublic)
         val dh4 = ECCExchangeHelper.getSharedSecret(aliceEphemeralPrivate, bobOneTimePreKeyPublic)
         val sharedSecret = EncryptUtil.appendArrays(dh1, dh2, dh3, dh4)
-        return HKDF1.deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
+        return HKDF1().deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
     }
 
     val aliceIdentityPublicKey =
@@ -74,7 +74,7 @@ class X3DHTest {
         val dh3 = ECCExchangeHelper.getSharedSecret(bobSignedPreKeyPrivate, aliceEphemeralPublic)
         val dh4 = ECCExchangeHelper.getSharedSecret(bobOneTimePreKeyPrivate, aliceEphemeralPublic)
         val sharedSecret = EncryptUtil.appendArrays(dh1, dh2, dh3, dh4)
-        return HKDF1.deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
+        return HKDF1().deriveSecrets(sharedSecret, ByteArray(32), "Info".encodeToByteArray(), 64)
 
     }
 }
