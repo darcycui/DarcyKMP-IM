@@ -2,6 +2,8 @@ package com.darcy.kmpdemo.crypto.transport
 
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
+import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
+import com.darcy.kmpdemo.utils.hexStrToBytes
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.ChaCha20Poly1305
@@ -21,8 +23,8 @@ object TransportCipher {
     @OptIn(DelicateCryptographyApi::class)
     suspend fun encrypt(
         content: ByteArray,
-        key: ByteArray,
-        nonce: ByteArray,
+        key: ByteArray = TransportGlobalStorage.getServerDhKey().hexStrToBytes(),
+        nonce: ByteArray = RandomHelper.secureRandomIV(12),
         aad: ByteArray
     ): ByteArray {
         return runCatching {
@@ -33,7 +35,7 @@ object TransportCipher {
                 )
             val cipher = newKey.cipher()
             val data = cipher.encryptWithIv(nonce, content, aad ?: byteArrayOf())
-            data
+            nonce + data
         }.onFailure {
             logE("$TAG 加密失败: ${it::class.simpleName} ${it.message}")
         }.getOrElse { byteArrayOf() }

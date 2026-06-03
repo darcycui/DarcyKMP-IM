@@ -32,7 +32,9 @@ class AcceptFriendRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
     fun acceptFriend(
         friendRequestId: Long,
@@ -55,7 +57,9 @@ class AcceptFriendRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
 }

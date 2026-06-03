@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.darcy.kmpdemo.bean.ui.HistogramBean
 import com.darcy.kmpdemo.bean.ui.PieChartBean
-import com.darcy.kmpdemo.repository.ChartsRepository
+import com.darcy.kmpdemo.ui.screen.learn.repository.ChartsRepository
 
 @Preview (
     showBackground = true,

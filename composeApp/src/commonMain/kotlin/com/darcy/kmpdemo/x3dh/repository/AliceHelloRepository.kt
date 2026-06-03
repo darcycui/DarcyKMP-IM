@@ -3,7 +3,6 @@ package com.darcy.kmpdemo.x3dh.repository
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.response.X3DHAliceHelloPullResponse
 import com.darcy.kmpdemo.bean.http.response.X3DHAliceHelloPushResponse
-import com.darcy.kmpdemo.bean.http.response.X3DHKeysPushResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
@@ -42,7 +41,9 @@ class AliceHelloRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun pullAliceHello(
@@ -68,6 +69,8 @@ class AliceHelloRepository : IRepository {
             errors = {
                 logD("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 }

@@ -1,6 +1,5 @@
 package com.darcy.kmpdemo.ui.screen.phone.friends.reducer
 
-import com.darcy.kmpdemo.bean.http.response.FriendsResponse
 import com.darcy.kmpdemo.bean.http.response.FriendshipResponse
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.combined.ScreenStateFetchPagingTipsCombinedReducer

@@ -7,7 +7,6 @@ import com.darcy.kmpdemo.ui.base.impl.screenstatus.ScreenState
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsState
 
 data class LoginState(
-    val items: List<UserItemBean> = emptyList(),
     val screenState: ScreenState = ScreenState.Initial,
     val pagingState: PagingState = PagingState(),
     val tipsState: TipsState = TipsState(),

@@ -1,4 +1,4 @@
-package com.darcy.kmpdemo.repository
+package com.darcy.kmpdemo.ui.screen.learn.repository
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
@@ -9,6 +9,7 @@ import com.darcy.kmpdemo.bean.ui.HistogramBean
 import com.darcy.kmpdemo.bean.ui.HistogramInfo
 import com.darcy.kmpdemo.bean.ui.HistogramItemBean
 import com.darcy.kmpdemo.bean.ui.PieChartBean
+import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.ui.colors.AppColors
 
 class ChartsRepository : IRepository {

@@ -45,6 +45,8 @@ class RegisterRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 }

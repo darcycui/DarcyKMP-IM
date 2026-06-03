@@ -5,28 +5,28 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.ui.LoginBean
-import com.darcy.kmpdemo.bean.http.response.UsersResponse
-import com.darcy.kmpdemo.bean.ui.UserItemBean
+import com.darcy.kmpdemo.crypto.repository.DHExchangeRepository
 import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.storage.database.tables.UserEntity
+import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
+import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
-import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
-import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.screen.phone.login.event.LoginEvent
 import com.darcy.kmpdemo.ui.screen.phone.login.intent.LoginIntent
 import com.darcy.kmpdemo.ui.screen.phone.login.reducer.LoginReducer
 import com.darcy.kmpdemo.ui.screen.phone.login.repository.LoginRepository
 import com.darcy.kmpdemo.ui.screen.phone.login.state.LoginState
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.confirm
-import org.jetbrains.compose.resources.getString
+import com.darcy.kmpdemo.utils.hexStrToBytes
+import com.darcy.kmpdemo.utils.toBytes
+import com.darcy.kmpdemo.utils.toPublicKey
+import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
 import kotlin.reflect.KClass
 
 class LoginViewModel(
     private val loginRepository: LoginRepository = LoginRepository(),
+    private val dhExchangeRepository: DHExchangeRepository = DHExchangeRepository(),
 ) : BaseViewModel<LoginState>() {
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -75,11 +75,36 @@ class LoginViewModel(
                 onSuccess = {
                     io {
                         IMGlobalStorage.setCurrentUser(it)
-                        sendEvent(LoginEvent.LoginSuccessEvent)
+                        // 获取 Server DH公钥
+                        actionExchangeDHPublicKey(it.id)
                     }
                 },
                 onError = {
                     logE("登录失败：$it")
+                    main { dispatch(it.toTipsIntent()) }
+                })
+        }
+    }
+
+    private fun actionExchangeDHPublicKey(userId: Long) {
+        io {
+            val ephemeralKey = ECCExchangeHelper.generateKeyPair()
+            dhExchangeRepository.getServerDHPublicKey(
+                userId = userId,
+                publicKey = ephemeralKey.publicKey.toBytes().toHexString(),
+                onSuccess = {
+                    logI("获取 Server DH公钥成功：$it")
+                    val sharedSecret = ECCExchangeHelper.getSharedSecret(
+                        ephemeralKey.privateKey, it.publicKey.hexStrToBytes().toPublicKey()
+                    ).toHexString()
+                    io {
+                        // 保存到内存存储
+                        TransportGlobalStorage.setServerDhKey(sharedSecret)
+                        sendEvent(LoginEvent.LoginSuccessEvent)
+                    }
+                },
+                onError = {
+                    logE("获取 Server DH公钥失败：$it")
                     main { dispatch(it.toTipsIntent()) }
                 })
         }

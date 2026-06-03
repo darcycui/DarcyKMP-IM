@@ -8,7 +8,6 @@ import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
 import com.darcy.kmpdemo.network.http.urls.Darcy.PULL_X3DH_KEYS_URL
 import com.darcy.kmpdemo.network.http.urls.Darcy.PUSH_X3DH_KEYS_URL
-import com.darcy.kmpdemo.network.http.urls.Darcy.REGISTER_URL
 import com.darcy.kmpdemo.repository.IRepository
 import kotlinx.serialization.serializer
 
@@ -40,7 +39,9 @@ class X3DHRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun pullX3DHBobKeys(
@@ -66,6 +67,8 @@ class X3DHRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 }

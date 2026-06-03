@@ -1,6 +1,6 @@
 package com.darcy.kmpdemo.ui.screen.phone.login.reducer
 
-import com.darcy.kmpdemo.bean.http.response.UsersResponse
+import com.darcy.kmpdemo.bean.http.response.UserResponse
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.combined.ScreenStateFetchPagingTipsCombinedReducer
 import com.darcy.kmpdemo.ui.base.impl.screenstatus.ScreenState
@@ -8,7 +8,7 @@ import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.screen.phone.login.state.LoginState
 
 class LoginReducer :
-    ScreenStateFetchPagingTipsCombinedReducer<LoginState, UsersResponse>() {
+    ScreenStateFetchPagingTipsCombinedReducer<LoginState, UserResponse>() {
     override fun onReduce(
         intent: IIntent,
         state: LoginState
@@ -25,21 +25,17 @@ class LoginReducer :
 
     override fun onFetch(
         state: LoginState,
-        result: UsersResponse
+        result: UserResponse
     ): LoginState {
-        return state.copy(
-            items = result.items
-        )
+        return state
     }
 
     override fun onPaging(
         state: LoginState,
         pageNumber: Int,
-        response: UsersResponse
+        response: UserResponse
     ): LoginState {
-        return state.copy(
-            items = state.items + response.items
-        )
+        return state
     }
 
     override fun onShowTips(

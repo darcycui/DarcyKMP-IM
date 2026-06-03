@@ -18,8 +18,8 @@ object HttpManager : IHttp {
         successList: (BaseResult<List<T>>) -> Unit,
         errors: (ErrorResponse) -> Unit
     ) {
-        iHttp.doGetRequest(serializer, url, params, needRetry, needCache, success, successList,
-            errors
+        iHttp.doGetRequest(
+            serializer, url, params, needRetry, needCache, success, successList, errors
         )
     }
 
@@ -31,10 +31,11 @@ object HttpManager : IHttp {
         needCache: Boolean,
         success: (BaseResult<T>) -> Unit,
         successList: (BaseResult<List<T>>) -> Unit,
-        errors: (ErrorResponse) -> Unit
+        errors: (ErrorResponse) -> Unit,
+        encrypt: Boolean
     ) {
-        iHttp.doPostRequest(serializer, url, params, needRetry, needCache, success, successList,
-            errors
+        iHttp.doPostRequest(
+            serializer, url, params, needRetry, needCache, success, successList, errors, encrypt
         )
     }
 }

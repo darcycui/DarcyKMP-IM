@@ -24,7 +24,9 @@ class TransportCipherTest {
             val encrypted = TransportCipher.encrypt(message, key, nonce, aad)
             println("encrypted: ${encrypted.toHexString()}")
 
-            val decrypted = TransportCipher.decrypt(encrypted, key, nonce, aad)
+            val nonceD = encrypted.copyOfRange(0, 12)
+            val cipherText = encrypted.copyOfRange(12, encrypted.size)
+            val decrypted = TransportCipher.decrypt(cipherText, key, nonceD, aad)
             println("decrypted: ${decrypted.toHexString()}")
 
             assertContentEquals(message, decrypted, "ChaCha20-Poly1305 加密解密失败")

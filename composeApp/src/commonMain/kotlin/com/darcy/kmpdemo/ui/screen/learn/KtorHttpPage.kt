@@ -125,7 +125,9 @@ private fun doPost(scope: CoroutineScope, content: MutableState<String>) {
         errors = {
             logD("error: it=$it")
             updateText(scope, content, "${it.status} ${it.message}")
-        })
+        },
+        false
+    )
 }
 
 private fun updateText(scope: CoroutineScope, content: MutableState<String>, text: String) {

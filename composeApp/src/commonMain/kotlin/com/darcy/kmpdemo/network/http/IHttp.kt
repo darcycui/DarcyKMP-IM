@@ -24,6 +24,7 @@ interface IHttp {
         needCache: Boolean,
         success: (BaseResult<T>) -> Unit,
         successList: (BaseResult<List<T>>) -> Unit,
-        errors: (ErrorResponse) -> Unit
+        errors: (ErrorResponse) -> Unit,
+        encrypt: Boolean = false,
     )
 }

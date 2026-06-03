@@ -33,7 +33,9 @@ class ConversationRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
 
@@ -62,7 +64,9 @@ class ConversationRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
 }

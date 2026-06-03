@@ -10,9 +10,4 @@ sealed class LoginIntent : IIntent {
     ) : LoginIntent()
 
     data object ActionGoRegister : LoginIntent()
-
-    data class ActionAddUser(val userEntity: UserEntity) : LoginIntent()
-    data class ActionDeleteUser(val userId: Long) : LoginIntent()
-    data class ActionUpdateUser(val userId: Long, val name: String) : LoginIntent()
-    data object ActionQueryUserList : LoginIntent()
 }

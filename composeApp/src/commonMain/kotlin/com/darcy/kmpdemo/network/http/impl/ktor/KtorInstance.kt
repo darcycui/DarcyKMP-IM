@@ -77,6 +77,8 @@ val ktorClient: HttpClient
         }
         // 添加自定义 header
         install(CustomHeaderPlugin)
+        // 添加自定义 加密拦截器
+        install(EncryptFormBodyPlugin)
         // SSL证书配置
         engine {
             dispatcher = Dispatchers.Default

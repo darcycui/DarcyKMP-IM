@@ -42,7 +42,9 @@ class ChatRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun receiverPullOfflineMessageHttp(
@@ -75,7 +77,8 @@ class ChatRepository : IRepository {
             successList = {},
             errors = {
                 onError(it)
-            }
+            },
+            encrypt = false
         )
     }
 
@@ -114,7 +117,9 @@ class ChatRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun senderSyncMessageReadStatusHttp(
@@ -145,7 +150,8 @@ class ChatRepository : IRepository {
                 onSuccess(it.result)
             },
             successList = {},
-            errors = onError
+            errors = onError,
+            encrypt = false
         )
     }
 }

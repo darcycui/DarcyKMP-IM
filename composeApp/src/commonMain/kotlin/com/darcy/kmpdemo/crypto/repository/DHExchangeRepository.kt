@@ -1,30 +1,30 @@
-package com.darcy.kmpdemo.ui.screen.phone.login.repository
+package com.darcy.kmpdemo.crypto.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
-import com.darcy.kmpdemo.bean.http.response.LoginResponse
+import com.darcy.kmpdemo.bean.http.response.DHExchangeResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
-import com.darcy.kmpdemo.network.http.urls.Darcy.LOGIN_URL
+import com.darcy.kmpdemo.network.http.urls.Darcy.EXCHANGE_SERVER_DH_URL
 import com.darcy.kmpdemo.repository.IRepository
 import kotlinx.serialization.serializer
 
-class LoginRepository : IRepository {
-    suspend fun login(
-        username: String,
-        password: String,
-        onSuccess: (LoginResponse) -> Unit,
+class DHExchangeRepository: IRepository {
+    fun getServerDHPublicKey(
+        userId: Long,
+        publicKey: String,
+        onSuccess: (DHExchangeResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
-    ): Unit {
+    ) {
         HttpManager.doPostRequest(
-            serializer<LoginResponse>(),
-            LOGIN_URL,
+            serializer<DHExchangeResponse>(),
+            EXCHANGE_SERVER_DH_URL,
             mapOf(
-                "phone" to username,
-                "password" to password
+                "userId" to userId.toString(),
+                "publicKey" to publicKey,
             ),
-            needRetry = true,
-            needCache = true,
+            needRetry = false,
+            needCache = false,
             success = {
                 logD("success: itClazz=${it.result::class}")
                 onSuccess(it.result)
@@ -36,6 +36,6 @@ class LoginRepository : IRepository {
             },
             false
         )
-    }
 
+    }
 }

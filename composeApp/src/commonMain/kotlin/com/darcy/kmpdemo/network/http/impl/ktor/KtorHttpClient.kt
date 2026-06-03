@@ -59,7 +59,7 @@ class KtorHttpClient : IHttp {
                 jsonParser.toBean(json, serializer, success, successList, errors)
             }.onFailure {
                 it.printStackTrace()
-                errors.invoke(ErrorResponse.create(message = it.message ?: "请求失败"))
+                errors.invoke(ErrorResponse.create(message = it.message ?: "请求失败$url"))
                 // 触发协程的 exceptionHandler
                 // error("请求失败:${it.message}")
             }
@@ -74,7 +74,8 @@ class KtorHttpClient : IHttp {
         needCache: Boolean,
         success: (BaseResult<T>) -> Unit,
         successList: (BaseResult<List<T>>) -> Unit,
-        errors: (ErrorResponse) -> Unit
+        errors: (ErrorResponse) -> Unit,
+        encrypt: Boolean
     ) {
         scope.launch {
             runCatching {
@@ -87,7 +88,7 @@ class KtorHttpClient : IHttp {
                 jsonParser.toBean(json, serializer, success, successList, errors)
             }.onFailure {
                 it.printStackTrace()
-                errors.invoke(ErrorResponse.create(message = it.message ?: "请求失败"))
+                errors.invoke(ErrorResponse.create(message = it.message ?: "请求失败:$url"))
                 // 触发协程的 exceptionHandler
                 // error("请求失败:${it.message}")
             }

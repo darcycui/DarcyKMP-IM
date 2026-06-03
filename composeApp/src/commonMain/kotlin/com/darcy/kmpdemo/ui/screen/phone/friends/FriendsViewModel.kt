@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
-import com.darcy.kmpdemo.bean.http.response.FriendsResponse
 import com.darcy.kmpdemo.bean.http.response.FriendshipResponse
 import com.darcy.kmpdemo.bean.ui.FriendsItemBean
 import com.darcy.kmpdemo.exception.BaseException

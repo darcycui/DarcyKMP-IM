@@ -9,7 +9,6 @@ import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.network.http.HttpManager
 import com.darcy.kmpdemo.network.http.urls.Darcy.APPLY_FRIEND_URL
 import com.darcy.kmpdemo.network.http.urls.Darcy.QUERY_FRIEND_FROM_URL
-import com.darcy.kmpdemo.network.http.urls.Darcy.QUERY_FRIEND_TO_URL
 import com.darcy.kmpdemo.network.http.urls.Darcy.SEARCH_FRIEND_URL
 import com.darcy.kmpdemo.repository.IRepository
 import kotlinx.serialization.serializer
@@ -36,7 +35,9 @@ class ApplyFriendRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun applyFriend(
@@ -61,7 +62,9 @@ class ApplyFriendRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun fetchFriendApplys(
@@ -85,7 +88,9 @@ class ApplyFriendRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
 }

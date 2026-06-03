@@ -33,7 +33,9 @@ class FriendsRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            })
+            },
+            false
+        )
     }
 
     fun deleteFriend(
@@ -59,7 +61,8 @@ class FriendsRepository : IRepository {
             errors = {
                 logE("error: it=$it")
                 onError(it)
-            }
+            },
+            false
         )
     }
 }

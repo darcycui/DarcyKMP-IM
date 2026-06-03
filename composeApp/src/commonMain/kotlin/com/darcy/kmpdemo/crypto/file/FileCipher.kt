@@ -80,10 +80,8 @@ object FileCipher {
             val aesCtr = provider.get(AES.CTR)
             val newKey = aesCtr.keyDecoder().decodeFromByteArray(AES.Key.Format.RAW, key)
             val cipher = newKey.cipher()
-
             // 使用流式 API：创建加密 Sink，将明文源转换为密文写入目标
             val encryptedSink = cipher.encryptingSinkWithIv(iv, sink)
-
             // 从源读取数据并通过加密 Sink 写入
             source.buffered().use { src ->
                 encryptedSink.buffered().use { encSink ->
@@ -101,7 +99,7 @@ object FileCipher {
             }
             true
         }.onFailure {
-            logE("$TAG 解密失败: ${it::class.simpleName} ${it.message}")
+            logE("$TAG 加密失败: ${it::class.simpleName} ${it.message}")
             it.printStackTrace()
         }
     }
@@ -124,10 +122,8 @@ object FileCipher {
             val aesCtr = provider.get(AES.CTR)
             val newKey = aesCtr.keyDecoder().decodeFromByteArray(AES.Key.Format.RAW, key)
             val cipher = newKey.cipher()
-
             // 使用流式 API：创建解密 Sink，将密文源转换为明文写入目标
             val decryptedSink = cipher.decryptingSinkWithIv(iv, sink)
-
             // 从源读取数据并通过解密 Sink 写入
             source.buffered().use { src ->
                 val buffer = ByteArray(BUFFER_SIZE)
