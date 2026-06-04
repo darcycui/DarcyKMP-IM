@@ -16,10 +16,23 @@ interface IHttp {
         errors: (ErrorResponse) -> Unit
     )
 
-    fun <T> doPostRequest(
+    fun <T> doPostFormRequest(
         serializer: KSerializer<T>,
         url: String,
         params: Map<String, String> = mapOf(),
+        needRetry: Boolean,
+        needCache: Boolean,
+        success: (BaseResult<T>) -> Unit,
+        successList: (BaseResult<List<T>>) -> Unit,
+        errors: (ErrorResponse) -> Unit,
+        encrypt: Boolean = false,
+    )
+
+    fun <R, T> doPostJsonRequest(
+        serializerR: KSerializer<R>,
+        serializerT: KSerializer<T>,
+        url: String,
+        params: R,
         needRetry: Boolean,
         needCache: Boolean,
         success: (BaseResult<T>) -> Unit,

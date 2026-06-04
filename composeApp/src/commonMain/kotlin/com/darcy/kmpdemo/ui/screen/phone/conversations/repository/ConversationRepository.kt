@@ -17,7 +17,7 @@ class ConversationRepository : IRepository {
         onSuccessList: (List<ConversationResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<ConversationResponse>(),
             QUERY_CONVERSATION_LIST_URL,
             mapOf(
@@ -46,7 +46,7 @@ class ConversationRepository : IRepository {
         onSuccess: (ConversationResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<ConversationResponse>(),
             CREATE_CONVERSATION_URL,
             mapOf(

@@ -21,7 +21,7 @@ class AliceHelloRepository : IRepository {
         onSuccess: (X3DHAliceHelloPushResponse) -> Unit,
         onError: (ErrorResponse) -> Unit,
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<X3DHAliceHelloPushResponse>(),
             PUSH_ALICE_HELLO_MESSAGE_URL,
             mapOf(
@@ -52,7 +52,7 @@ class AliceHelloRepository : IRepository {
         onSuccess: (X3DHAliceHelloPullResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<X3DHAliceHelloPullResponse>(),
             PULL_ALICE_HELLO_MESSAGE_URL,
             mapOf(

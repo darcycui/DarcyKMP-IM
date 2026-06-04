@@ -20,7 +20,7 @@ class X3DHRepository : IRepository {
         onSuccess: (X3DHKeysPushResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<X3DHKeysPushResponse>(),
             PUSH_X3DH_KEYS_URL,
             mapOf(
@@ -50,7 +50,7 @@ class X3DHRepository : IRepository {
         onSuccess: (X3DHKeysPullResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<X3DHKeysPullResponse>(),
             PULL_X3DH_KEYS_URL,
             mapOf(

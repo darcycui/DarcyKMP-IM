@@ -16,7 +16,7 @@ class AcceptFriendRepository : IRepository {
         onSuccessList: (List<ApplyFriendResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<ApplyFriendResponse>(),
             QUERY_FRIEND_TO_URL,
             mapOf(
@@ -41,7 +41,7 @@ class AcceptFriendRepository : IRepository {
         onSuccess: (ApplyFriendResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<ApplyFriendResponse>(),
             ACCEPT_FRIEND_URL,
             mapOf(

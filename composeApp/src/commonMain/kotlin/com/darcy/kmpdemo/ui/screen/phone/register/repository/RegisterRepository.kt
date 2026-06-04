@@ -16,7 +16,7 @@ class RegisterRepository : IRepository {
         onSuccess: (LoginResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<LoginResponse>(),
             REGISTER_URL,
             mapOf(

@@ -108,7 +108,7 @@ private fun doGetDarcy(scope: CoroutineScope, content: MutableState<String>) {
 }
 
 private fun doPost(scope: CoroutineScope, content: MutableState<String>) {
-    HttpManager.doPostRequest(
+    HttpManager.doPostFormRequest(
         serializer<JuHeIPResponse>(),
         IP_URL,
         mapOf(

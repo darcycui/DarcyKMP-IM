@@ -12,4 +12,4 @@ data class MessageReadStatusRequest(
     val conversationType: Int = 1,
     val clientType: String = "",
     val deviceId: String = ""
-)
+) : IRequestDTO

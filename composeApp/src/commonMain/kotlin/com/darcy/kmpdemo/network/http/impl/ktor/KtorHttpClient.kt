@@ -5,6 +5,7 @@ import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.network.http.IHttp
 import com.darcy.kmpdemo.network.http.parser.impl.HttpJsonParserImpl
+import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.utils.toFormDataContent
 import com.darcy.kmpdemo.utils.toUrlEncodedString
 import io.ktor.client.request.get
@@ -66,7 +67,7 @@ class KtorHttpClient : IHttp {
         }
     }
 
-    override fun <T> doPostRequest(
+    override fun <T> doPostFormRequest(
         serializer: KSerializer<T>,
         url: String,
         params: Map<String, String>,
@@ -81,7 +82,7 @@ class KtorHttpClient : IHttp {
             runCatching {
                 val formDataContent = params.toFormDataContent()
                 val json = ktorClient.post(url) {
-                    this.header("User-Agent", "KMP Client by Ktor Post")
+                    this.header("User-Agent", "KMP Client by Ktor Post Form")
                     contentType(ContentType.Application.FormUrlEncoded)
                     setBody(formDataContent)
                 }.bodyAsText()
@@ -91,6 +92,33 @@ class KtorHttpClient : IHttp {
                 errors.invoke(ErrorResponse.create(message = it.message ?: "请求失败:$url"))
                 // 触发协程的 exceptionHandler
                 // error("请求失败:${it.message}")
+            }
+        }
+    }
+
+    override fun <R, T> doPostJsonRequest(
+        serializerR: KSerializer<R>,
+        serializerT: KSerializer<T>,
+        url: String,
+        params: R,
+        needRetry: Boolean,
+        needCache: Boolean,
+        success: (BaseResult<T>) -> Unit,
+        successList: (BaseResult<List<T>>) -> Unit,
+        errors: (ErrorResponse) -> Unit,
+        encrypt: Boolean
+    ) {
+        scope.launch {
+            runCatching {
+                val json = ktorClient.post(url) {
+                    this.header("User-Agent", "KMP Client by Ktor Post Json")
+                    contentType(ContentType.Application.Json)
+                    setBody(JsonHelper.toJson(serializerR, params))
+                }.bodyAsText()
+                jsonParser.toBean(json, serializerT, success, successList, errors)
+            }.onFailure {
+                it.printStackTrace()
+                errors.invoke(ErrorResponse.create(message = it.message ?: "请求失败:$url"))
             }
         }
     }

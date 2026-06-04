@@ -23,7 +23,7 @@ object HttpManager : IHttp {
         )
     }
 
-    override fun <T> doPostRequest(
+    override fun <T> doPostFormRequest(
         serializer: KSerializer<T>,
         url: String,
         params: Map<String, String>,
@@ -34,8 +34,34 @@ object HttpManager : IHttp {
         errors: (ErrorResponse) -> Unit,
         encrypt: Boolean
     ) {
-        iHttp.doPostRequest(
+        iHttp.doPostFormRequest(
             serializer, url, params, needRetry, needCache, success, successList, errors, encrypt
+        )
+    }
+
+    override fun <R, T> doPostJsonRequest(
+        serializerR: KSerializer<R>,
+        serializerT: KSerializer<T>,
+        url: String,
+        params: R,
+        needRetry: Boolean,
+        needCache: Boolean,
+        success: (BaseResult<T>) -> Unit,
+        successList: (BaseResult<List<T>>) -> Unit,
+        errors: (ErrorResponse) -> Unit,
+        encrypt: Boolean
+    ) {
+        iHttp.doPostJsonRequest(
+            serializerR,
+            serializerT,
+            url,
+            params,
+            needRetry,
+            needCache,
+            success,
+            successList,
+            errors,
+            encrypt
         )
     }
 }

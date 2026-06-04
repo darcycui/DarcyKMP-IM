@@ -24,7 +24,7 @@ class ChatRepository : IRepository {
         onSuccess: (PrivateMessageResponsePage) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<PrivateMessageResponsePage>(),
             QUERY_PRIVATE_MESSAGE_URL,
             mapOf(
@@ -57,7 +57,7 @@ class ChatRepository : IRepository {
         onSuccess: (PrivateMessageResponsePage) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer = PrivateMessageResponsePage.serializer(),
             url = Darcy.RECEIVER_PULL_OFFLINE_MESSAGE_URL,
             params = mapOf(
@@ -101,7 +101,7 @@ class ChatRepository : IRepository {
             clientType = "",
             deviceId = ""
         )
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<MessageReadStatusResponse>(),
             RECEIVER_PUSH_MESSAGE_READ_STATUS_URL,
             mapOf(
@@ -132,7 +132,7 @@ class ChatRepository : IRepository {
         onSuccess: (MessageReadStatusResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer = MessageReadStatusResponse.serializer(),
             url = Darcy.SENDER_SYNC_MESSAGE_READ_STATUS_URL,
             params = mapOf(

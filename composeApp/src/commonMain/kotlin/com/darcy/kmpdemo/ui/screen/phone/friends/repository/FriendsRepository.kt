@@ -17,7 +17,7 @@ class FriendsRepository : IRepository {
         onSuccessList: (List<FriendshipResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<FriendshipResponse>(),
             QUERY_FRIENDSHIP_LIST_URL,
             mapOf(
@@ -44,7 +44,7 @@ class FriendsRepository : IRepository {
         onSuccess: (String) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostFormRequest(
             serializer<String>(),
             DELETE_FRIENDSHIP_URL,
             mapOf(

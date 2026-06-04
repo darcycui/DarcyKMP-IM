@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.crypto.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.DHExchangeRequestDTO
 import com.darcy.kmpdemo.bean.http.response.DHExchangeResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
@@ -16,13 +17,11 @@ class DHExchangeRepository: IRepository {
         onSuccess: (DHExchangeResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doPostRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<DHExchangeRequestDTO>(),
             serializer<DHExchangeResponse>(),
             EXCHANGE_SERVER_DH_URL,
-            mapOf(
-                "userId" to userId.toString(),
-                "publicKey" to publicKey,
-            ),
+            DHExchangeRequestDTO(userId, publicKey),
             needRetry = false,
             needCache = false,
             success = {

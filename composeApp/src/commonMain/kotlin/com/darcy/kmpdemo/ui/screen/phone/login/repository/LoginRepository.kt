@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.ui.screen.phone.login.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.LoginRequestDTO
 import com.darcy.kmpdemo.bean.http.response.LoginResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
@@ -16,13 +17,11 @@ class LoginRepository : IRepository {
         onSuccess: (LoginResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<LoginRequestDTO>(),
             serializer<LoginResponse>(),
             LOGIN_URL,
-            mapOf(
-                "phone" to username,
-                "password" to password
-            ),
+            LoginRequestDTO(username, password),
             needRetry = true,
             needCache = true,
             success = {
@@ -34,7 +33,6 @@ class LoginRepository : IRepository {
                 logE("error: it=$it")
                 onError(it)
             },
-            false
         )
     }
 
