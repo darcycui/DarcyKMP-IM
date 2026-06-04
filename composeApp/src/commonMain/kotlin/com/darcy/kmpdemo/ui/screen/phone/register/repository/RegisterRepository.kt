@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.ui.screen.phone.register.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.RegisterRequestDTO
 import com.darcy.kmpdemo.bean.http.response.LoginResponse
 import com.darcy.kmpdemo.bean.ui.RegisterBean
 import com.darcy.kmpdemo.log.logD
@@ -16,24 +17,21 @@ class RegisterRepository : IRepository {
         onSuccess: (LoginResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<RegisterRequestDTO>(),
             serializer<LoginResponse>(),
             REGISTER_URL,
-            mapOf(
-                "username" to bean.username,
-                "password" to bean.passwordHash,
-                "nickname" to bean.nickname,
-                "avatar" to bean.avatar,
-                "phone" to bean.phone,
-                "email" to bean.email,
-                "gender" to bean.gender,
-                "age" to bean.age.toString(),
-                "signature" to bean.signature,
-                "status" to bean.status.toString(),
-                "onlineStatus" to bean.onlineStatus.toString(),
-                "settings" to bean.settings.toString(),
-                "roles" to bean.roles,
-                "token" to bean.token
+            params = RegisterRequestDTO(
+                username = bean.username,
+                password = bean.passwordHash,
+                nickname = bean.nickname,
+                avatar = bean.avatar,
+                phone = bean.phone,
+                email = bean.email,
+                gender = bean.gender,
+                signature = bean.signature,
+                settings = bean.settings.toString(),
+                roles = bean.roles,
             ),
             needRetry = true,
             needCache = true,

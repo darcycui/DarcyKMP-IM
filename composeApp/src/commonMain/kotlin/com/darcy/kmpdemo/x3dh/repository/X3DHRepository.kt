@@ -1,6 +1,9 @@
 package com.darcy.kmpdemo.x3dh.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.OneTimePreKeyInputDTO
+import com.darcy.kmpdemo.bean.http.request.X3DHPullKeysRequestDTO
+import com.darcy.kmpdemo.bean.http.request.X3DHPushKeysRequestDTO
 import com.darcy.kmpdemo.bean.http.response.X3DHKeysPullResponse
 import com.darcy.kmpdemo.bean.http.response.X3DHKeysPushResponse
 import com.darcy.kmpdemo.log.logD
@@ -16,18 +19,19 @@ class X3DHRepository : IRepository {
         userId: Long,
         identityKey: String,
         signedPreKey: String,
-        oneTimePreKeys: String,
+        oneTimePreKeys: List<OneTimePreKeyInputDTO>,
         onSuccess: (X3DHKeysPushResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<X3DHPushKeysRequestDTO>(),
             serializer<X3DHKeysPushResponse>(),
             PUSH_X3DH_KEYS_URL,
-            mapOf(
-                "userId" to userId.toString(),
-                "identityKey" to identityKey,
-                "signedPreKey" to signedPreKey,
-                "oneTimePreKeys" to oneTimePreKeys,
+            X3DHPushKeysRequestDTO(
+                userId = userId,
+                identityKey = identityKey,
+                signedPreKey = signedPreKey,
+                oneTimePreKeys = oneTimePreKeys
             ),
             needRetry = true,
             needCache = true,
@@ -50,12 +54,13 @@ class X3DHRepository : IRepository {
         onSuccess: (X3DHKeysPullResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<X3DHPullKeysRequestDTO>(),
             serializer<X3DHKeysPullResponse>(),
             PULL_X3DH_KEYS_URL,
-            mapOf(
-                "aliceUserId" to aliceUserId.toString(),
-                "bobUserId" to bobUserId.toString(),
+            X3DHPullKeysRequestDTO(
+                aliceUserId = aliceUserId,
+                bobUserId = bobUserId
             ),
             needRetry = true,
             needCache = true,

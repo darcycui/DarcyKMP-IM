@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.bean.http.request
 
+import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
 import kotlinx.serialization.Serializable
 
 
@@ -40,4 +41,13 @@ data class OneTimePreKeyInputDTO(
     var userId: Long = 0,
     var publicKey: String = "",
 ) : IRequestDTO {
+}
+
+fun OneTimePreKeyEntity.toDTO(): OneTimePreKeyInputDTO {
+    return OneTimePreKeyInputDTO(
+        id = this.id,
+        keyId = this.keyId,
+        userId = this.userId,
+        publicKey = this.publicKey
+    )
 }

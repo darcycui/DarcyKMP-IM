@@ -1,6 +1,8 @@
 package com.darcy.kmpdemo.ui.screen.phone.conversations.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.CommonRequestDTO
+import com.darcy.kmpdemo.bean.http.request.ConversationCreateRequestDTO
 import com.darcy.kmpdemo.bean.http.response.ConversationResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
@@ -17,12 +19,11 @@ class ConversationRepository : IRepository {
         onSuccessList: (List<ConversationResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<CommonRequestDTO>(),
             serializer<ConversationResponse>(),
             QUERY_CONVERSATION_LIST_URL,
-            mapOf(
-                "userId" to userId.toString(),
-            ),
+            CommonRequestDTO(userId),
             needRetry = true,
             needCache = true,
             success = {},
@@ -46,13 +47,12 @@ class ConversationRepository : IRepository {
         onSuccess: (ConversationResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<ConversationCreateRequestDTO>(),
             serializer<ConversationResponse>(),
             CREATE_CONVERSATION_URL,
-            mapOf(
-                "userId" to userId,
-                "targetId" to targetId,
-                "conversationType" to conversationType,
+            ConversationCreateRequestDTO(
+                userId.toLong(), targetId.toLong(), conversationType.toInt()
             ),
             needRetry = true,
             needCache = true,

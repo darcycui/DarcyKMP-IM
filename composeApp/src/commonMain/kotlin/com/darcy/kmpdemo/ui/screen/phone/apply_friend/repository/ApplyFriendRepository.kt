@@ -1,6 +1,9 @@
 package com.darcy.kmpdemo.ui.screen.phone.apply_friend.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.FriendRequestCreateRequestDTO
+import com.darcy.kmpdemo.bean.http.request.FriendRequestQueryFromRequestDTO
+import com.darcy.kmpdemo.bean.http.request.UserQueryPhoneRequestDTO
 import com.darcy.kmpdemo.bean.http.response.ApplyFriendResponse
 import com.darcy.kmpdemo.bean.http.response.UserResponse
 import com.darcy.kmpdemo.bean.ui.AddFriendBean
@@ -19,12 +22,11 @@ class ApplyFriendRepository : IRepository {
         onSuccess: (UserResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<UserQueryPhoneRequestDTO>(),
             serializer<UserResponse>(),
             SEARCH_FRIEND_URL,
-            mapOf(
-                "phone" to phone,
-            ),
+            UserQueryPhoneRequestDTO(phone),
             needRetry = true,
             needCache = true,
             success = {
@@ -45,13 +47,11 @@ class ApplyFriendRepository : IRepository {
         onSuccess: (ApplyFriendResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<FriendRequestCreateRequestDTO>(),
             serializer<ApplyFriendResponse>(),
             APPLY_FRIEND_URL,
-            mapOf(
-                "fromUserId" to bean.fromUserId.toString(),
-                "toUserId" to bean.toUserId.toString(),
-            ),
+            FriendRequestCreateRequestDTO(bean.fromUserId, bean.toUserId),
             needRetry = true,
             needCache = true,
             success = {
@@ -72,12 +72,11 @@ class ApplyFriendRepository : IRepository {
         onSuccessList: (List<ApplyFriendResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<FriendRequestQueryFromRequestDTO>(),
             serializer<ApplyFriendResponse>(),
             QUERY_FRIEND_FROM_URL,
-            mapOf(
-                "fromUserId" to fromUserId.toString(),
-            ),
+            FriendRequestQueryFromRequestDTO(fromUserId),
             needRetry = true,
             needCache = true,
             success = {},

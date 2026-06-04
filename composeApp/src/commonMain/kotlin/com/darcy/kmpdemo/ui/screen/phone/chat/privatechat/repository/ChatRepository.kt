@@ -2,6 +2,10 @@ package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.request.MessageReadStatusRequest
+import com.darcy.kmpdemo.bean.http.request.PrivateMessageQueryRequestDTO
+import com.darcy.kmpdemo.bean.http.request.ReceiverMessageReadStatusMarkRequestDTO
+import com.darcy.kmpdemo.bean.http.request.ReceiverOfflineMessageSyncRequestDTO
+import com.darcy.kmpdemo.bean.http.request.SenderOfflineMessageReadSyncRequestDTO
 import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponsePage
 import com.darcy.kmpdemo.log.logD
@@ -24,13 +28,15 @@ class ChatRepository : IRepository {
         onSuccess: (PrivateMessageResponsePage) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<PrivateMessageQueryRequestDTO>(),
             serializer<PrivateMessageResponsePage>(),
             QUERY_PRIVATE_MESSAGE_URL,
-            mapOf(
-                "conversationId" to conversationId.toString(),
-                "page" to page.toString(),
-                "size" to size.toString(),
+            PrivateMessageQueryRequestDTO(
+                conversationId = conversationId,
+                conversationType = 1,
+                page = page,
+                size = size
             ),
             needRetry = true,
             needCache = true,
@@ -57,16 +63,22 @@ class ChatRepository : IRepository {
         onSuccess: (PrivateMessageResponsePage) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doPostFormRequest(
-            serializer = PrivateMessageResponsePage.serializer(),
+        HttpManager.doPostJsonRequest(
+            serializer<ReceiverOfflineMessageSyncRequestDTO>(),
+            serializer<PrivateMessageResponsePage>(),
             url = Darcy.RECEIVER_PULL_OFFLINE_MESSAGE_URL,
-            params = mapOf(
-                "userId" to userId.toString(),
-                "targetId" to targetId.toString(),
-                "conversationId" to conversationId.toString(),
-                "conversationType" to conversationType.toString(),
-                "page" to page.toString(),
-                "size" to size.toString()
+            params = ReceiverOfflineMessageSyncRequestDTO(
+                userId = userId,
+                targetId = targetId,
+                conversationId = conversationId,
+                conversationType = conversationType,
+                deviceId = "",
+                clientType = "",
+                page = page,
+                size = size,
+                limit = 50,
+                lastMsgId = null,
+                lastSyncTime = null
             ),
             needRetry = true,
             needCache = true,
@@ -91,21 +103,20 @@ class ChatRepository : IRepository {
         onSuccess: (MessageReadStatusResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        val messageReadStatusRequest = MessageReadStatusRequest(
-            userId = userId,
-            fromUserName = fromUserName,
-            targetId = targetId,
-            targetName = targetName,
-            msgIds = msgIds,
-            conversationType = 1,
-            clientType = "",
-            deviceId = ""
-        )
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<ReceiverMessageReadStatusMarkRequestDTO>(),
             serializer<MessageReadStatusResponse>(),
             RECEIVER_PUSH_MESSAGE_READ_STATUS_URL,
-            mapOf(
-                "messageReadStatusInputDTO" to JsonHelper.toJson(messageReadStatusRequest),
+            ReceiverMessageReadStatusMarkRequestDTO(
+                userId = userId,
+                fromUserName = fromUserName,
+                targetId = targetId,
+                targetName = targetName,
+                msgIds = msgIds,
+                conversationId = -1,
+                conversationType = 1,
+                clientType = "",
+                deviceId = ""
             ),
             needRetry = true,
             needCache = true,
@@ -132,16 +143,19 @@ class ChatRepository : IRepository {
         onSuccess: (MessageReadStatusResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ) {
-        HttpManager.doPostFormRequest(
-            serializer = MessageReadStatusResponse.serializer(),
+        HttpManager.doPostJsonRequest(
+            serializer<SenderOfflineMessageReadSyncRequestDTO>(),
+            serializer<MessageReadStatusResponse>(),
             url = Darcy.SENDER_SYNC_MESSAGE_READ_STATUS_URL,
-            params = mapOf(
-                "userId" to userId.toString(),
-                "targetId" to targetId.toString(),
-                "conversationId" to conversationId.toString(),
-                "conversationType" to conversationType.toString(),
-                "since" to since,
-                "until" to until
+            params = SenderOfflineMessageReadSyncRequestDTO(
+                userId = userId,
+                targetId = targetId,
+                conversationId = conversationId,
+                conversationType = conversationType,
+                deviceId = "",
+                clientType = "",
+                since = since,
+                until = until
             ),
             needRetry = true,
             needCache = false,

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
+import com.darcy.kmpdemo.bean.http.request.toDTO
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
@@ -90,7 +91,7 @@ class RegisterViewModel(
             userId = IMGlobalStorage.getCurrentUserId(),
             identityKey = identityKey,
             signedPreKey = signedPreKey,
-            oneTimePreKeys = JsonHelper.toJson(oneTimePreKeys),
+            oneTimePreKeys = oneTimePreKeys.map { it.toDTO() },
             onSuccess = {
                 io {
                     logE("推送X3DH密钥成功：$it")

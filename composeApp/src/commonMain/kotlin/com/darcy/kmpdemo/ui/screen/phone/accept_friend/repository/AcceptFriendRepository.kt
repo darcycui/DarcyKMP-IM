@@ -1,6 +1,9 @@
 package com.darcy.kmpdemo.ui.screen.phone.accept_friend.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.FriendRequestActionRequestDTO
+import com.darcy.kmpdemo.bean.http.request.FriendRequestQueryFromRequestDTO
+import com.darcy.kmpdemo.bean.http.request.FriendRequestQueryToRequestDTO
 import com.darcy.kmpdemo.bean.http.response.ApplyFriendResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
@@ -16,12 +19,11 @@ class AcceptFriendRepository : IRepository {
         onSuccessList: (List<ApplyFriendResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<FriendRequestQueryToRequestDTO>(),
             serializer<ApplyFriendResponse>(),
             QUERY_FRIEND_TO_URL,
-            mapOf(
-                "toUserId" to toUserId.toString(),
-            ),
+            FriendRequestQueryToRequestDTO(toUserId),
             needRetry = true,
             needCache = true,
             success = {},
@@ -41,12 +43,11 @@ class AcceptFriendRepository : IRepository {
         onSuccess: (ApplyFriendResponse) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<FriendRequestActionRequestDTO>(),
             serializer<ApplyFriendResponse>(),
             ACCEPT_FRIEND_URL,
-            mapOf(
-                "friendRequestId" to friendRequestId.toString(),
-            ),
+            FriendRequestActionRequestDTO(friendRequestId),
             needRetry = true,
             needCache = true,
             success = {

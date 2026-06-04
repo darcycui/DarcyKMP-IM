@@ -1,6 +1,8 @@
 package com.darcy.kmpdemo.ui.screen.phone.friends.repository
 
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.request.CommonRequestDTO
+import com.darcy.kmpdemo.bean.http.request.FriendshipDeleteRequestDTO
 import com.darcy.kmpdemo.bean.http.response.FriendshipResponse
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
@@ -17,12 +19,11 @@ class FriendsRepository : IRepository {
         onSuccessList: (List<FriendshipResponse>) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<CommonRequestDTO>(),
             serializer<FriendshipResponse>(),
             QUERY_FRIENDSHIP_LIST_URL,
-            mapOf(
-                "userId" to userId.toString(),
-            ),
+            CommonRequestDTO(userId),
             needRetry = true,
             needCache = true,
             success = {},
@@ -44,13 +45,11 @@ class FriendsRepository : IRepository {
         onSuccess: (String) -> Unit,
         onError: (ErrorResponse) -> Unit
     ): Unit {
-        HttpManager.doPostFormRequest(
+        HttpManager.doPostJsonRequest(
+            serializer<FriendshipDeleteRequestDTO>(),
             serializer<String>(),
             DELETE_FRIENDSHIP_URL,
-            mapOf(
-                "userId" to userId.toString(),
-                "friendId" to friendId.toString(),
-            ),
+            FriendshipDeleteRequestDTO(userId, friendId),
             needRetry = true,
             needCache = true,
             success = {
