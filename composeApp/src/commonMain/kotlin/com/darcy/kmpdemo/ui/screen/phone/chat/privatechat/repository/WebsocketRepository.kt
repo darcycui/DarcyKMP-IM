@@ -55,7 +55,8 @@ object WebsocketRepository : IRepository {
     val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
 
     private val _messageReadStatusFlow = MutableSharedFlow<MessageReadStatusResponse>(replay = 1)
-    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> = _messageReadStatusFlow.asSharedFlow()
+    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> =
+        _messageReadStatusFlow.asSharedFlow()
     private val _connectionStateFlow =
         MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     val connectionStateFlow: SharedFlow<WebSocketConnectionState> =
@@ -145,9 +146,10 @@ object WebsocketRepository : IRepository {
         scope.launch {
             logD("$TAG sendMessage toUser:${message.receiverName}")
             val originalMessage = JsonHelper.toJson(message)
-            val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(originalMessage)
+            val url = headers["url"] ?: ""
+            val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(originalMessage, url)
             webSocketManager.send(
-                originalMessage,
+                encryptedMessage,
                 SEND_PRIVATE,
                 headers
             )
@@ -172,8 +174,9 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleMessage fromUser:$headers")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
-                val decryptedMessage = JsonCryptoHelper.decryptWebsocketJson(message)
-                val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
+                val url = headers["url"] ?: ""
+                val decryptedMessage = JsonCryptoHelper.decryptWebsocketJson(message, url)
+                val messageEntity = JsonHelper.fromJson<STOMPMessage>(decryptedMessage)
                 messageEntity?.let {
                     val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
                         mapOf(
@@ -195,7 +198,7 @@ object WebsocketRepository : IRepository {
                     saveMessageToDBUseCase.invoke(mapOf(), listOf(response.toEntity()))
                         .onSuccess {
                             logI("$TAG 接收后 保存到数据库成功: ${response.msgId}")
-                        }.onFailure {e->
+                        }.onFailure { e ->
                             logE("$TAG 接收后 保存到数据库错误: ${response.msgId} ${e::class.simpleName} ${e.message}")
                         }
                     _messageFlow.emit(it)

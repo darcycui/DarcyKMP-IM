@@ -29,6 +29,7 @@ object JsonCryptoHelper {
             return json
         }
     }
+
     /**
      * 去除字符串开头和结尾的双引号 (")
      * 安全处理 null、空字符串、长度不够以及内部包含引号的情况
@@ -48,6 +49,22 @@ object JsonCryptoHelper {
 
         // 4. 首尾不匹配双引号，原样返回
         return this
+    }
+
+    suspend fun encryptWebsocketJson(message: String, url: String): String {
+        val encryptedMessage = TransportCipher.encrypt(
+            content = message.toByteArray(),
+            aad = "WS:$url".toByteArray()
+        )
+        return encryptedMessage.toHexString()
+    }
+
+    suspend fun decryptWebsocketJson(message: String, url: String): String {
+        val decryptedMessage = TransportCipher.decrypt(
+            content = message.hexStrToBytes(),
+            aad = "WS:$url".toByteArray()
+        )
+        return decryptedMessage.decodeToString()
     }
 
 

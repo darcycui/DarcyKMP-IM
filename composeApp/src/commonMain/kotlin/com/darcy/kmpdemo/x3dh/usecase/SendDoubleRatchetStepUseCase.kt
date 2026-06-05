@@ -52,12 +52,14 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             sessionRecord.N
         ).getNextChainKey()
         EncryptUtil.log("$localUserId 发送链密钥:", newSendingChainKey.getKey())
-        sessionRecordDao.update(sessionRecord.copy(
-            sendingChainKey = newSendingChainKey.getKey().toHexString(),
-            N = newN,
-            PN = newPN,
-            updatedTime = TimePlatform.getCurrentTimeStamp()
-        ))
+        sessionRecordDao.update(
+            sessionRecord.copy(
+                sendingChainKey = newSendingChainKey.getKey().toHexString(),
+                N = newN,
+                PN = newPN,
+                updatedTime = TimePlatform.getCurrentTimeStamp()
+            )
+        )
         val messageKeyTriple = newSendingChainKey.getMessageKeyTriple()
         val messageKeyBytes = messageKeyTriple.first
         EncryptUtil.logI("$localUserId 发送 $remoteUserId 的消息密钥:", messageKeyBytes)
@@ -67,6 +69,7 @@ class SendDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             messageKey = messageKeyBytes.toHexString(),
             nKey = newN,
             pnKey = newPN,
+            url = "/private"
         )
         return Result.success(messageKey)
     }
