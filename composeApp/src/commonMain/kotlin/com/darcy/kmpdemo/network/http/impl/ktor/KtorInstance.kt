@@ -66,7 +66,7 @@ val ktorClient: HttpClient
         install(CustomHeaderPlugin)
         // 自定义插件 加密
         install(EncryptRequestJsonBodyPlugin)
-        // 自定义插件 解密
+        // 自定义插件 解密 todo: client.post().bodyAsText() 方式不触发该插件?
         install(DecryptResponseJsonBodyPlugin)
         // 序列化
         install(ContentNegotiation) {

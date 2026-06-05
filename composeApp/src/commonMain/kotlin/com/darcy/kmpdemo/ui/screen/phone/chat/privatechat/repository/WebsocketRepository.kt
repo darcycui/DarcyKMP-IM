@@ -5,6 +5,7 @@ import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
 import com.darcy.kmpdemo.bean.http.response.toEntity
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
+import com.darcy.kmpdemo.crypto.JsonCryptoHelper
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
@@ -143,14 +144,16 @@ object WebsocketRepository : IRepository {
     fun sendMessage(message: STOMPMessage, headers: Map<String, String>) {
         scope.launch {
             logD("$TAG sendMessage toUser:${message.receiverName}")
+            val originalMessage = JsonHelper.toJson(message)
+            val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(originalMessage)
             webSocketManager.send(
-                JsonHelper.toJson(message),
+                originalMessage,
                 SEND_PRIVATE,
                 headers
             )
             logW("$TAG sendMessage:创建数据库已读状态(未读)")
             createMessageReadStatusUseCase.invoke(
-                mapOf("stompMessage" to JsonHelper.toJson(message)), Unit
+                mapOf("stompMessage" to originalMessage), Unit
             ).onSuccess {
                 logI("$TAG 创建数据库已读状态(未读) 创建成功:${message.msgId}")
             }.onFailure {
@@ -169,7 +172,7 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleMessage fromUser:$headers")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
-
+                val decryptedMessage = JsonCryptoHelper.decryptWebsocketJson(message)
                 val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
                 messageEntity?.let {
                     val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
