@@ -38,5 +38,6 @@ fun logW(msg: String, tag: String = DARCY_TAG, throwable: Throwable? = null) {
 }
 
 fun logE(msg: String, tag: String = DARCY_TAG, throwable: Throwable? = null) {
-    Napier.e(message = msg, tag = tag, throwable = throwable)
+    val throwableMsg = throwable?.let { " :${it::class} ${it.message}" } ?: ""
+    Napier.e(message = msg + throwableMsg, tag = tag, throwable = throwable)
 }

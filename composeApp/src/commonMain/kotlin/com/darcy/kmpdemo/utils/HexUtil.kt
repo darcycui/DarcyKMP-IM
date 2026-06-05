@@ -22,6 +22,11 @@ object HexUtil {
             it.printStackTrace()
         }.getOrElse { ByteArray(0) }
     }
+
+    fun isHexString(hex: String?): Boolean {
+        if (hex.isNullOrEmpty()) return false
+        return hex.matches(Regex("^[0-9a-fA-F]+$"))
+    }
 }
 
 fun String.hexStrToBytes(): ByteArray {
@@ -30,4 +35,8 @@ fun String.hexStrToBytes(): ByteArray {
 
 fun ByteArray.bytesToHexStr(uppercase: Boolean = false): String {
     return HexUtil.bytesToHexStr(this, uppercase)
+}
+
+fun String?.isHexString(): Boolean {
+    return HexUtil.isHexString(this)
 }

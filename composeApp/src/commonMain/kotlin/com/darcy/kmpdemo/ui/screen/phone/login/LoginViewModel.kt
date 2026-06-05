@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.ui.LoginBean
 import com.darcy.kmpdemo.crypto.repository.DHExchangeRepository
+import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
@@ -89,6 +90,8 @@ class LoginViewModel(
     private fun actionExchangeDHPublicKey(userId: Long) {
         io {
             val ephemeralKey = ECCExchangeHelper.generateKeyPair()
+            logD("生成临时私钥：${ephemeralKey.privateKey.toBytes().toHexString()}")
+            logD("生成临时公钥：${ephemeralKey.publicKey.toBytes().toHexString()}")
             dhExchangeRepository.getServerDHPublicKey(
                 userId = userId,
                 publicKey = ephemeralKey.publicKey.toBytes().toHexString(),
@@ -99,7 +102,7 @@ class LoginViewModel(
                     ).toHexString()
                     io {
                         // 保存到内存存储
-                        TransportGlobalStorage.setServerDhKey(sharedSecret)
+                        TransportGlobalStorage.setServerSharedSecretKey(sharedSecret)
                         sendEvent(LoginEvent.LoginSuccessEvent)
                     }
                 },

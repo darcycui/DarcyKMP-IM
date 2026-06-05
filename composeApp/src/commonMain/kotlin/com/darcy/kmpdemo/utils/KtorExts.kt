@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.utils
 
+import io.ktor.client.request.HttpRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.http.Parameters
@@ -18,6 +19,10 @@ fun Map<String, String>.toFormDataContent(): FormDataContent {
     return FormDataContent(parameters)
 }
 
-fun HttpRequestBuilder.getAAD(): ByteArray {
-    return "${this.method.value}:${this.url.encodedPath}".toByteArray()
+fun HttpRequestBuilder.getAAD(): String {
+    return "${this.method.value}:${this.url.buildString()}"
+}
+
+fun HttpRequest.getAAD(): String {
+    return "${this.method.value}:${this.url}"
 }

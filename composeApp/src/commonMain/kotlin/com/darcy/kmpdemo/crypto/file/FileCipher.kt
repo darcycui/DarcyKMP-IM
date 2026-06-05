@@ -13,6 +13,7 @@ object FileCipher {
     private const val TAG = "FileCipher"
     private const val BUFFER_SIZE = 8192
     private val provider: CryptographyProvider = KotlinCryptoPlatform.getCryptographyProvider()
+    private const val IV_LENGTH = 16
 
     /**
      * AES-CTR 加密

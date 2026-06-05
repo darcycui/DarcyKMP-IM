@@ -9,6 +9,7 @@ import com.darcy.kmpdemo.bean.ui.UserItemBean
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.platform.FilePlatform
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
+import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
@@ -76,6 +77,7 @@ class MineViewModel : BaseViewModel<MineState>() {
     private fun actionLogout() {
         io {
             IMGlobalStorage.setCurrentUser(LoginResponse.empty())
+            TransportGlobalStorage.clear()
             sendEvent(MineEvent.ActionLogout)
         }
     }

@@ -9,6 +9,7 @@ import dev.whyoleg.cryptography.algorithms.AES
 object MessageCipher {
     private const val TAG = "MessageCipher"
     private val provider: CryptographyProvider = KotlinCryptoPlatform.getCryptographyProvider()
+    private const val IV_LENGTH = 12
 
     /**
      * AES-GCM 加密

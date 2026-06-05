@@ -1,11 +1,8 @@
 package com.darcy.kmpdemo.network.http.impl.ktor
 
 import com.darcy.kmpdemo.log.logE
-import com.darcy.kmpdemo.platform.configureEngineTLS
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.addDefaultResponseValidation
@@ -15,7 +12,6 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.header
-import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -66,6 +62,12 @@ val ktorClient: HttpClient
             header("Content-Type-default", "application/json")
             url ("https://darcycui.com.cn/api")
         }
+        // 自定义插件 header
+        install(CustomHeaderPlugin)
+        // 自定义插件 加密
+        install(EncryptRequestJsonBodyPlugin)
+        // 自定义插件 解密
+        install(DecryptResponseJsonBodyPlugin)
         // 序列化
         install(ContentNegotiation) {
             json(Json {
@@ -75,10 +77,6 @@ val ktorClient: HttpClient
                 explicitNulls = false
             })
         }
-        // 添加自定义 header
-        install(CustomHeaderPlugin)
-        // 添加自定义 加密拦截器
-        install(EncryptFormBodyPlugin)
         // SSL证书配置
         engine {
             dispatcher = Dispatchers.Default
