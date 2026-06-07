@@ -314,13 +314,12 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     }
 
     private suspend fun encryptFrameBody(
-        message: String,
+        body: String,
         headers: Map<String, String>,
     ): String {
         val url = headers["url"] ?: ""
-        val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(message, url)
-        val jsonMessage = (encryptedMessage)
-        return jsonMessage
+        val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(body, url)
+        return encryptedMessage
     }
 
     suspend fun decryptFrameBody(

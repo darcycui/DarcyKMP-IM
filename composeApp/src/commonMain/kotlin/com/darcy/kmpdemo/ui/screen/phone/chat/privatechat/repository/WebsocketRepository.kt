@@ -5,7 +5,6 @@ import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
 import com.darcy.kmpdemo.bean.http.response.toEntity
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
-import com.darcy.kmpdemo.crypto.JsonCryptoHelper
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
@@ -118,7 +117,7 @@ object WebsocketRepository : IRepository {
                 body: String,
                 headers: Map<String, String>
             ) {
-                handleReceiveMessageReadStatus(body, headers)
+                handleMessageReadStatus(body, headers)
             }
 
             override fun onFailure(errorMessage: String) {
@@ -172,8 +171,7 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleMessage fromUser:$headers")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
-
-                val messageEntity = JsonHelper.fromJson<STOMPMessage>(decryptedMessage)
+                val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
                 messageEntity?.let {
                     val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
                         mapOf(
@@ -200,7 +198,7 @@ object WebsocketRepository : IRepository {
                         }
                     _messageFlow.emit(it)
                     // 发送已读状态
-                    receiverPushMessageReadStatus(it, headers)
+                    sendMessageReadStatus(it, headers)
                 } ?: run {
                     logE("$TAG handleReceiveMessage messageEntity is null after json parse")
                 }
@@ -214,7 +212,7 @@ object WebsocketRepository : IRepository {
     /**
      * 收到消息后 标记消息已读
      */
-    fun receiverPushMessageReadStatus(
+    fun sendMessageReadStatus(
         messageEntity: STOMPMessage,
         headers: Map<String, String>
     ) {
@@ -241,7 +239,7 @@ object WebsocketRepository : IRepository {
     /**
      * 收到已读状态
      */
-    private fun handleReceiveMessageReadStatus(body: String, headers: Map<String, String>) {
+    private fun handleMessageReadStatus(body: String, headers: Map<String, String>) {
         val messageReadStatusResponse = JsonHelper.fromJson<MessageReadStatusResponse>(body)
         if (messageReadStatusResponse == null || messageReadStatusResponse.msgIds.isEmpty()) {
             logE("$TAG onMessageReadStatus:messageReadStatusResponseList is null or empty")

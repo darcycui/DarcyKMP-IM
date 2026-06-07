@@ -3,11 +3,21 @@ package com.darcy.kmpdemo.crypto
 import com.darcy.kmpdemo.crypto.transport.TransportCipher
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.impl.ktor.EncryptBodyConfig
+import com.darcy.kmpdemo.utils.bytesToHexStr
 import com.darcy.kmpdemo.utils.hexStrToBytes
+import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.core.toByteArray
 
 object JsonCryptoHelper {
     private const val TAG = "JsonCryptoHelper"
+
+    suspend fun encryptHttpJson(originalJson: String, url: String): String {
+        val encryptText = TransportCipher.encrypt(
+            content = originalJson.toByteArray(Charsets.UTF_8),
+            aad = "POST:$url".toByteArray()
+        )
+        return encryptText.bytesToHexStr()
+    }
 
     suspend fun decryptHttpJson(originalJson: String, url: String): String {
         val json = originalJson.removeSurroundingQuotes()

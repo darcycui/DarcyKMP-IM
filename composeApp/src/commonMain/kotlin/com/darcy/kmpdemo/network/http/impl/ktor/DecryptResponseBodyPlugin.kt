@@ -19,7 +19,8 @@ import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
 
 /**
- * 解密服务端响应 JSON 的解密拦截器（修正版）
+ * 解密服务端响应 JSON 的解密拦截器
+ * todo: client.post().bodyAsText() 方式获取http响应 不触发解密拦截器？
  */
 private const val D_TAG = "DecryptResponseJsonBodyPlugin"
 val DecryptResponseJsonBodyPlugin = createClientPlugin(D_TAG) {

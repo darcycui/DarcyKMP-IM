@@ -8,6 +8,7 @@ import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.ui.AddFriendBean
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logV
+import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
 import com.darcy.kmpdemo.storage.database.daos.SessionRecordDao
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
@@ -227,7 +228,8 @@ class ApplyFriendViewModel(
     }
 
     private fun actionSearchUser(phone: String) {
-        // todo search user
+        // search user
+        logW("开始搜索用户：$phone")
         applyFriendRepository.searchUser(
             phone,
             onSuccess = {

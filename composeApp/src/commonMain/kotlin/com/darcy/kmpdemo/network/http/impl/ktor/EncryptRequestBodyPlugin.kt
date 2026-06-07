@@ -1,20 +1,16 @@
 package com.darcy.kmpdemo.network.http.impl.ktor
 
-import com.darcy.kmpdemo.crypto.transport.TransportCipher
+import com.darcy.kmpdemo.crypto.JsonCryptoHelper
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
-import com.darcy.kmpdemo.utils.bytesToHexStr
-import com.darcy.kmpdemo.utils.getAAD
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.content.TextContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.encodedPath
-import io.ktor.utils.io.charsets.Charsets
-import io.ktor.utils.io.core.toByteArray
 
 object EncryptBodyConfig {
 
@@ -49,16 +45,11 @@ val EncryptRequestJsonBodyPlugin = createClientPlugin(E_TAG) {
         logI("$E_TAG: originalText: $originalText")
         if (EncryptBodyConfig.isEnabled()) {
             logW("$E_TAG: 加密")
-            val encryptText = TransportCipher.encrypt(
-                content = originalText.toByteArray(Charsets.UTF_8),
-                aad = request.getAAD().also {
-                    logD("$E_TAG: AAD: $it")
-                }.toByteArray()
-            )
-            logV("$E_TAG: encryptText: ${encryptText.bytesToHexStr()}")
+            val encryptText = JsonCryptoHelper.encryptHttpJson(originalText, request.url.buildString())
+            logV("$E_TAG: encryptText: $encryptText")
             // 返回新的 body
             TextContent(
-                text = encryptText.toHexString(),
+                text = encryptText,
                 contentType = ContentType.Application.Json,
             )
         } else {
