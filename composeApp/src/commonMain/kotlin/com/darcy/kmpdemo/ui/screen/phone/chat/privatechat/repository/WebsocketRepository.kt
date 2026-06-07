@@ -145,17 +145,15 @@ object WebsocketRepository : IRepository {
     fun sendMessage(message: STOMPMessage, headers: Map<String, String>) {
         scope.launch {
             logD("$TAG sendMessage toUser:${message.receiverName}")
-            val originalMessage = JsonHelper.toJson(message)
-            val url = headers["url"] ?: ""
-            val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(originalMessage, url)
+            val messageJson = JsonHelper.toJson(message)
             webSocketManager.send(
-                encryptedMessage,
+                messageJson,
                 SEND_PRIVATE,
                 headers
             )
             logW("$TAG sendMessage:创建数据库已读状态(未读)")
             createMessageReadStatusUseCase.invoke(
-                mapOf("stompMessage" to originalMessage), Unit
+                mapOf("stompMessage" to messageJson), Unit
             ).onSuccess {
                 logI("$TAG 创建数据库已读状态(未读) 创建成功:${message.msgId}")
             }.onFailure {
@@ -174,8 +172,7 @@ object WebsocketRepository : IRepository {
                 logD("$TAG handleMessage fromUser:$headers")
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
-                val url = headers["url"] ?: ""
-                val decryptedMessage = JsonCryptoHelper.decryptWebsocketJson(message, url)
+
                 val messageEntity = JsonHelper.fromJson<STOMPMessage>(decryptedMessage)
                 messageEntity?.let {
                     val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(

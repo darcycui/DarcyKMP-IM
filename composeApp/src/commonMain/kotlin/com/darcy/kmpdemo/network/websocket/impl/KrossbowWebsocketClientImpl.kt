@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.network.websocket.impl
 
+import com.darcy.kmpdemo.crypto.JsonCryptoHelper
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
@@ -183,30 +184,36 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
                     it.subscribe(RECEIVE_PRIVATE).collect { frame ->
                         logD("$TAG onReceive privateMessage")
                         val headers = frame.headers.asMap() // 获取消息 headers
-                        val body = frame.body // 获取消息体
+                        val body = frame.body.toJsonString() // 获取消息体
+                        // 解密消息体
+                        val realBody = decryptFrameBody(body, headers)
                         // 将消息体和 headers 一起传递给外部监听器
-                        onMessage(body.toJsonString(), headers)
+                        onMessage(realBody, headers)
                     }
 
                 }
                 // 启动主题消息订阅
                 topicSubscriptionJob = scope.launch {
                     it.subscribe(RECEIVE_TOPIC).collect { frame: StompFrame ->
-                        val headers = frame.headers.asMap() // 获取消息 headers
-                        val body = frame.body // 获取消息体
                         logD("$TAG onReceive topicMessage")
+                        val headers = frame.headers.asMap() // 获取消息 headers
+                        val body = frame.body.toJsonString() // 获取消息体
+                        // 解密消息体
+                        val realBody = decryptFrameBody(body, headers)
                         // 将消息体和 headers 一起传递给外部监听器
-                        onMessage(body.toJsonString(), headers)
+                        onMessage(realBody, headers)
                     }
                 }
                 // 启动消息状态订阅
                 statusSubscriptionJob = scope.launch {
                     it.subscribe(RECEIVE_MESSAGE_READ_STATUS).collect { frame: StompFrame ->
-                        val headers = frame.headers.asMap() // 获取消息 headers
-                        val body = frame.body // 获取消息体
                         logD("$TAG onReceive messageReadStatus")
+                        val headers = frame.headers.asMap() // 获取消息 headers
+                        val body = frame.body.toJsonString() // 获取消息体
+                        // 解密消息体
+                        val realBody = decryptFrameBody(body, headers)
                         // 将消息体和 headers 一起传递给外部监听器
-                        onMessageReadStatus(body.toJsonString(), headers)
+                        onMessageReadStatus(realBody, headers)
                     }
                 }
             } ?: run {
@@ -252,6 +259,18 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         }
     }
 
+    override suspend fun reconnect() {
+        runCatching {
+            disconnect()
+            delay(1_000)
+            connect()
+        }.onFailure {
+            logE("重连失败: ${it::class.simpleName} ${it.message}")
+            it.printStackTrace()
+        }.onSuccess {
+            logD("重连成功")
+        }
+    }
 
     /**
      * 清理订阅相关的协程任务
@@ -272,7 +291,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             onFailure("无法发送消息，当前未连接")
             return
         }
-        val jsonMessage = (message)
+        val jsonMessage = encryptFrameBody(message, headers)
         runCatching {
             // val receipt = it.sendText(SEND_PRIVATE, jsonMessage)
             val receipt = session?.send(
@@ -294,17 +313,23 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
         TODO("Not yet implemented")
     }
 
-    override suspend fun reconnect() {
-        runCatching {
-            disconnect()
-            delay(1_000)
-            connect()
-        }.onFailure {
-            logE("重连失败: ${it::class.simpleName} ${it.message}")
-            it.printStackTrace()
-        }.onSuccess {
-            logD("重连成功")
-        }
+    private suspend fun encryptFrameBody(
+        message: String,
+        headers: Map<String, String>,
+    ): String {
+        val url = headers["url"] ?: ""
+        val encryptedMessage = JsonCryptoHelper.encryptWebsocketJson(message, url)
+        val jsonMessage = (encryptedMessage)
+        return jsonMessage
+    }
+
+    suspend fun decryptFrameBody(
+        body: String,
+        headers: Map<String, String>
+    ): String {
+        val url = headers["url"] ?: ""
+        val decryptedMessage = JsonCryptoHelper.decryptWebsocketJson(body, url)
+        return decryptedMessage
     }
 
     /**
