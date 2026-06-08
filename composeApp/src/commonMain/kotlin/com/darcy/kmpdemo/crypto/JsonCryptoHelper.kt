@@ -62,11 +62,14 @@ object JsonCryptoHelper {
     }
 
     suspend fun encryptWebsocketJson(message: String, url: String): String {
+//        return message
         val encryptedMessage = TransportCipher.encrypt(
             content = message.toByteArray(),
             aad = "WS:$url".toByteArray()
         )
-        return encryptedMessage.toHexString()
+        return encryptedMessage.toHexString().also {
+            logW("$TAG 加密后长度:${it.length}")
+        }
     }
 
     suspend fun decryptWebsocketJson(message: String, url: String): String {

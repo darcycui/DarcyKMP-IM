@@ -1,6 +1,10 @@
 package com.darcy.kmpdemo.utils
 
+import com.darcy.kmpdemo.log.logE
+
 object HexUtil {
+    private val TAG = HexUtil::class.simpleName
+
     @OptIn(ExperimentalStdlibApi::class)
     fun bytesToHexStr(bytes: ByteArray?, uppercase: Boolean = false): String {
         if (bytes == null || bytes.isEmpty()) return ""
@@ -8,6 +12,7 @@ object HexUtil {
             val str = bytes.toHexString()
             if (uppercase) str.uppercase() else str.lowercase()
         }.onFailure {
+            logE("$TAG bytesToHexStr error: ${it::class.simpleName} ${it.message}")
             it.printStackTrace()
         }.getOrElse { "" }
 
@@ -19,6 +24,7 @@ object HexUtil {
         return runCatching {
             hex.hexToByteArray()
         }.onFailure {
+            logE("$TAG hexStrToBytes error: ${it::class.simpleName} ${it.message}")
             it.printStackTrace()
         }.getOrElse { ByteArray(0) }
     }

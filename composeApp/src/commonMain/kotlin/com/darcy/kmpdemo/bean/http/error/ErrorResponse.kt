@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.bean.http.error
 
+import com.darcy.kmpdemo.network.http.impl.ktor.exception.ExceptionHelper
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import kotlinx.serialization.Serializable
 
@@ -30,6 +31,21 @@ data class ErrorResponse(
                 status = status,
                 error = error,
                 message = "发生错误:$message",
+                path = path
+            )
+        }
+
+        fun create(
+            status: Int = -1,
+            error: String = "",
+            throwable: Throwable,
+            path: String = "/"
+        ): ErrorResponse {
+            val mappedException = ExceptionHelper.mapException(throwable)
+            return ErrorResponse(
+                status = status,
+                error = error,
+                message = "发生错误:${mappedException.message}",
                 path = path
             )
         }

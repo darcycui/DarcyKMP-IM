@@ -231,7 +231,7 @@ object WebsocketRepository : IRepository {
             webSocketManager.send(
                 JsonHelper.toJson(messageReadStatusRequest),
                 SEND_MESSAGE_READ_STATUS,
-                mapOf()
+                headers
             )
         }
     }

@@ -3,6 +3,8 @@ package com.darcy.kmpdemo.ui.screen.phone.conversations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.darcy.kmpdemo.bean.http.error.ErrorResponse
+import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.http.response.ConversationResponse
 import com.darcy.kmpdemo.bean.ui.ChatListItemBean
 import com.darcy.kmpdemo.exception.BaseException
@@ -73,7 +75,7 @@ class ConversationViewModel(
                     dispatch(FetchIntent.RefreshByFetchData(it))
                 },
                 onError = {
-                    dispatchFailure(Exception(it.toString()))
+                    main { dispatch(it.toTipsIntent()) }
                 })
         }
     }
@@ -89,12 +91,5 @@ class ConversationViewModel(
                 )
             )
         }
-    }
-
-
-    private fun dispatchFailure(throwable: Throwable) {
-        val code = if (throwable is BaseException) throwable.errorCode else -1
-        val message = throwable.message ?: "Unknown Error"
-        dispatch(ScreenStateIntent.ScreenStateChange(ScreenState.Error(code, message)))
     }
 }

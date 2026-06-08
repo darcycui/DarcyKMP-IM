@@ -2,6 +2,7 @@ package com.darcy.kmpdemo.crypto.transport
 
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
 import com.darcy.kmpdemo.utils.bytesToHexStr
@@ -33,18 +34,18 @@ object TransportCipher {
     ): ByteArray {
         return runCatching {
             val chacha20 = provider.get(ChaCha20Poly1305)
-            logD("Encrypting...")
-            logD("content:${content.decodeToString()}")
-            logD("key:${key.bytesToHexStr()}")
-            logD("aad:${aad.bytesToHexStr()}")
-            logD("nonce:${nonce.bytesToHexStr()}")
+            logW("$TAG 加密...")
+            logD("$TAG 明文:${content.decodeToString()}")
+            logD("$TAG 加密key:${key.bytesToHexStr()}")
+            logD("$TAG 加密aad:${aad.bytesToHexStr()}")
+            logD("$TAG 加密nonce:${nonce.bytesToHexStr()}")
             val newKey =
                 chacha20.keyDecoder().decodeFromByteArray(
                     ChaCha20Poly1305.Key.Format.RAW, key
                 )
             val cipher = newKey.cipher()
             val data = cipher.encryptWithIv(nonce, content, aad)
-            logD("加密后data:${data.bytesToHexStr()}")
+            logD("$TAG 加密后data:${data.bytesToHexStr()}")
             nonce + data
         }.onFailure {
             logE("$TAG 加密失败: ${it::class.simpleName} ${it.message}")
@@ -66,20 +67,20 @@ object TransportCipher {
         aad: ByteArray
     ): ByteArray {
         return runCatching {
-            logD("Decrypting...")
-            logD("content:${content.bytesToHexStr()}")
-            logD("key:${key.bytesToHexStr()}")
-            logD("aad:${aad.bytesToHexStr()}")
+            logW("$TAG 解密...")
+            logD("$TAG 密文:${content.bytesToHexStr()}")
+            logD("$TAG 解密key:${key.bytesToHexStr()}")
+            logD("$TAG 解密aad:${aad.bytesToHexStr()}")
             val chacha20 = provider.get(ChaCha20Poly1305)
             val newKey = chacha20.keyDecoder().decodeFromByteArray(
                 ChaCha20Poly1305.Key.Format.RAW, key
             )
             val cipher = newKey.cipher()
             val nonce = content.copyOfRange(0, IV_LENGTH)
-            logD("nonce:${nonce.bytesToHexStr()}")
+            logD("$TAG 解密nonce:${nonce.bytesToHexStr()}")
             val ciphertext = content.copyOfRange(IV_LENGTH, content.size)
             val data = cipher.decryptWithIv(nonce, ciphertext, aad)
-            logD("解密后data:${data.decodeToString()}")
+            logD("$TAG 解密后data:${data.decodeToString()}")
             data
         }.onFailure {
             logE("$TAG 解密失败: ${it::class.simpleName} ${it.message}")
