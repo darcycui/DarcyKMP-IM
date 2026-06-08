@@ -198,7 +198,7 @@ object WebsocketRepository : IRepository {
                         }
                     _messageFlow.emit(it)
                     // 发送已读状态
-                    sendMessageReadStatus(it, headers)
+                    sendMessageReadStatus(it, messageKeyLocal.toMap())
                 } ?: run {
                     logE("$TAG handleReceiveMessage messageEntity is null after json parse")
                 }
