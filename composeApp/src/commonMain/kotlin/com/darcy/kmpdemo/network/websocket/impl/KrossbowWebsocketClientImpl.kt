@@ -148,6 +148,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 
                 override suspend fun onWebSocketFrameReceived(frame: WebSocketFrame) {
                     super.onWebSocketFrameReceived(frame)
+                    logV("$TAG onWebSocketFrameReceived --> ${frame::class.simpleName} ${frame.toString()}")
                 }
 
             }
@@ -177,6 +178,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
 //                    "accept-version" to "1.2,1.1,1.0"
                 )
             )
+
             onOpen()
             session?.let {
                 // 启动私有消息订阅
