@@ -11,8 +11,8 @@ import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
-import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
-import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
+import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
+import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
@@ -145,7 +145,7 @@ object WebsocketRepository : IRepository {
         scope.launch {
             logD("$TAG sendMessage toUser:${message.receiverName}")
             val messageJson = JsonHelper.toJson(message)
-            webSocketManager.send(
+            webSocketManager.sendText(
                 messageJson,
                 SEND_PRIVATE,
                 headers
@@ -172,7 +172,7 @@ object WebsocketRepository : IRepository {
                 val localUserId = imGlobalStorage.getCurrentUserId()
                 val messageKey = MessageKey.fromMap(headers)
                 val messageEntity = JsonHelper.fromJson<STOMPMessage>(message)
-                messageEntity?.let {
+                messageEntity?.let { entity ->
                     val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
                         mapOf(
                             "localUserId" to localUserId.toString(),
@@ -180,14 +180,14 @@ object WebsocketRepository : IRepository {
                             "remoteDHKey" to messageKey.dhPublicKey,
                             "N_KEY" to messageKey.nKey.toString(),
                             "PN_KEY" to messageKey.pnKey.toString(),
-                            "msgId" to it.msgId,
+                            "msgId" to entity.msgId,
                         ), Unit
                     ).onFailure {
                         logE("$TAG 接收时计算messageKey错误: ${it.message}")
                         it.printStackTrace()
                         return@launch
                     }.getOrElse { MessageKey() }
-                    logD("$TAG handleReceiveMessage messageKeyLocal=$messageKeyLocal")
+                    logD("$TAG 接收消息 messageKeyLocal=$messageKeyLocal")
                     // 保存到数据库
                     val response = messageEntity.toPrivateMessageResponse()
                     saveMessageToDBUseCase.invoke(mapOf(), listOf(response.toEntity()))
@@ -196,14 +196,14 @@ object WebsocketRepository : IRepository {
                         }.onFailure { e ->
                             logE("$TAG 接收后 保存到数据库错误: ${response.msgId} ${e::class.simpleName} ${e.message}")
                         }
-                    _messageFlow.emit(it)
+                    _messageFlow.emit(entity)
                     // 发送已读状态
-                    sendMessageReadStatus(it, messageKeyLocal.toMap())
+                    sendMessageReadStatus(entity, localUserId)
                 } ?: run {
-                    logE("$TAG handleReceiveMessage messageEntity is null after json parse")
+                    logE("$TAG 接收消息 messageEntity is null after json parse")
                 }
             }.onFailure {
-                logE("$TAG handle message failed: ${it.message}")
+                logE("$TAG 接收消息错误: ${it.message}")
                 it.printStackTrace()
             }
         }
@@ -214,10 +214,10 @@ object WebsocketRepository : IRepository {
      */
     fun sendMessageReadStatus(
         messageEntity: STOMPMessage,
-        headers: Map<String, String>
+        localUserId: Long,
     ) {
         scope.launch {
-            logD("$TAG markMessageReadStatus")
+            logD("$TAG 发送已读状态 sendMessageReadStatus")
             val messageReadStatusRequest = MessageReadStatusRequest(
                 userId = messageEntity.receiverId,
                 fromUserName = messageEntity.receiverName,
@@ -228,10 +228,20 @@ object WebsocketRepository : IRepository {
                 clientType = "",
                 deviceId = ""
             )
-            webSocketManager.send(
+            val headers = mapOf(
+                "fromUserId" to localUserId.toString(),
+                "toUserId" to messageEntity.senderId.toString(),
+                "url" to "WS:/private"
+            )
+            logI("$TAG 发送已读状态 headers:$headers")
+            webSocketManager.sendText(
                 JsonHelper.toJson(messageReadStatusRequest),
                 SEND_MESSAGE_READ_STATUS,
-                headers
+                mapOf(
+                    "fromUserId" to localUserId.toString(),
+                    "toUserId" to messageEntity.senderId.toString(),
+                    "url" to "WS:/private"
+                )
             )
         }
     }

@@ -88,6 +88,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             logI("$localUserId 找到跳过的消息密钥 - 消息ID:$msgId, 索引:$N")
             val messageKey = MessageKey(
                 fromUserId = remoteUserId,
+                toUserId = localUserId,
                 dhPublicKey = skippedKey.dhPublicKey,
                 messageKey = skippedKey.messageKey,
                 macKey = skippedKey.macKey,
@@ -164,6 +165,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
         val messageKey = MessageKey(
             fromUserId = remoteUserId,
+            toUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
             messageKey = messageKeyBytes.toHexString()
         )
@@ -269,6 +271,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
         val messageKey = MessageKey(
             fromUserId = remoteUserId,
+            toUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
             messageKey = messageKeyBytes.toHexString()
         )

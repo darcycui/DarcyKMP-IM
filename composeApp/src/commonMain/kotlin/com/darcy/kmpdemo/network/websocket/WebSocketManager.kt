@@ -1,6 +1,6 @@
 package com.darcy.kmpdemo.network.websocket
 
-import com.darcy.kmpdemo.network.websocket.impl.KrossbowWebsocketClientImpl
+import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
 
 object WebSocketManager : IWebSocketClient {
@@ -23,8 +23,8 @@ object WebSocketManager : IWebSocketClient {
         iWebsocketClient.disconnect()
     }
 
-    override suspend fun send(message: String, destination: String, headers: Map<String, String>) {
-        iWebsocketClient.send(message, destination, headers)
+    override suspend fun sendText(message: String, destination: String, headers: Map<String, String>) {
+        iWebsocketClient.sendText(message, destination, headers)
     }
 
     override suspend fun send(bytes: ByteArray) {
