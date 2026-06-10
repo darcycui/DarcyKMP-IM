@@ -24,5 +24,5 @@ fun HttpRequestBuilder.getAAD(): String {
 }
 
 fun HttpRequest.getAAD(): String {
-    return "${this.method.value}:${this.url}"
+    return "${this.method.value}:${this.url.toString()}"
 }

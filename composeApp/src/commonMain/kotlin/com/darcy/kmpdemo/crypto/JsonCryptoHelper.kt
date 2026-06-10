@@ -21,13 +21,8 @@ object JsonCryptoHelper {
 
     suspend fun decryptHttpJson(originalJson: String, url: String): String {
         val json = originalJson.removeSurroundingQuotes()
-//        // 解析时先转换为 JsonElement
-//        val jsonElement = kotlinxJson.parseToJsonElement(json)
-//        // 解析 error_code 字段
-//        val errorCode = jsonElement.jsonObject["error_code"]?.jsonPrimitive?.int ?: 0
-//        val resultElement = jsonElement.jsonObject["result"]
         if (EncryptBodyConfig.isEnabled()) {
-            logW("$TAG 解密json json=$json")
+            logW("$TAG 解密json")
             // 解密 result 字段
             val decryptedResult = TransportCipher.decrypt(
                 content = json.hexStrToBytes(),
@@ -40,29 +35,7 @@ object JsonCryptoHelper {
         }
     }
 
-    /**
-     * 去除字符串开头和结尾的双引号 (")
-     * 安全处理 null、空字符串、长度不够以及内部包含引号的情况
-     */
-    fun String?.removeSurroundingQuotes(): String {
-        // 1. 处理 null 或空字符串
-        if (this.isNullOrEmpty()) return ""
-
-        // 2. 长度不够 2 的情况（单个字符或空串，不可能形成一对引号）
-        if (this.length < 2) return this
-
-        // 3. 判断首尾是否同时为双引号
-        if (this.first() == '"' && this.last() == '"') {
-            // substring 会安全处理索引，因为前面已经保证了 length >= 2
-            return this.substring(1, this.length - 1)
-        }
-
-        // 4. 首尾不匹配双引号，原样返回
-        return this
-    }
-
     suspend fun encryptWebsocketJson(message: String, url: String): String {
-//        return message
         val encryptedMessage = TransportCipher.encrypt(
             content = message.toByteArray(),
             aad = "WS:$url".toByteArray()
@@ -80,5 +53,25 @@ object JsonCryptoHelper {
         return decryptedMessage.decodeToString()
     }
 
+}
 
+/**
+ * 去除字符串开头和结尾的双引号 (")
+ * 安全处理 null、空字符串、长度不够以及内部包含引号的情况
+ */
+fun String?.removeSurroundingQuotes(): String {
+    // 1. 处理 null 或空字符串
+    if (this.isNullOrEmpty()) return ""
+
+    // 2. 长度不够 2 的情况（单个字符或空串，不可能形成一对引号）
+    if (this.length < 2) return this
+
+    // 3. 判断首尾是否同时为双引号
+    if (this.first() == '"' && this.last() == '"') {
+        // substring 会安全处理索引，因为前面已经保证了 length >= 2
+        return this.substring(1, this.length - 1)
+    }
+
+    // 4. 首尾不匹配双引号，原样返回
+    return this
 }

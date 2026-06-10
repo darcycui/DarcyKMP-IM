@@ -28,11 +28,11 @@ object EncryptBodyConfig {
  */
 private const val E_TAG = "EncryptRequestJsonBodyPlugin"
 val EncryptRequestJsonBodyPlugin = createClientPlugin(E_TAG) {
-
+    logD("$E_TAG 加密插件 初始化")
     transformRequestBody { request, content, typeInfo ->
         val method = request.method.value
         val path = request.url.encodedPath
-        logD("$E_TAG: $method $path content类型: ${content::class}")
+        logD("$E_TAG 加密插件拦截请求: $method $path content类型: ${content::class}")
         // 只拦截POST请求
         if (method != HttpMethod.Post.value || path.isEmpty()) {
             return@transformRequestBody null

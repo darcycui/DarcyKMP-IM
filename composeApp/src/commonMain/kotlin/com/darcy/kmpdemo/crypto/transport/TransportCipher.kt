@@ -2,6 +2,8 @@ package com.darcy.kmpdemo.crypto.transport
 
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logI
+import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
@@ -45,7 +47,7 @@ object TransportCipher {
                 )
             val cipher = newKey.cipher()
             val data = cipher.encryptWithIv(nonce, content, aad)
-            logD("$TAG 加密后data:${data.bytesToHexStr()}")
+            logV("$TAG 加密后data:${data.bytesToHexStr()}")
             nonce + data
         }.onFailure {
             logE("$TAG 加密失败: ${it::class.simpleName} ${it.message}")
@@ -80,7 +82,7 @@ object TransportCipher {
             logD("$TAG 解密nonce:${nonce.bytesToHexStr()}")
             val ciphertext = content.copyOfRange(IV_LENGTH, content.size)
             val data = cipher.decryptWithIv(nonce, ciphertext, aad)
-            logD("$TAG 解密后data:${data.decodeToString()}")
+            logI("$TAG 解密后data:${data.decodeToString()}")
             data
         }.onFailure {
             logE("$TAG 解密失败: ${it::class.simpleName} ${it.message}")

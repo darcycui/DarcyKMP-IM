@@ -9,6 +9,7 @@ import com.darcy.kmpdemo.network.http.parser.impl.HttpJsonParserImpl
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.utils.toFormDataContent
 import com.darcy.kmpdemo.utils.toUrlEncodedString
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -57,7 +58,8 @@ class KtorHttpClient : IHttp {
                 val json = ktorClient.get(realUrl) {
                     this.header("User-Agent", "KMP Client by Ktor Get")
                     contentType(ContentType.Application.Json)
-                }.bodyAsText()
+                }.body<String>()
+//                    .bodyAsText()
                 jsonParser.toBean(json, serializer, success, successList, errors)
             }.onFailure {
                 it.printStackTrace()
@@ -86,7 +88,8 @@ class KtorHttpClient : IHttp {
                     this.header("User-Agent", "KMP Client by Ktor Post Form")
                     contentType(ContentType.Application.FormUrlEncoded)
                     setBody(formDataContent)
-                }.bodyAsText()
+                }.body<String>()
+//                    .bodyAsText()
                 jsonParser.toBean(json, serializer, success, successList, errors)
             }.onFailure {
                 it.printStackTrace()
@@ -115,9 +118,9 @@ class KtorHttpClient : IHttp {
                     this.header("User-Agent", "KMP Client by Ktor Post Json")
                     contentType(ContentType.Application.Json)
                     setBody(JsonHelper.toJson(serializerR, params))
-                }.bodyAsText()
-                val decryptedJson = JsonCryptoHelper.decryptHttpJson(json, url)
-                jsonParser.toBean(decryptedJson, serializerT, success, successList, errors)
+                }.body<String>()
+//                    .bodyAsText()
+                jsonParser.toBean(json, serializerT, success, successList, errors)
             }.onFailure {
                 it.printStackTrace()
                 errors.invoke(ErrorResponse.create(throwable = it))
