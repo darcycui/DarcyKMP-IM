@@ -12,6 +12,7 @@ class ChainKey(
         private val MESSAGE_KEY_SEED: ByteArray = byteArrayOf(0x01)
         private val CHAIN_KEY_SEED: ByteArray = byteArrayOf(0x02)
     }
+
     init {
         logD("构造ChainKey: key=${key.toHexString()} index=$index")
     }
@@ -37,6 +38,13 @@ class ChainKey(
         return messageKey
     }
 
+    /**
+     * 获取消息密钥
+     * @return Triple<ByteArray, ByteArray, ByteArray>
+     *     messageKey: ByteArray 消息密钥
+     *     macKey: ByteArray 消息密钥的MAC密钥
+     *     iv: ByteArray 密钥的初始向量
+     */
     fun getMessageKeyTriple(): Triple<ByteArray, ByteArray, ByteArray> {
         val inputKeyMaterial = HMAC1.getBaseMaterial(key, MESSAGE_KEY_SEED)
         val keyMaterialBytes: ByteArray =

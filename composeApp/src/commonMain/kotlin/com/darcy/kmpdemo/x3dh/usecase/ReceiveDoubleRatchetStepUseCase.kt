@@ -85,7 +85,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         )
 
         if (skippedKey != null) {
-            logI("$localUserId 找到跳过的消息密钥 - 消息ID:$msgId, 索引:$N")
+            logI("$localUserId 找到已保存的跳过的消息密钥 - 消息ID:$msgId, 索引:$N")
             val messageKey = MessageKey(
                 fromUserId = remoteUserId,
                 toUserId = localUserId,
@@ -94,6 +94,9 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 macKey = skippedKey.macKey,
                 iv = skippedKey.iv,
             )
+            logI("消息密钥:${messageKey.messageKey}")
+            logI("MAC密钥:$${messageKey.macKey}")
+            logI("IV:${messageKey.iv}")
 
 //            val deleted = skippedMessageKeyDao.delete(skippedKey)
 //            if (deleted > 0) {
@@ -161,13 +164,20 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val receiverChain = receiverChainInit.getNextChainKey()
         EncryptUtil.log("$localUserId 接收链密钥:", receiverChain.getKey())
 
-        val messageKeyBytes = receiverChain.getMessageKeys()
+        val messageKeyTriple = receiverChain.getMessageKeyTriple()
+        val messageKeyBytes = messageKeyTriple.first
+        val macKeyBytes = messageKeyTriple.second
+        val ivBytes = messageKeyTriple.third
         EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
+        EncryptUtil.logI("$localUserId 接收 $remoteUserId 的MAC密钥:", macKeyBytes)
+        EncryptUtil.logI("$localUserId 接收 $remoteUserId 的IV:", ivBytes)
         val messageKey = MessageKey(
             fromUserId = remoteUserId,
             toUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
-            messageKey = messageKeyBytes.toHexString()
+            messageKey = messageKeyBytes.toHexString(),
+            macKey = macKeyBytes.toHexString(),
+            iv = ivBytes.toHexString(),
         )
         sessionRecordDao.update(
             sessionRecord.copy(
@@ -267,8 +277,13 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             sessionRecord.receivingChainIndex
         ).getNextChainKey()
         EncryptUtil.log("$localUserId 接收链密钥:", newReceivingChainKey.getKey())
-        val messageKeyBytes = newReceivingChainKey.getMessageKeys()
+        val messageKeyTriple = newReceivingChainKey.getMessageKeyTriple()
+        val messageKeyBytes = messageKeyTriple.first
+        val macKeyBytes = messageKeyTriple.second
+        val ivBytes = messageKeyTriple.third
         EncryptUtil.logI("$localUserId 接收 $remoteUserId 的消息密钥:", messageKeyBytes)
+        EncryptUtil.logI("$localUserId 接收 $remoteUserId 的MAC密钥:", macKeyBytes)
+        EncryptUtil.logI("$localUserId 接收 $remoteUserId 的IV:", ivBytes)
         val messageKey = MessageKey(
             fromUserId = remoteUserId,
             toUserId = localUserId,
