@@ -10,7 +10,7 @@ import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponsePage
 import com.darcy.kmpdemo.bean.http.response.isSelfSent
 import com.darcy.kmpdemo.bean.http.response.toEntity
 import com.darcy.kmpdemo.bean.http.response.toSTOMPMessage
-import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
+import com.darcy.kmpdemo.crypto.message.MessageHelper
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
@@ -157,7 +157,7 @@ class ChatViewModel(
              * 发送消息
              */
             websocketRepository.sendMessage(
-                message.toSTOMPMessage(),
+                message.toSTOMPMessage(messageKeyLocal),
                 messageKeyLocal.toMap()
             )
             dispatch(ChatIntent.RefreshBySendMessage(message))
@@ -182,7 +182,7 @@ class ChatViewModel(
         io {
             websocketRepository.messageFlow.collect { message ->
                 logV("websocket 接收到消息: $message")
-                dispatch(ChatIntent.RefreshByReceiveMessage(message.toPrivateMessageResponse()))
+                dispatch(ChatIntent.RefreshByReceiveMessage(message))
                 // 收到消息 滚动到底部
                 sendEvent(ChatEvent.ScrollToBottom(messageTotalCount - 1))
             }
@@ -213,8 +213,7 @@ class ChatViewModel(
             onSuccess = { response ->
                 io {
                     // http收到消息的处理
-                    response.content.forEach { item ->
-                        logV("$TAG http 接收到消息: ${item.msgId}")
+                    val decryptedContent = response.content.map { item ->
                         val messageKeyLocal = receiveDoubleRatchetStepUseCase.invoke(
                             mapOf(
                                 "localUserId" to userId.toString(),
@@ -227,18 +226,26 @@ class ChatViewModel(
                         ).onFailure {
                             logE("$TAG 接收时计算messageKey错误: ${it.message}")
                             it.printStackTrace()
-                        }.getOrElse { null }
+                        }.getOrElse { MessageKey() }
                         logD("$TAG pullOfflineMessages messageKeyLocal=$messageKeyLocal")
-                        messageKeyLocal?.let { messageKey ->
-                            // 保存到数据库
-                            val msgIds = response.content.map { it.msgId }
-                            saveMessageToDBUseCase.invoke(mapOf(), response.content.toEntity())
-                                .onSuccess {
-                                    logI("$TAG 离线消息保存到数据库成功: $msgIds")
-                                }.onFailure {
-                                    logE("$TAG 离线消息保存到数据库错误: $msgIds ${it::class.simpleName} ${it.message}")
-                                }
-                        }
+                        item.copy(
+                            content = MessageHelper.decryptContent(
+                                item.content,
+                                item.msgId,
+                                messageKeyLocal
+                            )
+                        )
+                    }
+                    decryptedContent.forEach { item ->
+                        logV("$TAG http 接收到消息: ${item.msgId}")
+                        // 保存到数据库
+                        val msgIds = response.content.map { it.msgId }
+                        saveMessageToDBUseCase.invoke(mapOf(), listOf(item.toEntity()))
+                            .onSuccess {
+                                logI("$TAG 离线消息保存到数据库成功: $msgIds")
+                            }.onFailure {
+                                logE("$TAG 离线消息保存到数据库错误: $msgIds ${it::class.simpleName} ${it.message}")
+                            }
                     }
                     // 发送已读状态
                     receiverPushMessageReadStatusHttp(response)

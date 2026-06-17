@@ -288,7 +288,9 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
             fromUserId = remoteUserId,
             toUserId = localUserId,
             dhPublicKey = localEphemeralPublicKeyBytes.toHexString(),
-            messageKey = messageKeyBytes.toHexString()
+            messageKey = messageKeyBytes.toHexString(),
+            macKey = macKeyBytes.toHexString(),
+            iv = ivBytes.toHexString(),
         )
         logD("$localUserId 处理消息成功 - 索引:$N, 消息ID:$msgId")
         sessionRecordDao.update(

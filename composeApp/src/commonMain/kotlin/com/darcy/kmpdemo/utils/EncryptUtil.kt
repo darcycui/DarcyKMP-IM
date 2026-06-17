@@ -28,7 +28,7 @@ object EncryptUtil {
         return result
     }
 
-    fun splitArray80(
+    fun splitArray76(
         array: ByteArray,
         keyLength: Int,
         macLength: Int,

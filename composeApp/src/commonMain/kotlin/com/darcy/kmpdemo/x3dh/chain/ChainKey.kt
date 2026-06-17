@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.x3dh.chain
 
+import com.darcy.kmpdemo.crypto.hmac.HMAC1
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.utils.EncryptUtil
 
@@ -25,12 +26,12 @@ class ChainKey(
         return index
     }
 
-    fun getNextChainKey(): ChainKey {
-        val nextKey = HMAC1.getBaseMaterial(key, CHAIN_KEY_SEED)
+    suspend fun getNextChainKey(): ChainKey {
+        val nextKey = HMAC1.hmacSignature(key, CHAIN_KEY_SEED)
         return ChainKey(kdf, nextKey, index + 1)
     }
 
-    fun getMessageKeys(): ByteArray {
+    suspend fun getMessageKey(): ByteArray {
         val triple: Triple<ByteArray, ByteArray, ByteArray> = getMessageKeyTriple()
         val messageKey: ByteArray = triple.first
         val macKey: ByteArray = triple.second
@@ -41,21 +42,21 @@ class ChainKey(
     /**
      * 获取消息密钥
      * @return Triple<ByteArray, ByteArray, ByteArray>
-     *     messageKey: ByteArray 消息密钥
-     *     macKey: ByteArray 消息密钥的MAC密钥
-     *     iv: ByteArray 密钥的初始向量
+     *     messageKey: ByteArray 消息密钥 32字节
+     *     macKey: ByteArray 消息密钥的MAC密钥 32字节
+     *     iv: ByteArray 密钥的初始向量 16字节
      */
-    fun getMessageKeyTriple(): Triple<ByteArray, ByteArray, ByteArray> {
-        val inputKeyMaterial = HMAC1.getBaseMaterial(key, MESSAGE_KEY_SEED)
+    suspend fun getMessageKeyTriple(): Triple<ByteArray, ByteArray, ByteArray> {
+        val inputKeyMaterial = HMAC1.hmacSignature(key, MESSAGE_KEY_SEED)
         val keyMaterialBytes: ByteArray =
             kdf.deriveSecrets(
                 inputKeyMaterial,
                 ByteArray(32),
                 "WhisperMessageKeys".encodeToByteArray(),
-                80
+                76
             )
         val triple: Triple<ByteArray, ByteArray, ByteArray> =
-            EncryptUtil.splitArray80(keyMaterialBytes, 32, 32, 16)
+            EncryptUtil.splitArray76(keyMaterialBytes, 32, 32, 12)
         return triple
     }
 

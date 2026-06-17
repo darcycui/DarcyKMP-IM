@@ -1,13 +1,13 @@
 package com.darcy.kmpdemo.bean.http.response
 
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
+import com.darcy.kmpdemo.crypto.message.MessageHelper
 import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.tables.PrivateMessageEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
-import com.darcy.kmpdemo.utils.UUIDHelper
+import com.darcy.kmpdemo.x3dh.MessageKey
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlin.time.Clock
 
 @Serializable
 data class PrivateMessageResponsePage(
@@ -70,13 +70,18 @@ fun PrivateMessageResponse.isSelfSent(): Boolean {
     return this.senderId > 0 && this.senderId == IMGlobalStorage.getCurrentUserId()
 }
 
-fun PrivateMessageResponse.toSTOMPMessage(): STOMPMessage {
+suspend fun PrivateMessageResponse.toSTOMPMessage(messageKeyLocal: MessageKey): STOMPMessage {
     return STOMPMessage(
         senderId = this.senderId,
         senderName = this.senderName,
         receiverId = this.receiverId,
         receiverName = this.receiverName,
-        content = this.content,
+//        content = this.content,
+        content = MessageHelper.encryptContent(
+            this.content,
+            this.msgId,
+            messageKeyLocal
+        ), // todo: End-End Encryption 端到端加密
         sendTime = this.sendTime,
         isRead = this.isRead,
         isRecalled = this.isRecalled,

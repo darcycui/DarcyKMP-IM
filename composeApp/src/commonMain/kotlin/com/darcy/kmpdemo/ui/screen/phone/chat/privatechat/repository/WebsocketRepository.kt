@@ -2,6 +2,7 @@ package com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.repository
 
 import com.darcy.kmpdemo.bean.http.request.MessageReadStatusRequest
 import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
+import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.toEntity
 import com.darcy.kmpdemo.bean.websocket.stomp.STOMPMessage
 import com.darcy.kmpdemo.bean.websocket.stomp.toPrivateMessageResponse
@@ -50,8 +51,8 @@ object WebsocketRepository : IRepository {
     private val markMessageReadStatusUseCase = MarkMessageReadStatusUseCase()
     private val saveMessageToDBUseCase: SaveMessageToDBUseCase = SaveMessageToDBUseCase()
 
-    private val _messageFlow = MutableSharedFlow<STOMPMessage>(replay = 0)
-    val messageFlow: SharedFlow<STOMPMessage> = _messageFlow.asSharedFlow()
+    private val _messageFlow = MutableSharedFlow<PrivateMessageResponse>(replay = 0)
+    val messageFlow: SharedFlow<PrivateMessageResponse> = _messageFlow.asSharedFlow()
 
     private val _messageReadStatusFlow = MutableSharedFlow<MessageReadStatusResponse>(replay = 1)
     val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> =
@@ -189,14 +190,14 @@ object WebsocketRepository : IRepository {
                     }.getOrElse { MessageKey() }
                     logD("$TAG 接收消息 messageKeyLocal=$messageKeyLocal")
                     // 保存到数据库
-                    val response = messageEntity.toPrivateMessageResponse()
+                    val response = messageEntity.toPrivateMessageResponse(messageKeyLocal)
                     saveMessageToDBUseCase.invoke(mapOf(), listOf(response.toEntity()))
                         .onSuccess {
                             logI("$TAG 接收后 保存到数据库成功: ${response.msgId}")
                         }.onFailure { e ->
                             logE("$TAG 接收后 保存到数据库错误: ${response.msgId} ${e::class.simpleName} ${e.message}")
                         }
-                    _messageFlow.emit(entity)
+                    _messageFlow.emit(response)
                     // 发送已读状态
                     sendMessageReadStatus(entity, localUserId)
                 } ?: run {

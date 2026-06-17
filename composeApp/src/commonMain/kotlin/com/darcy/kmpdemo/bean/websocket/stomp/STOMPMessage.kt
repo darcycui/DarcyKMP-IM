@@ -1,9 +1,10 @@
 package com.darcy.kmpdemo.bean.websocket.stomp
 
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
+import com.darcy.kmpdemo.crypto.message.MessageHelper
 import com.darcy.kmpdemo.platform.TimePlatform
+import com.darcy.kmpdemo.x3dh.MessageKey
 import kotlinx.serialization.Serializable
-import kotlin.time.Clock
 
 @Serializable
 data class STOMPMessage(
@@ -24,13 +25,14 @@ data class STOMPMessage(
     val pnKey: Long = 0L
 )
 
-fun STOMPMessage.toPrivateMessageResponse(): PrivateMessageResponse {
+suspend fun STOMPMessage.toPrivateMessageResponse(messageKeyLocal: MessageKey): PrivateMessageResponse {
     return PrivateMessageResponse(
         senderId = this.senderId,
         senderName = this.senderName,
         receiverId = this.receiverId,
         receiverName = this.receiverName,
-        content = this.content,
+//        content = this.content,
+        content = MessageHelper.decryptContent(this.content, this.msgId, messageKeyLocal), // todo: End-End Encryption 端到端解密
         msgId = this.msgId,
         msgType = this.msgType,
         sendTime = this.sendTime,
