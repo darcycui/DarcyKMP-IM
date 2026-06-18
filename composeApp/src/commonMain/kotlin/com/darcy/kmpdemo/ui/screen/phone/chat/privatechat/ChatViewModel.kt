@@ -189,7 +189,7 @@ class ChatViewModel(
         }
         io {
             websocketRepository.messageReadStatusFlow.collect { response ->
-                logE("接收到已读消息: ${response.msgIds}")
+                logV("接收到已读消息: ${response.msgIds}")
                 dispatch(ChatIntent.RefreshByReceiveMessageReadStatus(response))
             }
         }

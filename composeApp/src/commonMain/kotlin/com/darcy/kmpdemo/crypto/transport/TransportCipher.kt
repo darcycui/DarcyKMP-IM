@@ -12,7 +12,6 @@ import com.darcy.kmpdemo.utils.hexStrToBytes
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.ChaCha20Poly1305
-import kotlin.math.log
 
 object TransportCipher {
     private const val TAG = "TransportCipher"
@@ -37,7 +36,7 @@ object TransportCipher {
         return runCatching {
             val chacha20 = provider.get(ChaCha20Poly1305)
             logW("$TAG 加密...")
-            logD("$TAG 明文:${content.decodeToString()}")
+            logI("$TAG 明文:${content.decodeToString()}")
             logD("$TAG 加密key:${key.bytesToHexStr()}")
             logD("$TAG 加密aad:${aad.bytesToHexStr()}")
             logD("$TAG 加密nonce:${nonce.bytesToHexStr()}")
@@ -46,9 +45,9 @@ object TransportCipher {
                     ChaCha20Poly1305.Key.Format.RAW, key
                 )
             val cipher = newKey.cipher()
-            val data = cipher.encryptWithIv(nonce, content, aad)
-            logV("$TAG 加密后data:${data.bytesToHexStr()}")
-            nonce + data
+            val ciphertext = cipher.encryptWithIv(nonce, content, aad)
+            logV("$TAG 加密后data:${ciphertext.bytesToHexStr()}")
+            nonce + ciphertext
         }.onFailure {
             logE("$TAG 加密失败: ${it::class.simpleName} ${it.message}")
         }.getOrElse { byteArrayOf() }
@@ -70,7 +69,7 @@ object TransportCipher {
     ): ByteArray {
         return runCatching {
             logW("$TAG 解密...")
-            logD("$TAG 密文:${content.bytesToHexStr()}")
+            logV("$TAG 密文:${content.bytesToHexStr()}")
             logD("$TAG 解密key:${key.bytesToHexStr()}")
             logD("$TAG 解密aad:${aad.bytesToHexStr()}")
             val chacha20 = provider.get(ChaCha20Poly1305)
@@ -81,9 +80,9 @@ object TransportCipher {
             val nonce = content.copyOfRange(0, IV_LENGTH)
             logD("$TAG 解密nonce:${nonce.bytesToHexStr()}")
             val ciphertext = content.copyOfRange(IV_LENGTH, content.size)
-            val data = cipher.decryptWithIv(nonce, ciphertext, aad)
-            logI("$TAG 解密后data:${data.decodeToString()}")
-            data
+            val plaintext = cipher.decryptWithIv(nonce, ciphertext, aad)
+            logI("$TAG 解密后data:${plaintext.decodeToString()}")
+            plaintext
         }.onFailure {
             logE("$TAG 解密失败: ${it::class.simpleName} ${it.message}")
             it.printStackTrace()

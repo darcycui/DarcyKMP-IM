@@ -3,6 +3,8 @@ package com.darcy.kmpdemo.crypto.message
 import com.darcy.kmpdemo.crypto.hmac.HMAC1
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logI
+import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import com.darcy.kmpdemo.utils.bytesToHexStr
@@ -34,7 +36,7 @@ object MessageCipher {
     ): ByteArray {
         return runCatching {
             logW("$TAG 加密...")
-            logD("$TAG 明文:${data.decodeToString()} 长度=${data.size}")
+            logI("$TAG 明文:${data.decodeToString()} 长度=${data.size}")
             logD("$TAG 加密key:${key.bytesToHexStr()}")
             logD("$TAG 加密nonce:${nonce.bytesToHexStr()}")
             logD("$TAG 加密aad:${aad.bytesToHexStr()}")
@@ -47,7 +49,9 @@ object MessageCipher {
             )
             val cipher = newKey.cipher()
             val ciphertext = cipher.encryptWithIv(nonce, data, aad)
+            logV("$TAG 加密后content:${ciphertext.bytesToHexStr()}")
             val hmac = HMAC1.hmacSignature(macKey, nonce + ciphertext)
+            logV("$TAG 加密时hmac:${hmac.bytesToHexStr()}")
             hmac + ciphertext
 
         }.onFailure {
@@ -73,7 +77,7 @@ object MessageCipher {
     ): ByteArray {
         return runCatching {
             logW("$TAG 解密...")
-            logD("$TAG 密文:${data.bytesToHexStr()}")
+            logV("$TAG 密文:${data.bytesToHexStr()}")
             logD("$TAG 解密key:${key.bytesToHexStr()}")
             logD("$TAG 解密nonce:${nonce.bytesToHexStr()}")
             logD("$TAG 解密aad:${aad.bytesToHexStr()}")
@@ -85,13 +89,13 @@ object MessageCipher {
                 AES.Key.Format.RAW, key
             )
             val cipher = newKey.cipher()
-            val expectedSignature = data.copyOfRange(0, HMAC_LENGTH)
-            logD("$TAG 解密expectedSignature:${expectedSignature.bytesToHexStr()}")
+            val expectedHmac = data.copyOfRange(0, HMAC_LENGTH)
+            logD("$TAG 解密时expectedHmac:${expectedHmac.bytesToHexStr()}")
             val ciphertext = data.copyOfRange(HMAC_LENGTH, data.size)
-            if (HMAC1.hmacSignatureVerify(macKey, nonce + ciphertext, expectedSignature)) {
+            if (HMAC1.hmacSignatureVerify(macKey, nonce + ciphertext, expectedHmac)) {
                 logD("$TAG HMAC 校验成功")
                 val plaintext = cipher.decryptWithIv(nonce, ciphertext, aad)
-                logD("$TAG 解密后:${plaintext.decodeToString()} 长度=${plaintext.size}")
+                logI("$TAG 解密后content:${plaintext.decodeToString()} 长度=${plaintext.size}")
                 plaintext
             } else {
                 logE("$TAG HMAC 校验失败")

@@ -150,18 +150,18 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         EncryptUtil.log("$localUserId 根密钥(新):", receivingNewRootKey)
         val receivingNewChainKey = receivingPair.second
         EncryptUtil.log("$localUserId 接收链初始化密钥:", receivingNewChainKey)
-        val receiverChainInit = ChainKey(HKDF1(), receivingNewChainKey, 0)
+        var currentReceiverChainKey = ChainKey(HKDF1(), receivingNewChainKey, 0)
 
         val skippedCount = N - 1
         if (skippedCount > 0) {
             logE("$localUserId 新接收链需要跳过 $skippedCount 个消息密钥 (索引 0 到 ${skippedCount - 1})")
-            cacheSkippedKeysForCurrentChain(
+            currentReceiverChainKey = cacheSkippedKeysForCurrentChain(
                 localUserId, remoteUserId,
-                receiverChainInit, skippedCount,
+                currentReceiverChainKey, skippedCount,
                 remoteDHKey.toBytes().toHexString()
             )
         }
-        val receiverChain = receiverChainInit.getNextChainKey()
+        val receiverChain = currentReceiverChainKey.getNextChainKey()
         EncryptUtil.log("$localUserId 接收链密钥:", receiverChain.getKey())
 
         val messageKeyTriple = receiverChain.getMessageKeyTriple()
@@ -223,7 +223,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 rootKey = sendingNewRootKey.toHexString(),
                 receivingChainKey = receiverChain.getKey().toHexString(),
                 sendingChainKey = senderChain.getKey().toHexString(),
-                receivingChainIndex = 0, // 重置 receivingChainIndex
+                receivingChainIndex = N, // todo:注意不能重置 receivingChainIndex
                 localEphemeralPrivateKey = newLocalEphemeralPrivateKey.toBytes().toHexString(),
                 localEphemeralPublicKey = newLocalEphemeralPublicKey.toBytes().toHexString(),
                 updatedTime = TimePlatform.getCurrentTimeStamp(),
@@ -250,16 +250,16 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val currentChainIndex = sessionRecord.receivingChainIndex + 1
         val skippedCount = N - currentChainIndex
 
+        var currentReceivingChainKey = ChainKey(
+            HKDF1(),
+            sessionRecord.receivingChainKey.hexStrToBytes(),
+            sessionRecord.receivingChainIndex
+        )
         if (skippedCount > 0) {
             logE("$localUserId 当前接收链需要跳过 $skippedCount 个消息密钥 (索引 $currentChainIndex 到 ${N - 1})")
-            val currentChainKey = ChainKey(
-                HKDF1(),
-                sessionRecord.receivingChainKey.hexStrToBytes(),
-                currentChainIndex
-            )
-            cacheSkippedKeysForCurrentChain(
+            currentReceivingChainKey = cacheSkippedKeysForCurrentChain(
                 localUserId, remoteUserId,
-                currentChainKey, skippedCount,
+                currentReceivingChainKey, skippedCount,
                 sessionRecord.remoteDHKey
             )
         }
@@ -271,11 +271,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         EncryptUtil.log("$localUserId 本地公钥:", localEphemeralPublicKey)
         EncryptUtil.log("$localUserId DH 私钥:", localEphemeralPrivateKey)
         EncryptUtil.log("$localUserId DH 公钥:", remoteDHKey)
-        val newReceivingChainKey = ChainKey(
-            HKDF1(),
-            sessionRecord.receivingChainKey.hexStrToBytes(),
-            sessionRecord.receivingChainIndex
-        ).getNextChainKey()
+        val newReceivingChainKey = currentReceivingChainKey.getNextChainKey()
         EncryptUtil.log("$localUserId 接收链密钥:", newReceivingChainKey.getKey())
         val messageKeyTriple = newReceivingChainKey.getMessageKeyTriple()
         val messageKeyBytes = messageKeyTriple.first
@@ -315,12 +311,12 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         val oldChainSkipCount = PN - currentReceivingChainLength
         if (oldChainSkipCount > 0) {
             logE("$localUserId 旧接收链需要跳过 $oldChainSkipCount 个消息密钥")
-            val oldChainKey = ChainKey(
+            var oldChainKey = ChainKey(
                 HKDF1(),
                 sessionRecord.receivingChainKey.hexStrToBytes(),
                 sessionRecord.receivingChainIndex
             )
-            cacheSkippedKeysForCurrentChain(
+            oldChainKey = cacheSkippedKeysForCurrentChain(
                 localUserId, remoteUserId,
                 oldChainKey, oldChainSkipCount,
                 sessionRecord.remoteDHKey
@@ -336,7 +332,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         startChainKey: ChainKey,
         skipCount: Long,
         dhPublicKey: String
-    ) {
+    ): ChainKey {
         var chainKey = startChainKey
         val skippedEntities = mutableListOf<SkippedMessageKeyEntity>()
 
@@ -357,12 +353,13 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
                 createdTime = TimePlatform.getCurrentTimeStamp()
             )
             skippedEntities.add(entity)
-            logD("$localUserId 缓存跳过密钥 - DH:${dhPublicKey.take(16)}..., 索引:${chainKey.getIndex()}")
+            logD("$localUserId 缓存跳过密钥 - DH:${dhPublicKey.take(16)}... messageKey:${messageKey.toHexString().take(16)}..., 索引:${chainKey.getIndex()}")
         }
         if (skippedEntities.isNotEmpty()) {
             skippedMessageKeyDao.insertAll(skippedEntities)
             logI("$localUserId 已缓存 ${skippedEntities.size} 个跳过消息密钥")
         }
+        return chainKey
     }
 
     private suspend fun cleanupOldSkippedKeys(

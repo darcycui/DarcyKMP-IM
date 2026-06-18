@@ -2,6 +2,7 @@ package com.darcy.kmpdemo.x3dh.usecase
 
 import com.darcy.kmpdemo.bean.http.response.MessageReadStatusResponse
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logV
 import com.darcy.kmpdemo.platform.TimePlatform
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.storage.database.tables.MessageReadStatusEntity
@@ -42,7 +43,7 @@ class MarkMessageReadStatusUseCase : IUseCase<Unit, List<MessageReadStatusEntity
             )
         }
         val readList = messageReadStatusDao.findByUserIdAndMessageIdList(userId, msgIds)
-        logE("更新了${readList.size} 条消息为已读")
+        logV("更新了${readList.size} 条消息为已读")
         return Result.success(readList)
     }
 }
