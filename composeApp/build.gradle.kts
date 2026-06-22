@@ -1,7 +1,6 @@
 import dev.icerock.gradle.MRVisibility
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -236,8 +235,8 @@ dependencies {
     add("kspDesktop", libs.androidx.room.compiler)
     // Room3 Web端通过OPFS(Original Private File System)实现持久化
     add("kspCommonMainMetadata", libs.androidx.room.compiler)
-//    add("kspJS", libs.androidx.room.compiler)
-//    add("kspWasm", libs.androidx.room.compiler)
+    add("kspJs", libs.androidx.room.compiler)
+//    add("kspWasmJs", libs.androidx.room.compiler)
     // Add any other platform target you use in your project, for example kspDesktop
 }
 

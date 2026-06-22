@@ -1,7 +1,9 @@
 package com.darcy.kmpdemo.storage.database
 
+import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
+import com.darcy.kmpdemo.storage.DarcyIMDatabaseConstructor
 //import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.darcy.kmpdemo.storage.database.daos.ConversationDao
 import com.darcy.kmpdemo.storage.database.daos.FriendshipUserDao
@@ -44,7 +46,7 @@ import kotlinx.coroutines.Dispatchers
     exportSchema = true
 )
 
-//@ConstructedBy(DarcyIMDatabaseConstructor::class)
+@ConstructedBy(DarcyIMDatabaseConstructor::class)
 abstract class DarcyIMDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun conversationDao(): ConversationDao
