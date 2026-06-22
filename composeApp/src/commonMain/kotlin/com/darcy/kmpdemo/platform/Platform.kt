@@ -10,3 +10,6 @@ expect fun getPlatform(): Platform
 expect fun isPhonePlatform(): Boolean
 
 expect fun isJvmPlatform(): Boolean
+
+expect fun isJsPlatform(): Boolean
+

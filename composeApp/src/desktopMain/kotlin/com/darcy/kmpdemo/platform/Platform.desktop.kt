@@ -19,3 +19,7 @@ actual fun isPhonePlatform(): Boolean {
 actual fun isJvmPlatform(): Boolean {
     return true
 }
+
+actual fun isJsPlatform(): Boolean {
+    return false
+}
