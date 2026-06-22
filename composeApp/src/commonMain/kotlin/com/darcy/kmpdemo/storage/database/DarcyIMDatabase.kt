@@ -2,7 +2,7 @@ package com.darcy.kmpdemo.storage.database
 
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+//import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.darcy.kmpdemo.storage.database.daos.ConversationDao
 import com.darcy.kmpdemo.storage.database.daos.FriendshipUserDao
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
@@ -24,7 +24,6 @@ import com.darcy.kmpdemo.storage.database.tables.SignedPreKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.SkippedMessageKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.UserEntity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 
 @Database(
     entities = [
@@ -61,8 +60,7 @@ abstract class DarcyIMDatabase : RoomDatabase() {
 
 fun getDarcyIMDatabase(): DarcyIMDatabase {
     return getIMDatabaseBuilder()
-        .setDriver(BundledSQLiteDriver()) // 使用内置的SQLite
-        .setQueryCoroutineContext(Dispatchers.IO) // 协程上下文
+        .setQueryCoroutineContext(Dispatchers.Default) // 协程上下文
         .addMigrations()
         .fallbackToDestructiveMigration(false)
         .build()

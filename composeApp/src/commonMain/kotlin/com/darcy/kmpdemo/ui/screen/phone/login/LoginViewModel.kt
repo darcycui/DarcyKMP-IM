@@ -96,11 +96,11 @@ class LoginViewModel(
                 userId = userId,
                 publicKey = ephemeralKey.publicKey.toBytes().toHexString(),
                 onSuccess = {
-                    logI("获取 Server DH公钥成功：$it")
-                    val sharedSecret = ECCExchangeHelper.getSharedSecret(
-                        ephemeralKey.privateKey, it.publicKey.hexStrToBytes().toPublicKey()
-                    ).toHexString()
                     io {
+                        logI("获取 Server DH公钥成功：$it")
+                        val sharedSecret = ECCExchangeHelper.getSharedSecret(
+                            ephemeralKey.privateKey, it.publicKey.hexStrToBytes().toPublicKey()
+                        ).toHexString()
                         // 保存到内存存储
                         TransportGlobalStorage.setServerSharedSecretKey(sharedSecret)
                         sendEvent(LoginEvent.LoginSuccessEvent)

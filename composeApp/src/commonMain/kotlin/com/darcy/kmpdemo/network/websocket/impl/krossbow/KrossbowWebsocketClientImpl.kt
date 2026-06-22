@@ -15,13 +15,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
-import kotlinx.coroutines.runBlocking
+//import kotlinx.coroutines.newSingleThreadContext
+//import kotlinx.coroutines.runBlocking
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.WebSocketClosedUnexpectedly
 import org.hildan.krossbow.stomp.config.HeartBeat
@@ -63,7 +64,8 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
     private var isConnected = false
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-    private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocket-stomp")
+//    private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocket-stomp")
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
     private val exceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
             logE("$TAG exceptionHandler: ${throwable.message}")
@@ -80,7 +82,7 @@ class KrossbowWebsocketClientImpl : IWebSocketClient, IOuterListener {
             is CancellationException -> {
                 logE("阻塞异常 需要断开websocket连接")
                 // 注意在异常handler中 不能使用scope开启协程
-                runBlocking {
+                CoroutineScope(Dispatchers.Default).launch {
                     disconnect()
                 }
             }

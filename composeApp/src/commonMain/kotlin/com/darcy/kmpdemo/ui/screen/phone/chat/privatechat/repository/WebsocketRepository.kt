@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
+//import kotlinx.coroutines.newSingleThreadContext
 
 /**
  * websocket STOMP协议聊天
@@ -63,7 +63,8 @@ object WebsocketRepository : IRepository {
         _connectionStateFlow.asStateFlow()
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-    private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocketRepository")
+//    private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocketRepository")
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
     private val exceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
             logE("$TAG exceptionHandler: ${throwable.message}")

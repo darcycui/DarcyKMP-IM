@@ -11,7 +11,7 @@ actual fun getIMDatabaseBuilder(): RoomDatabase.Builder<DarcyIMDatabase> {
     val dbFilePath = documentDirectory() + "/darcy_im_room.db"
     return Room.databaseBuilder<DarcyIMDatabase>(
         name = dbFilePath,
-    )
+    ).setDriver(androidx.sqlite.driver.bundled.BundledSQLiteDriver()) // 使用内置的SQLite
 }
 
 @OptIn(ExperimentalForeignApi::class)

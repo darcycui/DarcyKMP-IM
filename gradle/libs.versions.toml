@@ -3,47 +3,53 @@ agp = "8.12.0"
 android-compileSdk = "36"
 android-minSdk = "24"
 android-targetSdk = "36"
-androidx-activityCompose = "1.12.2"
+androidx-activityCompose = "1.13.0"
 androidx-appcompat = "1.7.1"
 androidx-constraintlayout = "2.2.1"
-androidx-core-ktx = "1.17.0"
+androidx-core-ktx = "1.19.0"
 androidx-espresso-core = "3.7.0"
-androidx-lifecycle = "2.9.6"
-androidx-material = "1.13.0"
+androidx-lifecycle = "2.10.0"
+androidx-material = "1.14.0"
 androidx-test-junit = "1.3.0"
 coilCompose = "3.3.0"
-composeMultiplatform = "1.10.0"
+composeMultiplatform = "1.11.1"
 cryptographyCore = "0.6.0"
 material3 = "1.9.0"
 materialIconsExtended = "1.7.3"
-filekitCore = "0.12.0"
+filekitCore = "0.14.2"
 junit = "4.13.2"
-kotlin = "2.3.0"
-jetbrainsKotlinJvm = "2.3.0"
-kotlinx-coroutines = "1.10.2"
+kotlin = "2.4.0"
+kotlinx-coroutines = "1.11.0"
 
 # KMP Websocket STOMP library (v9.3.0 use Kotlin-2.1.20 and ktor-3.1.2)
-kotlinxIoCore = "0.8.2"
+kotlinxIoCore = "0.9.0"
 krossbowStompCore = "9.3.0"
 kmpLibrary = "1.0.0"
-mokoResourcesGenerator = "0.25.2"
+mokoResourcesGenerator = "0.26.4"
 ktor = "3.3.3"
-kotlinxSerialization = "1.9.0"
+kotlinxSerialization = "1.11.0"
 navigationCompose = "2.9.1"
 napier = "2.7.1"
 darcyKmpLibraryStorage = "1.0.1"
 multiplatformSettings = "1.3.0"
 hashBomVersion = "0.8.0"
-roomVersion = "3.0.0-alpha04"
+roomVersion = "3.0.0-alpha06"
 slf4jSimple = "2.0.18"
-sqlite = "2.7.0-alpha04"
-ksp = "2.3.7"
+sqlite = "2.7.0-alpha06"
+ksp = "2.3.9"
 bouncyCastle = "1.84"
 
 [libraries]
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 androidx-room-runtime = { module = "androidx.room3:room3-runtime", version.ref = "roomVersion" }
+androidx-room-runtime-android = { module = "androidx.room3:room3-runtime-android", version.ref = "roomVersion" }
+androidx-room-runtime-jvm = { module = "androidx.room3:room3-runtime-jvm", version.ref = "roomVersion" }
+androidx-room-runtime-iosarm64 = { module = "androidx.room3:room3-runtime-iosarm64", version.ref = "roomVersion" }
+androidx-room-runtime-iossimulatorarm64 = { module = "androidx.room3:room3-runtime-iossimulatorarm64", version.ref = "roomVersion" }
+androidx-room-runtime-js = { module = "androidx.room3:room3-runtime-js", version.ref = "roomVersion" }
+androidx-room-runtime-wasm-js = { module = "androidx.room3:room3-runtime-wasm-js", version.ref = "roomVersion" }
 androidx-room-compiler = { module = "androidx.room3:room3-compiler", version.ref = "roomVersion" }
+androidx-sqlite-web = { module = "androidx.sqlite:sqlite-web", version.ref = "sqlite" }
 # Optional SQLite Wrapper available in version 2.8.0 and higher
 #androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "roomVersion" }
 
@@ -140,7 +146,7 @@ composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "k
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 androidLint = { id = "com.android.lint", version.ref = "agp" }
-jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

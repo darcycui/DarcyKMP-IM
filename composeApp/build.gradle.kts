@@ -37,9 +37,11 @@ kotlin {
         }
     }
 
+    jvm("desktop")
+
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+//        iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "DarcyKMP"
@@ -47,15 +49,19 @@ kotlin {
         }
     }
 
-    jvm("desktop")
 
-    // moko resources 0.25.2支持wasm
     // darcy.kmp.lib.storage
-//    js {
-//        browser()
-//        binaries.executable()
-//    }
-//
+    js(IR) {
+        browser()
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "composeApp.js"
+//            }
+//        }
+        binaries.executable()
+    }
+
+//    // moko resources 0.25.2支持wasm
 //    @OptIn(ExperimentalWasmDsl::class)
 //    wasmJs {
 //        browser()
@@ -68,21 +74,6 @@ kotlin {
 
     sourceSets {
         val desktopMain by getting
-
-        androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
-            // ktor network
-            // kotlin coroutine
-            implementation(libs.kotlinx.coroutines.android)
-            // Optional when using Room SQLite Wrapper
-//            implementation(libs.androidx.room.sqlite.wrapper)
-            // SLF4J simple implementation for Napier
-            implementation(libs.slf4j.simple)
-            // Bouncy Castle for Android
-            implementation(libs.cryptography.provider.bouncycastle)
-            implementation(libs.bouncycastle.bcprov)
-            implementation(libs.bouncycastle.bcpkix)
-        }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -142,7 +133,6 @@ kotlin {
             implementation(libs.hash.sha2)
             // database room
             implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.sqlite.bundled)
             // krossbow STOMP client for KMP
             api(libs.krossbow.stomp.core)
             api(libs.krossbow.websocket.builtin)
@@ -153,11 +143,30 @@ kotlin {
             // UUID
 
         }
+
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+            // ktor network
+            // kotlin coroutine
+            implementation(libs.kotlinx.coroutines.android)
+            // Room
+            implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.androidx.room.runtime.android)
+            // Room SQLite Wrapper (可选)
+//            implementation(libs.androidx.room.sqlite.wrapper)
+            // SLF4J simple implementation for Napier
+            implementation(libs.slf4j.simple)
+            // Bouncy Castle for Android
+            implementation(libs.cryptography.provider.bouncycastle)
+            implementation(libs.bouncycastle.bcprov)
+            implementation(libs.bouncycastle.bcpkix)
+        }
+
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             // 引用本地发布的库
-            implementation(libs.kmp.library)
+//            implementation(libs.kmp.library)
             // pick file
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)
@@ -165,7 +174,25 @@ kotlin {
             implementation(libs.filekit.coil)
             // SLF4J simple implementation for Napier
             implementation(libs.slf4j.simple)
+            // Room
+            implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.androidx.room.runtime.jvm)
         }
+        iosMain.dependencies {
+            // Room
+            implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.androidx.room.runtime.iosarm64)
+        }
+        jsMain.dependencies {
+            //Room
+            implementation(libs.androidx.room.runtime.js)
+            // 添加 Web 平台的 SQLite 驱动
+            implementation(libs.androidx.sqlite.web)
+        }
+//        wasmJsMain.dependencies {
+//            //Room
+//            implementation(libs.androidx.room.runtime.wasm.js)
+//        }
         // 添加单元测试
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -204,10 +231,11 @@ android {
 dependencies {
     debugImplementation(libs.compose.ui.tooling)
     add("kspAndroid", libs.androidx.room.compiler)
-    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
+//    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspDesktop", libs.androidx.room.compiler)
     // Room3 Web端通过OPFS(Original Private File System)实现持久化
+    add("kspCommonMainMetadata", libs.androidx.room.compiler)
 //    add("kspJS", libs.androidx.room.compiler)
 //    add("kspWasm", libs.androidx.room.compiler)
     // Add any other platform target you use in your project, for example kspDesktop

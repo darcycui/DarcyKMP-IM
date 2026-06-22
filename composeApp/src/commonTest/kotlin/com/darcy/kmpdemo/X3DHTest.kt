@@ -7,6 +7,7 @@ import com.darcy.kmpdemo.utils.toPrivateKey
 import com.darcy.kmpdemo.utils.toPublicKey
 import com.darcy.kmpdemo.x3dh.chain.HKDF1
 import com.darcy.kmpdemo.x3dh.exchange.ECCExchangeHelper
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
@@ -20,12 +21,14 @@ class X3DHTest {
 
     @Test
     fun test() {
-        val bobKeys = X3DHBobKeys()
-        val K1 = aliceCalculateKey(bobKeys)
-        println("K1==${K1.bytesToHexStr()}")
-        val K2 = bobCalculateKey()
-        println("K2=${K2.bytesToHexStr()}")
-        assertContentEquals(K1, K2, "密钥交换错误")
+        runTest {
+            val bobKeys = X3DHBobKeys()
+            val K1 = aliceCalculateKey(bobKeys)
+            println("K1==${K1.bytesToHexStr()}")
+            val K2 = bobCalculateKey()
+            println("K2=${K2.bytesToHexStr()}")
+            assertContentEquals(K1, K2, "密钥交换错误")
+        }
     }
 
     val aliceIdentityPrivateKey =
@@ -61,7 +64,7 @@ class X3DHTest {
     val bobOneTimePreKeyPrivate =
         "55f2e93e1f74ce86dfbf8772264a216c6cb3e69979fd50771fb5c7c7841f53a0"
 
-    fun bobCalculateKey(): ByteArray {
+    suspend fun bobCalculateKey(): ByteArray {
         val bobIdentityPrivate = bobIdentityPrivate.hexStrToBytes().toPrivateKey()
         val bobSignedPreKeyPrivate = bobSignedPreKeyPrivate.hexStrToBytes().toPrivateKey()
         val bobOneTimePreKeyPrivate = bobOneTimePreKeyPrivate.hexStrToBytes().toPrivateKey()

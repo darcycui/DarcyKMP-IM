@@ -6,7 +6,7 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 
 object ExceptionHelper {
-    private val TAG = ExceptionHelper::class.java.simpleName
+    private val TAG = ExceptionHelper::class.simpleName
     private val exceptionMap = mapOf(
         "java.net.ConnectException" to NetworkException.TimeOutException(),
         "java.net.ConnectTimeoutException" to NetworkException.TimeOutException(),
@@ -18,7 +18,8 @@ object ExceptionHelper {
     )
 
     fun mapException(throwable: Throwable): NetworkException {
-        val clazzName = throwable::class.qualifiedName
+        // 获取异常类名:Throwable.toString()在所有平台都能正常工作，它默认输出格式为 类全限定名: 异常消息
+        val clazzName = throwable::class.toString()
         logD("$TAG mapException: $clazzName")
         if (clazzName != null && clazzName in exceptionMap) {
             return exceptionMap[clazzName] ?: NetworkException.UnknownException()
