@@ -1,20 +1,13 @@
 package com.darcy.kmpdemo.log
 
-import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import com.darcy.kmpdemo.platform.getPlatform
-import com.darcy.kmpdemo.platform.isJvmPlatform
 
 const val DARCY_TAG = "DarcyLog"
 
 object DarcyLogger {
-    val isJVMPlatform = isJvmPlatform()
     fun initLogger() {
-        if (isJVMPlatform) {
-            Napier.base(DesktopAntilog())
-        } else {
-            Napier.base(DebugAntilog())
-        }
+        Napier.base(createPlatformAntilog())
 //    Napier.base(ReleaseAntiLog())
         val platform = getPlatform()
         logD("initLogger $platform")
