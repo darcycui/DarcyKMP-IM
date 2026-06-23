@@ -1,6 +1,7 @@
 import dev.icerock.gradle.MRVisibility
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -50,17 +51,17 @@ kotlin {
 
 
     // darcy.kmp.lib.storage
-    js(IR) {
-        browser()
+    js {
 //        browser {
 //            commonWebpackConfig {
-//                outputFileName = "composeApp.js"
+//                outputFileName = "sqlite-worker.js"
 //            }
 //        }
+        browser()
         binaries.executable()
     }
 
-//    // moko resources 0.25.2支持wasm
+    // moko resources 0.25.2支持wasm
 //    @OptIn(ExperimentalWasmDsl::class)
 //    wasmJs {
 //        browser()
@@ -185,13 +186,21 @@ kotlin {
             implementation(libs.androidx.room.runtime.js)
             // 添加 Web 平台的 SQLite 驱动
             implementation(libs.androidx.sqlite.web)
+            // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
+            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
             // Ktor Js 引擎 (浏览器 fetch API)
             implementation(libs.ktor.client.js)
         }
-//        wasmJsMain.dependencies {
-//            //Room
-//            implementation(libs.androidx.room.runtime.wasm.js)
-//        }
+        wasmJsMain.dependencies {
+            //Room
+            implementation(libs.androidx.room.runtime.wasm.js)
+            // 添加 Web 平台的 SQLite 驱动
+            implementation(libs.androidx.sqlite.web)
+            // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
+            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
+            // Ktor Js 引擎 (浏览器 fetch API)
+            implementation(libs.ktor.client.js)
+        }
         // 添加单元测试
         commonTest.dependencies {
             implementation(libs.kotlin.test)

@@ -60,12 +60,18 @@ abstract class DarcyIMDatabase : RoomDatabase() {
     abstract fun skippedMessageKeyDao(): SkippedMessageKeyDao
 }
 
+private var database: DarcyIMDatabase? = null
+
 fun getDarcyIMDatabase(): DarcyIMDatabase {
-    return getIMDatabaseBuilder()
-        .setQueryCoroutineContext(Dispatchers.Default) // 协程上下文
-        .addMigrations()
-        .fallbackToDestructiveMigration(false)
-        .build()
+    if (database == null) {
+        database = getIMDatabaseBuilder()
+            .setQueryCoroutineContext(Dispatchers.Default) // 协程上下文
+            .setSingleConnectionPool() // Web Worker 串行化所有操作，无需多连接池
+            .addMigrations()
+            .fallbackToDestructiveMigration(false)
+            .build()
+    }
+    return database!!
 }
 
 expect fun getIMDatabaseBuilder(): RoomDatabase.Builder<DarcyIMDatabase>

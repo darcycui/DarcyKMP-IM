@@ -3,10 +3,12 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
+
 //        maven("https://maven.aliyun.com/repository/public")
 //        maven("https://maven.aliyun.com/repository/jcenter")
 //        maven("https://maven.aliyun.com/repository/google")
 //        maven("https://maven.aliyun.com/repository/gradle-plugin")
+
         google()
 //        google {
 //            mavenContent {
@@ -24,10 +26,12 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
-//        maven("https://maven.aliyun.com/repository/public")
-//        maven("https://maven.aliyun.com/repository/jcenter")
-//        maven("https://maven.aliyun.com/repository/google")
-//        maven("https://maven.aliyun.com/repository/gradle-plugin")
+
+        maven("https://maven.aliyun.com/repository/public")
+        maven("https://maven.aliyun.com/repository/jcenter")
+        maven("https://maven.aliyun.com/repository/google")
+        maven("https://maven.aliyun.com/repository/gradle-plugin")
+
         google()
 //        google {
 //            mavenContent {
@@ -37,7 +41,6 @@ dependencyResolutionManagement {
 //            }
 //        }
         mavenCentral()
-
         // 添加本地 Maven 仓库
         mavenLocal()
     }

@@ -294,6 +294,11 @@
   resolved "https://registry.npmmirror.com/@socket.io/component-emitter/-/component-emitter-3.1.2.tgz#821f8442f4175d8f0467b9daf26e3a18e2d02af2"
   integrity sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==
 
+"@sqlite.org/sqlite-wasm@3.53.0-build1":
+  version "3.53.0-build1"
+  resolved "https://registry.npmmirror.com/@sqlite.org/sqlite-wasm/-/sqlite-wasm-3.53.0-build1.tgz#066cab9189973c39edbb7078c55bb4daa1cd2d30"
+  integrity sha512-PfWPWN2n+/37doa8oh2/oUXk4OOsRYZsxc1W1sDXIGb/Pu5Yrb+f2eyYpgQMGITVX7HVgxhs9P18Rc6I97ym/g==
+
 "@types/body-parser@*":
   version "1.19.6"
   resolved "https://registry.npmmirror.com/@types/body-parser/-/body-parser-1.19.6.tgz#1859bebb8fd7dac9918a45d54c1971ab8b5af474"
