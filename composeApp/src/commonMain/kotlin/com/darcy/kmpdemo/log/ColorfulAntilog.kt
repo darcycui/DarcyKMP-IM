@@ -4,14 +4,20 @@ import com.darcy.kmpdemo.platform.TimePlatform
 import io.github.aakira.napier.Antilog
 import io.github.aakira.napier.LogLevel
 
-class DesktopAntilog : Antilog() {
+/**
+ * 彩色日志打印
+ * 用于 desktop、web
+ */
+class ColorfulAntilog : Antilog() {
 
-    private val ANSI_RESET = "\u001B[0m"
-    private val ANSI_BLUE = "\u001B[34m"      // DEBUG
-    private val ANSI_GREEN = "\u001B[32m"     // INFO
-    private val ANSI_YELLOW = "\u001B[33m"    // WARN
-    private val ANSI_RED = "\u001B[31m"       // ERROR
-    private val ANSI_WHITE = "\u001B[38;5;250m"      // VERBOSE
+    companion object {
+        private const val ANSI_RESET = "\u001B[0m"
+        private const val ANSI_BLUE = "\u001B[34m"      // 蓝色 DEBUG
+        private const val ANSI_GREEN = "\u001B[32m"     // 绿色 INFO
+        private const val ANSI_YELLOW = "\u001B[33m"    // 黄色 WARN
+        private const val ANSI_RED = "\u001B[31m"       // 红色 ERROR
+        private const val ANSI_WHITE = "\u001B[38;5;250m" // 白色 VERBOSE
+    }
 
     override fun performLog(
         priority: LogLevel,

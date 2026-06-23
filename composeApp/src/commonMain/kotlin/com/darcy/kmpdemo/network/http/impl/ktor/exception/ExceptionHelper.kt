@@ -19,9 +19,10 @@ object ExceptionHelper {
 
     fun mapException(throwable: Throwable): NetworkException {
         // 获取异常类名:Throwable.toString()在所有平台都能正常工作，它默认输出格式为 类全限定名: 异常消息
-        val clazzName = throwable::class.toString()
+//        val clazzName = throwable::class.qualifiedName
+        val clazzName = throwable::class.simpleName
         logD("$TAG mapException: $clazzName")
-        if (clazzName != null && clazzName in exceptionMap) {
+        if (clazzName in exceptionMap) {
             return exceptionMap[clazzName] ?: NetworkException.UnknownException()
         }
         return when (throwable) {

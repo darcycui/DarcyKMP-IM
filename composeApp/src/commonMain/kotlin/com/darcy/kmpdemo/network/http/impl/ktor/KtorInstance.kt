@@ -2,7 +2,6 @@ package com.darcy.kmpdemo.network.http.impl.ktor
 
 import com.darcy.kmpdemo.log.logE
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpSend
@@ -33,8 +32,7 @@ val ktorScope: CoroutineScope =
     CoroutineScope(Dispatchers.Default + SupervisorJob() + ktorExceptionHandler)
 
 val ktorClient: HttpClient
-    // CIO 异步协程 支持 JVM Android Native(iOS) Web 支持 http1.x 和 websocket
-    get() = HttpClient(CIO) {
+    get() = HttpClient(createKtorEngine()) {
         // 超时时间
         install(HttpTimeout) {
             socketTimeoutMillis = 30_000
@@ -83,12 +81,6 @@ val ktorClient: HttpClient
                 explicitNulls = false
             })
         }
-        // SSL证书配置
-        engine {
-            dispatcher = Dispatchers.Default
-            // todo PKCS12格式证书不支持 ?
-            // configureEngineTLS(this) // 不同平台单独实现
-        }
         // 开启 websocket
         install(WebSockets) {
             pingIntervalMillis = 20_000
@@ -99,6 +91,4 @@ val ktorClient: HttpClient
         expectSuccess = true
         // 添加默认的异常处理
         addDefaultResponseValidation()
-    }.apply {
-
     }

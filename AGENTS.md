@@ -93,4 +93,6 @@ iOS 框架名（构建产物）：`DarcyKMP`，静态链接。
 
 - **SSL 证书** 作为资源打包（`files/ssl/test2IPSelf241.p12`、`files/ssl/test2ServerSelf.p12`），在 `App.kt` 中加载。
 
+- **`expect`/`actual` 命名约定**：所有通过 `expect`/`actual` 机制实现的类/文件，必须使用 `Platform` 后缀（例如 `TimePlatform`、`KtorEnginePlatform`）。非 `expect`/`actual` 的文件不应使用此后缀。
+
 - **`kotlin.incremental.js=false`** 在 `gradle.properties` 中设置 — JS 增量编译已禁用。

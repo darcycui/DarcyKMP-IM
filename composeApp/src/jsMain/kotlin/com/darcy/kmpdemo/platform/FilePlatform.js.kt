@@ -1,21 +1,22 @@
 package com.darcy.kmpdemo.platform
 
 import kotlinx.io.files.Path
+import okio.Path.Companion.toPath
 
 actual object FilePlatform {
     actual fun getCacheDir(): Path {
-        TODO("Not yet implemented")
+        return Path(DarcyFolder.DIR_CACHE)
     }
 
     actual fun getDocumentsDir(): Path {
-        TODO("Not yet implemented")
+        return Path(DarcyFolder.DIR_DOCUMENT)
     }
 
     actual fun getDownloadDir(): Path {
-        TODO("Not yet implemented")
+        return Path(DarcyFolder.DIR_DOWNLOAD)
     }
 
     actual suspend fun dealUriIfNeed(uriPath: Path): Path {
-        TODO("Not yet implemented")
+        return uriPath
     }
 }

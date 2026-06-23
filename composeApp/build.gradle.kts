@@ -187,6 +187,8 @@ kotlin {
             implementation(libs.androidx.room.runtime.js)
             // 添加 Web 平台的 SQLite 驱动
             implementation(libs.androidx.sqlite.web)
+            // Ktor Js 引擎 (浏览器 fetch API)
+            implementation(libs.ktor.client.js)
         }
 //        wasmJsMain.dependencies {
 //            //Room
