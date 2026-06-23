@@ -62,11 +62,11 @@ kotlin {
     }
 
     // moko resources 0.25.2支持wasm
-//    @OptIn(ExperimentalWasmDsl::class)
-//    wasmJs {
-//        browser()
-//        binaries.executable()
-//    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
 
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
@@ -111,7 +111,7 @@ kotlin {
             // io/File kotlinx-io-core
             implementation(libs.kotlinx.io.core)
             // 引用本地发布的库
-            implementation(libs.kmp.library.demo)
+//            implementation(libs.kmp.library.demo)
 //            implementation(libs.darcy.kmp.storage)
             // multiplatform-settings key-value storage
             implementation(libs.com.russhwolf.multiplatform.settings)
@@ -135,7 +135,7 @@ kotlin {
             implementation(libs.androidx.room.runtime)
             // krossbow STOMP client for KMP
             api(libs.krossbow.stomp.core)
-            api(libs.krossbow.websocket.builtin)
+//            api(libs.krossbow.websocket.builtin)
             api(libs.krossbow.websocket.ktor)
             // crypto
             implementation(libs.cryptography.core)
@@ -191,16 +191,16 @@ kotlin {
             // Ktor Js 引擎 (浏览器 fetch API)
             implementation(libs.ktor.client.js)
         }
-//        wasmJsMain.dependencies {
-//            //Room
-//            implementation(libs.androidx.room.runtime.wasm.js)
-//            // 添加 Web 平台的 SQLite 驱动
-//            implementation(libs.androidx.sqlite.web)
-//            // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
-//            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
-//            // Ktor Js 引擎 (浏览器 fetch API)
-//            implementation(libs.ktor.client.js)
-//        }
+        wasmJsMain.dependencies {
+            //Room
+            implementation(libs.androidx.room.runtime.wasm.js)
+            // 添加 Web 平台的 SQLite 驱动
+            implementation(libs.androidx.sqlite.web)
+            // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
+            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
+            // Ktor Js 引擎 (浏览器 fetch API)
+            implementation(libs.ktor.client.js)
+        }
         // 添加单元测试
         commonTest.dependencies {
             implementation(libs.kotlin.test)
