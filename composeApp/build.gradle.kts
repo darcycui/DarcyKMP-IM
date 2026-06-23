@@ -191,16 +191,16 @@ kotlin {
             // Ktor Js 引擎 (浏览器 fetch API)
             implementation(libs.ktor.client.js)
         }
-        wasmJsMain.dependencies {
-            //Room
-            implementation(libs.androidx.room.runtime.wasm.js)
-            // 添加 Web 平台的 SQLite 驱动
-            implementation(libs.androidx.sqlite.web)
-            // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
-            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
-            // Ktor Js 引擎 (浏览器 fetch API)
-            implementation(libs.ktor.client.js)
-        }
+//        wasmJsMain.dependencies {
+//            //Room
+//            implementation(libs.androidx.room.runtime.wasm.js)
+//            // 添加 Web 平台的 SQLite 驱动
+//            implementation(libs.androidx.sqlite.web)
+//            // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
+//            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
+//            // Ktor Js 引擎 (浏览器 fetch API)
+//            implementation(libs.ktor.client.js)
+//        }
         // 添加单元测试
         commonTest.dependencies {
             implementation(libs.kotlin.test)
