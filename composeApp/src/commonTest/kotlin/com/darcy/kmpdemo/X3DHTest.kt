@@ -36,7 +36,7 @@ class X3DHTest {
     val aliceEphemeralPrivateKey =
         "f1b760d87917b117017d2328792fb28b95e652bd71d7c4db44c18b1e3dc79337"
 
-    fun aliceCalculateKey(bobKeys: X3DHBobKeys): ByteArray {
+    suspend fun aliceCalculateKey(bobKeys: X3DHBobKeys): ByteArray {
         val aliceIdentityPrivate = aliceIdentityPrivateKey.hexStrToBytes().toPrivateKey()
         val aliceEphemeralPrivate = aliceEphemeralPrivateKey.hexStrToBytes().toPrivateKey()
 

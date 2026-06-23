@@ -4,7 +4,8 @@ import com.darcy.kmpdemo.utils.bytesToHexStr
 import com.darcy.kmpdemo.utils.hexStrToBytes
 import com.darcy.kmpdemo.crypto.hmac.HMAC1
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+//import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -13,7 +14,7 @@ class HMACTest {
 
     @Test
     fun `test-hmac-sha256-signature`() {
-        runBlocking {
+        runTest {
 
             val originalText = "Hello, World!"
             val data = originalText.encodeToByteArray()
@@ -29,7 +30,7 @@ class HMACTest {
 
     @Test
     fun `test-hmac-sha256-signature-verify`() {
-        runBlocking {
+        runTest {
             val originalText = "Hello, World!"
             val data = originalText.encodeToByteArray()
             val key = "secret-key".toByteArray()

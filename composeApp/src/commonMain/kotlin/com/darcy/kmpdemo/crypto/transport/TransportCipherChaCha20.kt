@@ -13,8 +13,8 @@ import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.ChaCha20Poly1305
 
-object TransportCipher {
-    private const val TAG = "TransportCipher"
+object TransportCipherChaCha20 {
+    private const val TAG = "TransportCipherChaCha20"
     private val provider: CryptographyProvider = KotlinCryptoPlatform.getCryptographyProvider()
     private const val IV_LENGTH = 12
 

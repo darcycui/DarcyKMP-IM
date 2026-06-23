@@ -139,7 +139,9 @@ usecase/    ← IUseCase 实现
 
 ### 加密架构（`crypto/`）
 
-- `transport/TransportCipher` — 传输层加密
+- **KMP加密库 cryptography-kotlin** 跨平台加密库，支持 Android、iOS、JVM、JS、WasmJS平台
+- `transport/TransportCipherChaCha20` — 传输层加密（ChaCha20-Poly1305）
+- `transport/TransportCipherGCM` — 传输层加密（AES-256-GCM，JS平台兼容）
 - `message/MessageCipher` + `MessageHelper` — 消息体加密
 - `file/FileCipher` — 文件加密
 - `hmac/HMAC1` — HMAC 签名
@@ -165,6 +167,10 @@ iOS 构建产物框架名：`DarcyKMP`，静态链接。
 - `AppNavigationNavHost` — 导航图
 - `BottomBarNavigation` — 底部导航栏
 - `NavControllerExts` — 导航扩展函数
+
+### 代码版本管理
+- 使用 git 进行版本管理
+- 提交信息用英文描述
 
 ## 重要注意事项
 

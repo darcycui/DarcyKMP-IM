@@ -1,6 +1,6 @@
 package com.darcy.kmpdemo.crypto
 
-import com.darcy.kmpdemo.crypto.transport.TransportCipher
+import com.darcy.kmpdemo.crypto.transport.TransportCipherAESGCM
 import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.impl.ktor.EncryptBodyConfig
 import com.darcy.kmpdemo.utils.bytesToHexStr
@@ -12,7 +12,7 @@ object JsonCryptoHelper {
     private const val TAG = "JsonCryptoHelper"
 
     suspend fun encryptHttpJson(originalJson: String, url: String): String {
-        val encryptText = TransportCipher.encrypt(
+        val encryptText = TransportCipherAESGCM.encrypt(
             content = originalJson.toByteArray(Charsets.UTF_8),
             aad = "POST:$url".toByteArray()
         )
@@ -24,7 +24,7 @@ object JsonCryptoHelper {
         if (EncryptBodyConfig.isEnabled()) {
             logW("$TAG 解密json")
             // 解密 result 字段
-            val decryptedResult = TransportCipher.decrypt(
+            val decryptedResult = TransportCipherAESGCM.decrypt(
                 content = json.hexStrToBytes(),
                 aad = "POST:$url".toByteArray()
             )
@@ -36,7 +36,7 @@ object JsonCryptoHelper {
     }
 
     suspend fun encryptWebsocketJson(message: String, url: String): String {
-        val encryptedMessage = TransportCipher.encrypt(
+        val encryptedMessage = TransportCipherAESGCM.encrypt(
             content = message.toByteArray(),
             aad = "WS:$url".toByteArray()
         )
@@ -46,7 +46,7 @@ object JsonCryptoHelper {
     }
 
     suspend fun decryptWebsocketJson(message: String, url: String): String {
-        val decryptedMessage = TransportCipher.decrypt(
+        val decryptedMessage = TransportCipherAESGCM.decrypt(
             content = message.hexStrToBytes(),
             aad = "WS:$url".toByteArray()
         )

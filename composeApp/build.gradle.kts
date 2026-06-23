@@ -109,8 +109,8 @@ kotlin {
             implementation(libs.napier)
             // io/File kotlinx-io-core
             implementation(libs.kotlinx.io.core)
-            // localMaven dependency
-//            implementation(libs.kmp.library)
+            // 引用本地发布的库
+            implementation(libs.kmp.library.demo)
 //            implementation(libs.darcy.kmp.storage)
             // multiplatform-settings key-value storage
             implementation(libs.com.russhwolf.multiplatform.settings)
@@ -164,8 +164,6 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
-            // 引用本地发布的库
-//            implementation(libs.kmp.library)
             // pick file
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)

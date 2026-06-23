@@ -24,7 +24,7 @@ kotlinx-coroutines = "1.11.0"
 # KMP Websocket STOMP library (v9.3.0 use Kotlin-2.1.20 and ktor-3.1.2)
 kotlinxIoCore = "0.9.0"
 krossbowStompCore = "9.3.0"
-kmpLibrary = "1.0.0"
+kmpDemoLibrary = "1.0.0"
 mokoResourcesGenerator = "0.26.4"
 ktor = "3.3.3"
 kotlinxSerialization = "1.11.0"
@@ -75,7 +75,7 @@ filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "file
 filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekitCore" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekitCore" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinxIoCore" }
-kmp-library = { module = "io.github.kotlin:library", version.ref = "kmpLibrary" }
+kmp-library-demo = { module = "io.github.kotlin:library", version.ref = "kmpDemoLibrary" }
 org-androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
