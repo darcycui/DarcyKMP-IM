@@ -47,5 +47,5 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
-include(":sqlJsWorker")
+include(":sqliteJsWorker")
 include(":sqliteWasmWorker")

@@ -250,7 +250,7 @@ source-map-js@^1.2.1:
   resolved "https://registry.npmmirror.com/source-map-js/-/source-map-js-1.2.1.tgz#1ce5650fddd87abc099eda37dcff024c2667ae46"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
 
-"sql-js-worker@file:../../sqlJsWorker/worker":
+"sql-js-worker@file:../../sqliteJsWorker/worker":
   version "0.0.0"
   dependencies:
     sql.js "1.14.0"
