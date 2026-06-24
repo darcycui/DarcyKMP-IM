@@ -188,7 +188,8 @@ kotlin {
         webMain.dependencies {
             // 添加 Web 平台的 SQLite 驱动
             implementation(libs.androidx.sqlite.web)
-            implementation(project((":sqlJsWorker")))
+//            implementation(project((":sqlJsWorker")))
+            implementation(project((":sqliteWasmWorker")))
         }
         // 添加单元测试
         commonTest.dependencies {
