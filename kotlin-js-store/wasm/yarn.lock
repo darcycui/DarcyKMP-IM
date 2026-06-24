@@ -43,11 +43,6 @@
   dependencies:
     make-plural "^7.0.0"
 
-"@sqlite.org/sqlite-wasm@3.53.0-build1":
-  version "3.53.0-build1"
-  resolved "https://registry.npmmirror.com/@sqlite.org/sqlite-wasm/-/sqlite-wasm-3.53.0-build1.tgz#066cab9189973c39edbb7078c55bb4daa1cd2d30"
-  integrity sha512-PfWPWN2n+/37doa8oh2/oUXk4OOsRYZsxc1W1sDXIGb/Pu5Yrb+f2eyYpgQMGITVX7HVgxhs9P18Rc6I97ym/g==
-
 "@types/json-schema@^7.0.9":
   version "7.0.15"
   resolved "https://registry.npmmirror.com/@types/json-schema/-/json-schema-7.0.15.tgz#596a1747233694d50f6ad8a7869fcb6f56cf5841"
@@ -249,6 +244,16 @@ source-map-js@^1.2.1:
   version "1.2.1"
   resolved "https://registry.npmmirror.com/source-map-js/-/source-map-js-1.2.1.tgz#1ce5650fddd87abc099eda37dcff024c2667ae46"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
+
+"sql-js-worker@file:../../sqlJsWorker/worker":
+  version "0.0.0"
+  dependencies:
+    sql.js "1.14.0"
+
+sql.js@1.14.0:
+  version "1.14.0"
+  resolved "https://registry.npmmirror.com/sql.js/-/sql.js-1.14.0.tgz#49d4df3b6d311a0da28aab34120d7fe2dcc68f09"
+  integrity sha512-NXYh+kFqLiYRCNAaHD0PcbjFgXyjuolEKLMk5vRt2DgPENtF1kkNzzMlg42dUk5wIsH8MhUzsRhaUxIisoSlZQ==
 
 style-loader@3.3.2:
   version "3.3.2"

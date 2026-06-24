@@ -234,7 +234,7 @@ dependencies {
     // Room3 Web端通过OPFS(Original Private File System)实现持久化
     add("kspCommonMainMetadata", libs.androidx.room.compiler)
     add("kspJs", libs.androidx.room.compiler)
-//    add("kspWasmJs", libs.androidx.room.compiler)
+    add("kspWasmJs", libs.androidx.room.compiler)
     // Add any other platform target you use in your project, for example kspDesktop
 }
 
