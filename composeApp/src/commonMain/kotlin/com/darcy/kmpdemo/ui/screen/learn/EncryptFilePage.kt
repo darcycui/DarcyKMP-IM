@@ -14,14 +14,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.darcy.kmpdemo.platform.decryptString
-import com.darcy.kmpdemo.platform.encryptString
-import com.darcy.kmpdemo.platform.getPlatform
+import com.darcy.kmpdemo.platform.EncryptPlatform
+import com.darcy.kmpdemo.platform.Platform
 
 @Composable
 fun ShowEncryptFile() {
 
-    var content by remember { mutableStateOf(getPlatform().name + " " + getPlatform().version) }
+    var content by remember { mutableStateOf(Platform.getPlatform().name + " " + Platform.getPlatform().version) }
 
     Column(
         Modifier.fillMaxWidth(),
@@ -29,10 +28,10 @@ fun ShowEncryptFile() {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(text = content)
-        Button(onClick = { content = encryptString(content) }) {
+        Button(onClick = { content = EncryptPlatform.encryptString(content) }) {
             Text("Encrypt")
         }
-        Button(onClick = { content = decryptString(content) }) {
+        Button(onClick = { content = EncryptPlatform.decryptString(content) }) {
             Text("Decrypt")
         }
         TextField(value = content, onValueChange = { content = it })

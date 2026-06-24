@@ -9,7 +9,7 @@ import com.darcy.kmpdemo.ui.theme.AppTheme
 //import com.darcy.kmpdemo.network.ssl.SslSettings
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import com.darcy.kmpdemo.platform.sslCertsConfig
+import com.darcy.kmpdemo.platform.SSLPlatform
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigationNavHost
 import com.darcy.kmpdemo.ui.screen.phone.navigation.PhoneRoute
@@ -27,7 +27,7 @@ fun App() {
 
         val bytesIP = Res.readBytes(KEYSTORE_PATH_IP)
         val bytesServer = Res.readBytes(KEYSTORE_PATH_SERVER)
-        sslCertsConfig(listOf(bytesIP, bytesServer))
+        SSLPlatform.sslCertsConfig(listOf(bytesIP, bytesServer))
 
         getDarcyIMDatabase() // 预初始化数据库，提前预热 Web Worker (WASM + OPFS)
     }

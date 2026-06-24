@@ -1,9 +1,0 @@
-package com.darcy.kmpdemo.network.http.impl.ktor
-
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.engine.cio.CIO
-import kotlinx.coroutines.Dispatchers
-
-actual fun createKtorEngine(): HttpClientEngine = CIO.create {
-    dispatcher = Dispatchers.Default
-}

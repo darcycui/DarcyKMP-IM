@@ -33,11 +33,15 @@ napier = "2.7.1"
 darcyKmpLibraryStorage = "1.0.1"
 multiplatformSettings = "1.3.0"
 hashBomVersion = "0.8.0"
-roomVersion = "3.0.0-alpha06"
+roomVersion = "3.0.0-rc01"
+sqlite = "2.7.0-rc01"
+kotlinxBrowser = "0.5.0"
 slf4jSimple = "2.0.18"
-sqlite = "2.7.0-alpha06"
 ksp = "2.3.9"
 bouncyCastle = "1.84"
+kotlinStdlib = "2.4.0"
+runner = "1.5.2"
+core = "1.5.0"
 
 [libraries]
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
@@ -50,6 +54,7 @@ androidx-room-runtime-js = { module = "androidx.room3:room3-runtime-js", version
 androidx-room-runtime-wasm-js = { module = "androidx.room3:room3-runtime-wasm-js", version.ref = "roomVersion" }
 androidx-room-compiler = { module = "androidx.room3:room3-compiler", version.ref = "roomVersion" }
 androidx-sqlite-web = { module = "androidx.sqlite:sqlite-web", version.ref = "sqlite" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinxBrowser" }
 # Optional SQLite Wrapper available in version 2.8.0 and higher
 #androidx-room-sqlite-wrapper = { module = "androidx.room:room-sqlite-wrapper", version.ref = "roomVersion" }
 
@@ -136,6 +141,9 @@ krossbow-stomp-core = { module = "org.hildan.krossbow:krossbow-stomp-core", vers
 krossbow-websocket-builtin = { module = "org.hildan.krossbow:krossbow-websocket-builtin", version.ref = "krossbowStompCore" }
 krossbow-websocket-ktor = { module = "org.hildan.krossbow:krossbow-websocket-ktor", version.ref = "krossbowStompCore" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 
 
 [plugins]
@@ -151,4 +159,5 @@ kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room3", version.ref = "roomVersion" }
+moco-resources = { id = "dev.icerock.mobile.multiplatform-resources"}
 

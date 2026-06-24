@@ -10,11 +10,11 @@ import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
-import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
 import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
+import com.darcy.kmpdemo.platform.WebSocketPlatform
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
@@ -22,8 +22,8 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveMessageToDBUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.CreateMessageReadStatusUseCase
-import com.darcy.kmpdemo.x3dh.usecase.ReceiveDoubleRatchetStepUseCase
 import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
+import com.darcy.kmpdemo.x3dh.usecase.ReceiveDoubleRatchetStepUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+
 //import kotlinx.coroutines.newSingleThreadContext
 
 /**
@@ -85,7 +86,7 @@ object WebsocketRepository : IRepository {
     private fun init() {
         logD("$TAG init")
         webSocketManager.init(
-            url = WEBSOCKET_URL,
+            url = WebSocketPlatform.getWebsocketUrl(),
             userToken = imGlobalStorage.getCurrentUser().token,
 //            userToken = "",
         )

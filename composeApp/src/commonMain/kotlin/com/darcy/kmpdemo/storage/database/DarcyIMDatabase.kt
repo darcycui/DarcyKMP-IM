@@ -3,7 +3,7 @@ package com.darcy.kmpdemo.storage.database
 import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
-import com.darcy.kmpdemo.storage.DarcyIMDatabaseConstructor
+import com.darcy.kmpdemo.platform.RoomDatabasePlatform.getIMDatabaseBuilder
 //import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.darcy.kmpdemo.storage.database.daos.ConversationDao
 import com.darcy.kmpdemo.storage.database.daos.FriendshipUserDao
@@ -73,5 +73,3 @@ fun getDarcyIMDatabase(): DarcyIMDatabase {
     }
     return database!!
 }
-
-expect fun getIMDatabaseBuilder(): RoomDatabase.Builder<DarcyIMDatabase>

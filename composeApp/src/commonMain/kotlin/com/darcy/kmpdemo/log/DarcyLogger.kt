@@ -1,15 +1,16 @@
 package com.darcy.kmpdemo.log
 
+import com.darcy.kmpdemo.platform.AntilogPlatform
+import com.darcy.kmpdemo.platform.Platform
 import io.github.aakira.napier.Napier
-import com.darcy.kmpdemo.platform.getPlatform
 
 const val DARCY_TAG = "DarcyLog"
 
 object DarcyLogger {
     fun initLogger() {
-        Napier.base(createPlatformAntilog())
+        Napier.base(AntilogPlatform.createPlatformAntilog())
 //    Napier.base(ReleaseAntiLog())
-        val platform = getPlatform()
+        val platform = Platform.getPlatform()
         logD("initLogger $platform")
     }
 }

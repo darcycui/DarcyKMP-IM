@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
-    id("dev.icerock.mobile.multiplatform-resources")
+    alias(libs.plugins.moco.resources)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
 }
@@ -39,24 +39,14 @@ kotlin {
 
     jvm("desktop")
 
-    listOf(
-        iosArm64(),
-//        iosSimulatorArm64()
-    ).forEach { iosTarget ->
+    listOf(iosArm64()).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "DarcyKMP"
             isStatic = true
         }
     }
 
-
-    // darcy.kmp.lib.storage
     js {
-//        browser {
-//            commonWebpackConfig {
-//                outputFileName = "sqlite-worker.js"
-//            }
-//        }
         browser()
         binaries.executable()
     }
@@ -184,22 +174,21 @@ kotlin {
         jsMain.dependencies {
             //Room
             implementation(libs.androidx.room.runtime.js)
-            // 添加 Web 平台的 SQLite 驱动
-            implementation(libs.androidx.sqlite.web)
             // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
-            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
             // Ktor Js 引擎 (浏览器 fetch API)
             implementation(libs.ktor.client.js)
         }
         wasmJsMain.dependencies {
             //Room
             implementation(libs.androidx.room.runtime.wasm.js)
-            // 添加 Web 平台的 SQLite 驱动
-            implementation(libs.androidx.sqlite.web)
             // SQLite WASM — WebWorkerSQLiteDriver 的 Worker 脚本依赖 OPFS 持久化
-            implementation(npm("@sqlite.org/sqlite-wasm", "3.53.0-build1"))
             // Ktor Js 引擎 (浏览器 fetch API)
             implementation(libs.ktor.client.js)
+        }
+        webMain.dependencies {
+            // 添加 Web 平台的 SQLite 驱动
+            implementation(libs.androidx.sqlite.web)
+            implementation(project((":sqlJsWorker")))
         }
         // 添加单元测试
         commonTest.dependencies {
