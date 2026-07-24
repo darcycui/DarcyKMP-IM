@@ -1,6 +1,7 @@
 package com.darcy.kmpdemo.network.http.impl.ktor
 
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.platform.SSLPlatform.configureEngineTLS
 import com.darcy.kmpdemo.platform.createKtorEngine
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpRequestRetry
@@ -79,6 +80,11 @@ val ktorClient: HttpClient
                 ignoreUnknownKeys = true
                 explicitNulls = false
             })
+        }
+        // SSL证书配置
+        engine {
+            dispatcher = Dispatchers.Default
+            configureEngineTLS(this) // 不同平台单独实现
         }
         // 开启 websocket
         install(WebSockets) {
