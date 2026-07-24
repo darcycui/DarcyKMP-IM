@@ -65,6 +65,7 @@ class MineViewModel : BaseViewModel<MineState>() {
             val uiBean = UserItemBean(
                 id = user.id,
                 name = user.username,
+                phone = user.phone,
                 nickName = user.nickname,
                 age = user.age,
                 sex = user.gender,
