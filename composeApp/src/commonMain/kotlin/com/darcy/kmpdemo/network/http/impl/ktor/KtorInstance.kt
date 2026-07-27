@@ -81,11 +81,6 @@ val ktorClient: HttpClient
                 explicitNulls = false
             })
         }
-        // SSL证书配置
-        engine {
-            dispatcher = Dispatchers.Default
-            configureEngineTLS(this) // 不同平台单独实现
-        }
         // 开启 websocket
         install(WebSockets) {
             pingIntervalMillis = 20_000
