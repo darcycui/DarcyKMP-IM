@@ -75,6 +75,7 @@ object SslSettings {
             if (certs.isEmpty()) {
                 throw SSLException("PKCS12 中未找到证书")
             }
+            logV("extract: BC库加载证书成功 获取证书数量: ${certs.size}")
             return certs
         }
     }

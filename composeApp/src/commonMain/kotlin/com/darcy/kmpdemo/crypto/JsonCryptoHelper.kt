@@ -11,10 +11,18 @@ import io.ktor.utils.io.core.toByteArray
 object JsonCryptoHelper {
     private const val TAG = "JsonCryptoHelper"
 
+    /**
+     * 去除 URL 的 scheme（http://、https://、ws://、wss://），使 AAD 不受协议变更影响
+     */
+    private fun stripScheme(url: String): String {
+        val schemeEnd = url.indexOf("://")
+        return if (schemeEnd != -1) url.substring(schemeEnd + 3) else url
+    }
+
     suspend fun encryptHttpJson(originalJson: String, url: String): String {
         val encryptText = TransportCipherAESGCM.encrypt(
             content = originalJson.toByteArray(Charsets.UTF_8),
-            aad = "POST:$url".toByteArray()
+            aad = "POST:${stripScheme(url)}".toByteArray()
         )
         return encryptText.bytesToHexStr()
     }
@@ -26,7 +34,7 @@ object JsonCryptoHelper {
             // 解密 result 字段
             val decryptedResult = TransportCipherAESGCM.decrypt(
                 content = json.hexStrToBytes(),
-                aad = "POST:$url".toByteArray()
+                aad = "POST:${stripScheme(url)}".toByteArray()
             )
             return decryptedResult.decodeToString()
         } else {
@@ -38,7 +46,7 @@ object JsonCryptoHelper {
     suspend fun encryptWebsocketJson(message: String, url: String): String {
         val encryptedMessage = TransportCipherAESGCM.encrypt(
             content = message.toByteArray(),
-            aad = "WS:$url".toByteArray()
+            aad = "WS:${stripScheme(url)}".toByteArray()
         )
         return encryptedMessage.toHexString().also {
             logW("$TAG 加密后长度:${it.length}")
@@ -48,7 +56,7 @@ object JsonCryptoHelper {
     suspend fun decryptWebsocketJson(message: String, url: String): String {
         val decryptedMessage = TransportCipherAESGCM.decrypt(
             content = message.hexStrToBytes(),
-            aad = "WS:$url".toByteArray()
+            aad = "WS:${stripScheme(url)}".toByteArray()
         )
         return decryptedMessage.decodeToString()
     }
