@@ -1,5 +1,6 @@
 package com.darcy.kmpdemo.network.http.token
 
+import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.network.http.token.TokenManager.setToken
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -10,11 +11,13 @@ object TokenManager {
     private val setMutex: Mutex = Mutex()
 
     fun getToken(): String {
+        logW("getToken: $token")
         return token
     }
 
     suspend fun setToken(token: String) {
         setMutex.withLock {
+            logW("setToken: $token")
             this.token = token
         }
     }

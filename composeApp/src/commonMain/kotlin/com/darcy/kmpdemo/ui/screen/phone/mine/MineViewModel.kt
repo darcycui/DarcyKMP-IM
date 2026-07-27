@@ -7,6 +7,7 @@ import com.darcy.kmpdemo.bean.http.response.LoginResponse
 import com.darcy.kmpdemo.bean.http.response.MineResponse
 import com.darcy.kmpdemo.bean.ui.UserItemBean
 import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.network.http.token.TokenManager
 import com.darcy.kmpdemo.platform.FilePlatform
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
@@ -78,6 +79,7 @@ class MineViewModel : BaseViewModel<MineState>() {
     private fun actionLogout() {
         io {
             IMGlobalStorage.setCurrentUser(LoginResponse.empty())
+            TokenManager.clearToken()
             TransportGlobalStorage.clear()
             sendEvent(MineEvent.ActionLogout)
         }

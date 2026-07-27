@@ -6,10 +6,12 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.darcy.kmpdemo.bean.http.error.ErrorResponse
 import com.darcy.kmpdemo.bean.http.error.toTipsIntent
 import com.darcy.kmpdemo.bean.http.request.toDTO
+import com.darcy.kmpdemo.bean.http.response.LoginResponse
 import com.darcy.kmpdemo.crypto.repository.DHExchangeRepository
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
+import com.darcy.kmpdemo.network.http.token.TokenManager
 import com.darcy.kmpdemo.storage.database.tables.OneTimePreKeyEntity
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
@@ -70,11 +72,18 @@ class RegisterViewModel(
 
     private fun actionRegister(intent: RegisterIntent.ActionRegister) {
         io {
+            IMGlobalStorage.setCurrentUser(LoginResponse.empty())
+            TransportGlobalStorage.clear()
+            TokenManager.clearToken()
             registerRepository.register(
                 intent.bean,
                 onSuccess = {
                     io {
+                        logI("注册成功：$it")
+                        // 保存当前用户
                         IMGlobalStorage.setCurrentUser(it)
+                        // 设置 token
+                        TokenManager.setToken(it.token)
                         // 获取 Server DH公钥
                         actionExchangeDHPublicKey(it.id)
                     }

@@ -10,11 +10,11 @@ import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
+import com.darcy.kmpdemo.network.http.urls.WebSockets
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
 import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
 import com.darcy.kmpdemo.network.websocket.listener.IOuterListener
-import com.darcy.kmpdemo.platform.WebSocketPlatform
 import com.darcy.kmpdemo.repository.IRepository
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.state.WebSocketConnectionState
@@ -86,7 +86,8 @@ object WebsocketRepository : IRepository {
     private fun init() {
         logD("$TAG init")
         webSocketManager.init(
-            url = WebSocketPlatform.getWebsocketUrl(),
+//            url = WebSocketPlatform.getWebsocketUrl(),
+            url = WebSockets.WEBSOCKET_URL_WSS,
             userToken = imGlobalStorage.getCurrentUser().token,
 //            userToken = "",
         )

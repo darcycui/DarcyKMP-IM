@@ -4,6 +4,6 @@ import com.darcy.kmpdemo.network.http.urls.Hosts.DOMAIN
 
 object WebSockets {
     const val WEBSOCKET_URL = "ws://$DOMAIN/stomp-ws"
-    const val WEBSOCKET_URL_JS = "http://$DOMAIN/stomp-sockjs"
+    const val WEBSOCKET_URL_WSS = "wss://$DOMAIN/stomp-ws"
 
 }

@@ -31,8 +31,8 @@ val ktorExceptionHandler = CoroutineExceptionHandler { _, throwable ->
 val ktorScope: CoroutineScope =
     CoroutineScope(Dispatchers.Default + SupervisorJob() + ktorExceptionHandler)
 
-val ktorClient: HttpClient
-    get() = HttpClient(createKtorEngine()) {
+val ktorClient: HttpClient by lazy {
+    HttpClient(createKtorEngine()) {
         // 超时时间
         install(HttpTimeout) {
             socketTimeoutMillis = 30_000
@@ -64,7 +64,7 @@ val ktorClient: HttpClient
         // 默认请求设置
         defaultRequest {
             header("Content-Type-default", "application/json")
-            url ("https://darcycui.com.cn/api")
+            url("https://darcycui.com.cn/api")
         }
         // 自定义插件 header
         install(CustomHeaderPlugin)
@@ -92,3 +92,4 @@ val ktorClient: HttpClient
         // 添加默认的异常处理
         addDefaultResponseValidation()
     }
+}

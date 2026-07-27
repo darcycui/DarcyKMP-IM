@@ -3,7 +3,11 @@
     "allow": [
       "Bash(npm view *)",
       "Bash(npm install *)",
-      "Bash(./gradlew :composeApp:compileKotlinAndroid)"
+      "Bash(./gradlew :composeApp:compileKotlinAndroid)",
+      "Read(//private/tmp/**)",
+      "Bash(jar tf *)",
+      "Bash(jar xf *)",
+      "Bash(./gradlew :composeApp:dependencies --configuration jsMainImplementation)"
     ]
   }
 }
