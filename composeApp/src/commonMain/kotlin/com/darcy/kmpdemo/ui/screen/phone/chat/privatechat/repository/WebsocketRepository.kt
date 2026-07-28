@@ -235,7 +235,7 @@ object WebsocketRepository : IRepository {
             val headers = mapOf(
                 "fromUserId" to localUserId.toString(),
                 "toUserId" to messageEntity.senderId.toString(),
-                "url" to "WS:/private"
+                "url" to "/private/readStatus"
             )
             logI("$TAG 发送已读状态 headers:$headers")
             webSocketManager.sendText(
