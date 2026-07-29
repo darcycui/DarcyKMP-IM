@@ -241,11 +241,7 @@ object WebsocketRepository : IRepository {
             webSocketManager.sendText(
                 JsonHelper.toJson(messageReadStatusRequest),
                 SEND_MESSAGE_READ_STATUS,
-                mapOf(
-                    "fromUserId" to localUserId.toString(),
-                    "toUserId" to messageEntity.senderId.toString(),
-                    "url" to "WS:/private"
-                )
+                headers
             )
         }
     }
