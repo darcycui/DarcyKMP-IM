@@ -27,9 +27,7 @@ object IMGlobalStorage {
     suspend fun setCurrentUser(user: LoginResponse) {
         mutex.withLock {
             currentUser = user
-            // 设置 token
         }
-        TokenManager.setToken(user.token)
     }
 
 }

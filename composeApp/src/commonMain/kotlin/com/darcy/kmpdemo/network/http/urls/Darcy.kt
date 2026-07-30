@@ -3,8 +3,8 @@ package com.darcy.kmpdemo.network.http.urls
 import com.darcy.kmpdemo.network.http.urls.Hosts.DOMAIN
 
 object Darcy {
-//    const val HOME_URL = "https://$DOMAIN"
-    const val HOME_URL = "http://$DOMAIN"
+    const val HOME_URL = "https://$DOMAIN"
+//    const val HOME_URL = "http://$DOMAIN"
 
     const val LOGIN_URL = "$HOME_URL/api/login"
     const val REGISTER_URL = "$HOME_URL/api/register"

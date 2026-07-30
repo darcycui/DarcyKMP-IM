@@ -2,10 +2,9 @@ package com.darcy.kmpdemo.x3dh.chain
 
 import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
 import dev.whyoleg.cryptography.BinarySize.Companion.bytes
-import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.HKDF
 import dev.whyoleg.cryptography.algorithms.SHA256
-import kotlinx.coroutines.runBlocking
+//import kotlinx.coroutines.runBlocking
 
 class HKDF1 {
     companion object {
@@ -14,21 +13,19 @@ class HKDF1 {
 
     private val provider = KotlinCryptoPlatform.getCryptographyProvider()
 
-    fun deriveSecrets(
+    suspend fun deriveSecrets(
         inputKeyMaterial: ByteArray,
         salt: ByteArray,
         info: ByteArray?,
         outputLength: Int
     ): ByteArray {
-        return runBlocking {
-            val hkdf = provider.get(HKDF)
-            val derivation = hkdf.secretDerivation(
-                digest = SHA256,
-                outputSize = outputLength.bytes,
-                salt = salt,
-                info = info ?: ByteArray(0),
-            )
-            derivation.deriveSecret(inputKeyMaterial).toByteArray()
-        }
+        val hkdf = provider.get(HKDF)
+        val derivation = hkdf.secretDerivation(
+            digest = SHA256,
+            outputSize = outputLength.bytes,
+            salt = salt,
+            info = info ?: ByteArray(0),
+        )
+        return derivation.deriveSecret(inputKeyMaterial).toByteArray()
     }
 }

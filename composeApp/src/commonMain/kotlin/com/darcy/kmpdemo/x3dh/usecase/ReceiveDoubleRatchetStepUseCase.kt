@@ -378,7 +378,7 @@ class ReceiveDoubleRatchetStepUseCase : IUseCase<Unit, MessageKey> {
         }
     }
 
-    private fun needDHStep(newRemoteDHKey: XDH.PublicKey, localRemoteDHKey: String): Boolean {
+    private suspend fun needDHStep(newRemoteDHKey: XDH.PublicKey, localRemoteDHKey: String): Boolean {
         val newRemoteDHKeyHex = newRemoteDHKey.toBytes().toHexString()
         return newRemoteDHKeyHex.isNotEmpty() && newRemoteDHKeyHex != localRemoteDHKey
     }

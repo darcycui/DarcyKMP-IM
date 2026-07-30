@@ -1,8 +1,10 @@
 package com.darcy.kmpdemo.storage.database
 
+import androidx.room3.ConstructedBy
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.darcy.kmpdemo.platform.RoomDatabasePlatform.getIMDatabaseBuilder
+//import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.darcy.kmpdemo.storage.database.daos.ConversationDao
 import com.darcy.kmpdemo.storage.database.daos.FriendshipUserDao
 import com.darcy.kmpdemo.storage.database.daos.IdentityKeyDao
@@ -24,7 +26,6 @@ import com.darcy.kmpdemo.storage.database.tables.SignedPreKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.SkippedMessageKeyEntity
 import com.darcy.kmpdemo.storage.database.tables.UserEntity
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 
 @Database(
     entities = [
@@ -45,7 +46,7 @@ import kotlinx.coroutines.IO
     exportSchema = true
 )
 
-//@ConstructedBy(DarcyIMDatabaseConstructor::class)
+@ConstructedBy(DarcyIMDatabaseConstructor::class)
 abstract class DarcyIMDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun conversationDao(): ConversationDao
@@ -59,13 +60,16 @@ abstract class DarcyIMDatabase : RoomDatabase() {
     abstract fun skippedMessageKeyDao(): SkippedMessageKeyDao
 }
 
-fun getDarcyIMDatabase(): DarcyIMDatabase {
-    return getIMDatabaseBuilder()
-        .setDriver(BundledSQLiteDriver()) // 使用内置的SQLite
-        .setQueryCoroutineContext(Dispatchers.IO) // 协程上下文
-        .addMigrations()
-        .fallbackToDestructiveMigration(false)
-        .build()
-}
+private var database: DarcyIMDatabase? = null
 
-expect fun getIMDatabaseBuilder(): RoomDatabase.Builder<DarcyIMDatabase>
+fun getDarcyIMDatabase(): DarcyIMDatabase {
+    if (database == null) {
+        database = getIMDatabaseBuilder()
+            .setQueryCoroutineContext(Dispatchers.Default) // 协程上下文
+            .setSingleConnectionPool() // Web Worker 串行化所有操作，无需多连接池
+            .addMigrations()
+            .fallbackToDestructiveMigration(false)
+            .build()
+    }
+    return database!!
+}

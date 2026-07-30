@@ -8,16 +8,11 @@ import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.request.header
 import io.ktor.http.HttpStatusCode
 
-class PluginConfiguration {
-    var headerName: String = "Authorization"
-    var headerValue: String = TokenManager.getToken()
-}
 
 val CustomHeaderPlugin = createClientPlugin("CustomHeaderPlugin") {
-    val config = PluginConfiguration()
     onRequest { request, content ->
         logD("CustomHeaderPlugin Request: ${request.url}")
-        request.header(config.headerName, config.headerValue)
+        request.header("Authorization", TokenManager.getToken())
     }
     onResponse { response ->
         val message = "${response.status} ${response.call.request.url}"

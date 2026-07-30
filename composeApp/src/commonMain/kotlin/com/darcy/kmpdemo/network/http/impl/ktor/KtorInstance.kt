@@ -1,9 +1,9 @@
 package com.darcy.kmpdemo.network.http.impl.ktor
 
 import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.platform.SSLPlatform.configureEngineTLS
+import com.darcy.kmpdemo.platform.createKtorEngine
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.HttpTimeout
@@ -14,7 +14,6 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.header
-import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -32,9 +31,8 @@ val ktorExceptionHandler = CoroutineExceptionHandler { _, throwable ->
 val ktorScope: CoroutineScope =
     CoroutineScope(Dispatchers.Default + SupervisorJob() + ktorExceptionHandler)
 
-val ktorClient: HttpClient
-    // CIO 异步协程 支持 JVM Android Native(iOS) Web 支持 http1.x 和 websocket
-    get() = HttpClient(CIO) {
+val ktorClient: HttpClient by lazy {
+    HttpClient(createKtorEngine()) {
         // 超时时间
         install(HttpTimeout) {
             socketTimeoutMillis = 30_000
@@ -66,7 +64,7 @@ val ktorClient: HttpClient
         // 默认请求设置
         defaultRequest {
             header("Content-Type-default", "application/json")
-            url ("https://darcycui.com.cn/api")
+            url("https://darcycui.com.cn/api")
         }
         // 自定义插件 header
         install(CustomHeaderPlugin)
@@ -83,22 +81,15 @@ val ktorClient: HttpClient
                 explicitNulls = false
             })
         }
-        // SSL证书配置
-        engine {
-            dispatcher = Dispatchers.Default
-            // todo PKCS12格式证书不支持 ?
-            // configureEngineTLS(this) // 不同平台单独实现
-        }
         // 开启 websocket
         install(WebSockets) {
             pingIntervalMillis = 20_000
-            maxFrameSize = 8 * 1024
+//            maxFrameSize = 8 * 1024
             contentConverter = null
         }
         // 遇到异常 停止请求
         expectSuccess = true
         // 添加默认的异常处理
         addDefaultResponseValidation()
-    }.apply {
-
     }
+}

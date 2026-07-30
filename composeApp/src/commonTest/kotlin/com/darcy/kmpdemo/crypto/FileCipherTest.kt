@@ -3,7 +3,8 @@ package com.darcy.kmpdemo.crypto
 import com.darcy.kmpdemo.crypto.file.FileCipher
 import com.darcy.kmpdemo.utils.FileHelper
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+//import kotlinx.coroutines.runBlocking
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
@@ -15,7 +16,7 @@ class FileCipherTest {
 
     @Test
     fun `test-aes-ctr-256`() {
-        runBlocking {
+        runTest {
             val message = "hello world".toByteArray()
             println("message: ${message.toHexString()}")
             val key = "1234567890abcdef1234567890abcdef".toByteArray() // 32字节 = AES-256
@@ -33,7 +34,7 @@ class FileCipherTest {
 
     @Test
     fun `test-aes-ctr-stream-encrypt-decrypt-large-file`() {
-        runBlocking {
+        runTest {
 
             val testDir = Path("file/test_stream_large")
             FileHelper.createDirectories(testDir)

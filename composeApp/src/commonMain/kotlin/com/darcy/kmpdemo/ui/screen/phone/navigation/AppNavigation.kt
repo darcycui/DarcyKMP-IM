@@ -9,7 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.darcy.kmpdemo.platform.isPhonePlatform
+import com.darcy.kmpdemo.platform.Platform
 import com.darcy.kmpdemo.ui.screen.desktop.DesktopAppMainScreen
 import com.darcy.kmpdemo.ui.screen.phone.PhoneAppMainScreen
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.PhoneAcceptFriendScreen
@@ -83,7 +83,7 @@ fun AppNavigationNavHost(
 
 @Composable
 private fun AppMainScreen() {
-    if (isPhonePlatform()) {
+    if (Platform.isPhonePlatform()) {
         PhoneAppMainScreen()
     } else {
         DesktopAppMainScreen()

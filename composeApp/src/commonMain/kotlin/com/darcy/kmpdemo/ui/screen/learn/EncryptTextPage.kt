@@ -14,9 +14,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.darcy.kmpdemo.platform.decryptString
-import com.darcy.kmpdemo.platform.encryptString
-import com.darcy.kmpdemo.platform.getPlatform
+import com.darcy.kmpdemo.platform.EncryptPlatform
+import com.darcy.kmpdemo.platform.Platform.getPlatform
 //import io.github.kotlin.fibonacci.generateFibi
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
@@ -34,10 +33,10 @@ fun ShowEncryptText(paramsText: String) {
     ) {
         Text(text = content)
         Text(text = paramsText)
-        Button(onClick = { content = encryptString(content) }) {
+        Button(onClick = { content = EncryptPlatform.encryptString(content) }) {
             Text("Encrypt")
         }
-        Button(onClick = { content = decryptString(content) }) {
+        Button(onClick = { content = EncryptPlatform.decryptString(content) }) {
             Text("Decrypt")
         }
         TextField(value = content, onValueChange = { content = it })

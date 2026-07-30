@@ -10,7 +10,7 @@ import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
 import com.darcy.kmpdemo.log.logW
-import com.darcy.kmpdemo.network.http.urls.WebSockets.WEBSOCKET_URL
+import com.darcy.kmpdemo.network.http.urls.WebSockets
 import com.darcy.kmpdemo.network.websocket.WebSocketManager
 import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_MESSAGE_READ_STATUS
 import com.darcy.kmpdemo.network.websocket.impl.krossbow.KrossbowWebsocketClientImpl.Companion.SEND_PRIVATE
@@ -22,8 +22,8 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.usecase.SaveMessageToDBUseCase
 import com.darcy.kmpdemo.utils.JsonHelper
 import com.darcy.kmpdemo.x3dh.MessageKey
 import com.darcy.kmpdemo.x3dh.usecase.CreateMessageReadStatusUseCase
-import com.darcy.kmpdemo.x3dh.usecase.ReceiveDoubleRatchetStepUseCase
 import com.darcy.kmpdemo.x3dh.usecase.MarkMessageReadStatusUseCase
+import com.darcy.kmpdemo.x3dh.usecase.ReceiveDoubleRatchetStepUseCase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +37,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
+
+//import kotlinx.coroutines.newSingleThreadContext
 
 /**
  * websocket STOMP协议聊天
@@ -55,15 +56,18 @@ object WebsocketRepository : IRepository {
     val messageFlow: SharedFlow<PrivateMessageResponse> = _messageFlow.asSharedFlow()
 
     private val _messageReadStatusFlow = MutableSharedFlow<MessageReadStatusResponse>(replay = 1)
-    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> =
-        _messageReadStatusFlow.asSharedFlow()
+    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> = _messageReadStatusFlow.asSharedFlow()
+
+    private val _messageSendReceiptFlow = MutableSharedFlow<String>(replay = 0)
+    val messageSendReceiptFlow: SharedFlow<String> = _messageSendReceiptFlow.asSharedFlow()
     private val _connectionStateFlow =
         MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     val connectionStateFlow: SharedFlow<WebSocketConnectionState> =
         _connectionStateFlow.asStateFlow()
 
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-    private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocketRepository")
+//    private val dispatcher: CoroutineDispatcher = newSingleThreadContext("websocketRepository")
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
     private val exceptionHandler: CoroutineExceptionHandler =
         CoroutineExceptionHandler { _, throwable ->
             logE("$TAG exceptionHandler: ${throwable.message}")
@@ -84,7 +88,8 @@ object WebsocketRepository : IRepository {
     private fun init() {
         logD("$TAG init")
         webSocketManager.init(
-            url = WEBSOCKET_URL,
+//            url = WebSocketPlatform.getWebsocketUrl(),
+            url = WebSockets.WEBSOCKET_URL_WSS,
             userToken = imGlobalStorage.getCurrentUser().token,
 //            userToken = "",
         )
@@ -100,6 +105,17 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onSend(message: String) {
+                scope.launch {
+                    runCatching {
+                        val stompMessage = JsonHelper.fromJson<STOMPMessage>(message)
+                        stompMessage?.let {
+                            logI("$TAG 收到服务端发送确认帧 msgId: ${it.msgId}")
+                            _messageSendReceiptFlow.emit(it.msgId)
+                        }
+                    }.onFailure { e ->
+                        logE("$TAG 解析发送确认消息错误: ${e.message}")
+                    }
+                }
             }
 
             override fun onSend(bytes: ByteArray) {
@@ -232,17 +248,13 @@ object WebsocketRepository : IRepository {
             val headers = mapOf(
                 "fromUserId" to localUserId.toString(),
                 "toUserId" to messageEntity.senderId.toString(),
-                "url" to "WS:/private"
+                "url" to "/private/readStatus"
             )
             logI("$TAG 发送已读状态 headers:$headers")
             webSocketManager.sendText(
                 JsonHelper.toJson(messageReadStatusRequest),
                 SEND_MESSAGE_READ_STATUS,
-                mapOf(
-                    "fromUserId" to localUserId.toString(),
-                    "toUserId" to messageEntity.senderId.toString(),
-                    "url" to "WS:/private"
-                )
+                headers
             )
         }
     }

@@ -3,7 +3,8 @@ package com.darcy.kmpdemo.utils
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logI
 import dev.whyoleg.cryptography.algorithms.XDH
-import kotlinx.coroutines.runBlocking
+
+//import kotlinx.coroutines.runBlocking
 
 object EncryptUtil {
 
@@ -43,19 +44,15 @@ object EncryptUtil {
         return Triple(key, mac, iv)
     }
 
-    fun log(info: String, key: XDH.PrivateKey) {
-        runBlocking {
-            val hexString: String =
-                HexUtil.bytesToHexStr(key.encodeToByteArray(XDH.PrivateKey.Format.RAW))
-            logD("$info: $hexString")
-        }
+    suspend fun log(info: String, key: XDH.PrivateKey) {
+        val hexString: String =
+            HexUtil.bytesToHexStr(key.encodeToByteArray(XDH.PrivateKey.Format.RAW))
+        logD("$info: $hexString")
     }
 
-    fun log(info: String, key: XDH.PublicKey) {
-        runBlocking {
-            val hexString: String = HexUtil.bytesToHexStr(key.toBytes())
-            logD("$info: $hexString")
-        }
+    suspend fun log(info: String, key: XDH.PublicKey) {
+        val hexString: String = HexUtil.bytesToHexStr(key.toBytes())
+        logD("$info: $hexString")
     }
 
     fun log(info: String, bytes: ByteArray?) {

@@ -1,7 +1,10 @@
 package com.darcy.kmpdemo.ssl
 
+import com.darcy.kmpdemo.log.logE
+import com.darcy.kmpdemo.log.logV
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
+import java.security.cert.Certificate
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLException
 import javax.net.ssl.TrustManagerFactory
@@ -22,40 +25,75 @@ object SslSettings {
     }
 
     /**
+     * 从 PKCS12 字节数组提取证书
+     * 先尝试 Android 标准方式，失败后用 Bouncy Castle 的 KeyStore SPI 直接加载
+     */
+    private fun extractCertificatesFromP12(p12Bytes: ByteArray, password: CharArray): List<Certificate> {
+        // 尝试1: Android 标准 KeyStore 方式
+        try {
+            return loadCertsFromKeyStore(p12Bytes, password, null)
+        } catch (e: Exception) {
+            logV("extract: Android PKCS12 加载失败: ${e.message}")
+        }
+
+        // 尝试2: Bouncy Castle KeyStore SPI 直接加载（解决 Android BC 不支持某些 MAC 算法的问题）
+        return try {
+            val bcProvider = org.bouncycastle.jce.provider.BouncyCastleProvider()
+            loadCertsFromKeyStore(p12Bytes, password, bcProvider)
+        } catch (e: Exception) {
+            logE("extract: BC 加载也失败: ${e.message}")
+            throw SSLException("无法加载 PKCS12 证书: ${e.message}", e)
+        }
+    }
+
+    /** 使用指定的 Provider 加载 PKCS12 并提取证书（provider=null 表示使用默认） */
+    private fun loadCertsFromKeyStore(
+        p12Bytes: ByteArray,
+        password: CharArray,
+        provider: java.security.Provider?
+    ): List<Certificate> {
+        ByteArrayInputStream(p12Bytes).use { certStream ->
+            val tempKeyStore = if (provider != null) {
+                KeyStore.getInstance("PKCS12", provider)
+            } else {
+                KeyStore.getInstance("PKCS12")
+            }.apply {
+                load(certStream, password)
+            }
+            val certs = mutableListOf<Certificate>()
+            tempKeyStore.aliases().toList().forEach { alias ->
+                when {
+                    tempKeyStore.isCertificateEntry(alias) -> {
+                        certs.add(tempKeyStore.getCertificate(alias))
+                    }
+                    tempKeyStore.isKeyEntry(alias) -> {
+                        val chain = tempKeyStore.getCertificateChain(alias)
+                        chain?.forEach { certs.add(it) }
+                    }
+                }
+            }
+            if (certs.isEmpty()) {
+                throw SSLException("PKCS12 中未找到证书")
+            }
+            logV("extract: BC库加载证书成功 获取证书数量: ${certs.size}")
+            return certs
+        }
+    }
+
+    /**
      * 获取 KeyStore
      */
     fun getKeyStore(): KeyStore {
         val certList = certBytesList ?: throw IllegalStateException("Certificates not initialized")
         val keyStorePassword = "1234".toCharArray()
         val keyStore = KeyStore.getInstance("PKCS12").apply {
-            // 初始化空KeyStore
             load(null, null)
         }
 
         certList.forEachIndexed { index, bytes ->
-            ByteArrayInputStream(bytes).use { certStream ->
-                // 创建临时KeyStore加载单个证书
-                val tempKeyStore = KeyStore.getInstance("PKCS12").apply {
-                    load(certStream, keyStorePassword)
-                }
-
-                // 将证书复制到主KeyStore
-                tempKeyStore.aliases().toList().forEach { alias ->
-                    when {
-                        tempKeyStore.isCertificateEntry(alias) -> {
-                            // 处理纯证书条目
-                            val cert = tempKeyStore.getCertificate(alias)
-                            keyStore.setCertificateEntry("cert_$index", cert)
-                        }
-                        tempKeyStore.isKeyEntry(alias) -> {
-                            // 处理私钥条目（包含证书链）
-                            val chain = tempKeyStore.getCertificateChain(alias)
-                            chain?.forEachIndexed { chainIndex, cert ->
-                                keyStore.setCertificateEntry("cert_${index}_$chainIndex", cert)
-                            }
-                        }
-                    }
-                }
+            val certs = extractCertificatesFromP12(bytes, keyStorePassword)
+            certs.forEachIndexed { chainIndex, cert ->
+                keyStore.setCertificateEntry("cert_${index}_$chainIndex", cert)
             }
         }
         return keyStore
@@ -94,7 +132,7 @@ object SslSettings {
             getTrustManagerFactory()?.trustManagers?.first { it is X509TrustManager } as? X509TrustManager
 
         // 验证证书链非空
-        if (customTrustManager ==null || customTrustManager.acceptedIssuers?.isEmpty() == true) {
+        if (customTrustManager == null || customTrustManager.acceptedIssuers?.isEmpty() == true) {
             throw SSLException("No trusted certificates found in keystore")
         }
 

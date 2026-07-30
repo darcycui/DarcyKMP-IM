@@ -97,6 +97,14 @@ fun PhoneMineInnerPage(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
+            Text(
+                text = uiState.bean.phone,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
             Spacer(modifier = Modifier.size(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth().height(40.dp).align(Alignment.CenterHorizontally)

@@ -1,12 +1,18 @@
 package com.darcy.kmpdemo.platform
 
-interface Platform {
+interface IPlatform {
     val version: String
     val name: String
 }
 
-expect fun getPlatform(): Platform
+expect object Platform {
 
-expect fun isPhonePlatform(): Boolean
+    fun getPlatform(): IPlatform
 
-expect fun isJvmPlatform(): Boolean
+    fun isPhonePlatform(): Boolean
+
+    fun isJvmPlatform(): Boolean
+
+    fun isJsPlatform(): Boolean
+}
+

@@ -1,5 +1,7 @@
 package com.darcy.kmpdemo.platform
 
-expect fun encryptString(str: String?): String
-
-expect fun decryptString(str: String?): String
+expect object EncryptPlatform {
+    fun encryptString(str: String?): String
+    
+    fun decryptString(str: String?): String
+}

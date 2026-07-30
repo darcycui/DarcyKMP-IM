@@ -2,64 +2,56 @@ package com.darcy.kmpdemo.utils
 
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.platform.KotlinCryptoPlatform
-import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.XDH
-import kotlinx.coroutines.runBlocking
+
+//import kotlinx.coroutines.runBlocking
 
 object KeyUtil {
     private val provider = KotlinCryptoPlatform.getCryptographyProvider()
     private val xdh = provider.get(XDH)
-    fun bytesToPrivateKey(privateKeyBytes: ByteArray): XDH.PrivateKey {
+    suspend fun bytesToPrivateKey(privateKeyBytes: ByteArray): XDH.PrivateKey {
         logD("privateKeyBytes长度: ${privateKeyBytes.size}")
-        return runBlocking {
-            val curve = XDH.Curve.X25519
-            // 使用 RAW 格式解码私钥
-            xdh.privateKeyDecoder(curve)
-                .decodeFromByteArray(XDH.PrivateKey.Format.RAW, privateKeyBytes)
-        }
+        val curve = XDH.Curve.X25519
+        // 使用 RAW 格式解码私钥
+        return xdh.privateKeyDecoder(curve)
+            .decodeFromByteArray(XDH.PrivateKey.Format.RAW, privateKeyBytes)
     }
 
-    fun bytesToPublicKey(publicKeyBytes: ByteArray): XDH.PublicKey {
+    suspend fun bytesToPublicKey(publicKeyBytes: ByteArray): XDH.PublicKey {
         logD("publicKeyBytes长度: ${publicKeyBytes.size}")
-        return runBlocking {
-            val curve = XDH.Curve.X25519
-            // 使用 RAW 格式解码公钥
-            xdh.publicKeyDecoder(curve)
-                .decodeFromByteArray(XDH.PublicKey.Format.RAW, publicKeyBytes)
-        }
+        val curve = XDH.Curve.X25519
+        // 使用 RAW 格式解码公钥
+        return xdh.publicKeyDecoder(curve)
+            .decodeFromByteArray(XDH.PublicKey.Format.RAW, publicKeyBytes)
     }
 
     /**
      * 将私钥转换为字节数组（RAW 格式）
      */
-    fun privateKeyToBytes(privateKey: XDH.PrivateKey): ByteArray {
-        return runBlocking {
-            privateKey.encodeToByteArray(XDH.PrivateKey.Format.RAW)
-        }
+    suspend fun privateKeyToBytes(privateKey: XDH.PrivateKey): ByteArray {
+        return privateKey.encodeToByteArray(XDH.PrivateKey.Format.RAW)
     }
 
     /**
      * 将公钥转换为字节数组（RAW 格式）
      */
-    fun publicKeyToBytes(publicKey: XDH.PublicKey): ByteArray {
-        return runBlocking {
-            publicKey.encodeToByteArray(XDH.PublicKey.Format.RAW)
-        }
+    suspend fun publicKeyToBytes(publicKey: XDH.PublicKey): ByteArray {
+        return publicKey.encodeToByteArray(XDH.PublicKey.Format.RAW)
     }
 }
 
-fun ByteArray.toPrivateKey(): XDH.PrivateKey {
+suspend fun ByteArray.toPrivateKey(): XDH.PrivateKey {
     return KeyUtil.bytesToPrivateKey(this)
 }
 
-fun ByteArray.toPublicKey(): XDH.PublicKey {
+suspend fun ByteArray.toPublicKey(): XDH.PublicKey {
     return KeyUtil.bytesToPublicKey(this)
 }
 
-fun XDH.PrivateKey.toBytes(): ByteArray {
+suspend fun XDH.PrivateKey.toBytes(): ByteArray {
     return KeyUtil.privateKeyToBytes(this)
 }
 
-fun XDH.PublicKey.toBytes(): ByteArray {
+suspend fun XDH.PublicKey.toBytes(): ByteArray {
     return KeyUtil.publicKeyToBytes(this)
 }

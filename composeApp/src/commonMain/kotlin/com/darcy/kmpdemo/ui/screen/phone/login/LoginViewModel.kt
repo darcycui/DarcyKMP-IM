@@ -9,6 +9,7 @@ import com.darcy.kmpdemo.crypto.repository.DHExchangeRepository
 import com.darcy.kmpdemo.log.logD
 import com.darcy.kmpdemo.log.logE
 import com.darcy.kmpdemo.log.logI
+import com.darcy.kmpdemo.network.http.token.TokenManager
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.storage.memory.TransportGlobalStorage
 import com.darcy.kmpdemo.ui.base.BaseViewModel
@@ -75,7 +76,10 @@ class LoginViewModel(
                 userEntity.password,
                 onSuccess = {
                     io {
+                        // 保存当前用户
                         IMGlobalStorage.setCurrentUser(it)
+                        // 设置 token
+                        TokenManager.setToken(it.token)
                         // 获取 Server DH公钥
                         actionExchangeDHPublicKey(it.id)
                     }
@@ -96,11 +100,11 @@ class LoginViewModel(
                 userId = userId,
                 publicKey = ephemeralKey.publicKey.toBytes().toHexString(),
                 onSuccess = {
-                    logI("获取 Server DH公钥成功：$it")
-                    val sharedSecret = ECCExchangeHelper.getSharedSecret(
-                        ephemeralKey.privateKey, it.publicKey.hexStrToBytes().toPublicKey()
-                    ).toHexString()
                     io {
+                        logI("获取 Server DH公钥成功：$it")
+                        val sharedSecret = ECCExchangeHelper.getSharedSecret(
+                            ephemeralKey.privateKey, it.publicKey.hexStrToBytes().toPublicKey()
+                        ).toHexString()
                         // 保存到内存存储
                         TransportGlobalStorage.setServerSharedSecretKey(sharedSecret)
                         sendEvent(LoginEvent.LoginSuccessEvent)

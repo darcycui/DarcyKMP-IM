@@ -3,7 +3,8 @@ package com.darcy.kmpdemo.crypto
 import com.darcy.kmpdemo.crypto.message.MessageCipher
 import com.darcy.kmpdemo.log.DarcyLogger
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
+//import kotlinx.coroutines.runBlocking
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -17,7 +18,7 @@ class MessageCipherTest {
 
     @Test
     fun `test-aes-gcm-cipher`() {
-        runBlocking {
+        runTest {
             val message = "hello world".toByteArray()
             println("明文: ${message.toHexString()}")
             val key = "1234567890abcdef1234567890abcdef".toByteArray()

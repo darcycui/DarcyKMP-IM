@@ -18,5 +18,13 @@ sealed class ChatIntent : IIntent {
         val response: MessageReadStatusResponse
     ) : ChatIntent()
 
+    data class RefreshBySendReceipt(val msgId: String) : ChatIntent()
+
     data class WebSocketState(val state: WebSocketConnectionState) : ChatIntent()
+
+    /** 更新上一页加载状态 */
+    data class RefreshByPreviousPageLoadingState(val isLoading: Boolean) : ChatIntent()
+
+    /** 没有更多历史消息 */
+    data object RefreshByNoMorePreviousPage : ChatIntent()
 }

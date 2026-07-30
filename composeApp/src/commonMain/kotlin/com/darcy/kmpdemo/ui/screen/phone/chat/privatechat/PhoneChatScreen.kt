@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,19 +21,26 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.Button
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,8 +50,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.darcy.kmpdemo.bean.http.response.PrivateMessageResponse
 import com.darcy.kmpdemo.bean.http.response.isSelfSent
+import com.darcy.kmpdemo.log.logD
+import com.darcy.kmpdemo.log.logW
 import com.darcy.kmpdemo.storage.memory.IMGlobalStorage
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
+import com.darcy.kmpdemo.ui.base.impl.paging.PagingIntent
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.colors.AppColors
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
@@ -52,6 +63,9 @@ import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import kmpdarcydemo.composeapp.generated.resources.Res
 import kmpdarcydemo.composeapp.generated.resources.check
 import kmpdarcydemo.composeapp.generated.resources.icon_header_default
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -100,6 +114,60 @@ private fun PhoneChatInnerPage(
     listState: LazyListState
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 当滚动到顶部时，触发加载上一页：使用 derivedStateOf
+    // 监听滚动到顶部（准确判断：索引为0且偏移为0）
+//    val isAtTop by remember {
+//        derivedStateOf {
+//            listState.firstVisibleItemIndex == 0 &&
+//                    listState.firstVisibleItemScrollOffset == 0
+//        }
+//    }
+//
+//    LaunchedEffect(isAtTop) {
+//        logD("UI 监听列表在顶部 isAtTop: $isAtTop")
+//        if (isAtTop) {
+//            logW("UI 加载上一页")
+//            viewModel.dispatch(
+//                PagingIntent.ActionLoadNewPage(
+//                    pageNumber = 0,
+//                    params = mapOf(
+//                        "targetId" to userId.toString(),
+//                        "conversationId" to conversationId.toString(),
+//                    )
+//                )
+//            )
+//        } else {
+//            logD("UI 无需加载上一页")
+//        }
+//    }
+
+    // 当滚动到顶部时，触发加载上一页：使用 snapshotFlow
+    LaunchedEffect(Unit) {
+        snapshotFlow {
+            listState.firstVisibleItemIndex == 0
+                    && listState.firstVisibleItemScrollOffset == 0
+                    && uiState.enabledLoadPreviousPage
+        }
+//            .distinctUntilChanged() // 避免重复触发
+            .collect { isAtTop ->
+                logD("UI 监听列表在顶部 isAtTop: $isAtTop")
+                if (isAtTop) {
+                    logW("UI 加载上一页")
+                    viewModel.dispatch(
+                        PagingIntent.ActionLoadNewPage(
+                            pageNumber = 0,
+                            params = mapOf(
+                                "targetId" to userId.toString(),
+                                "conversationId" to conversationId.toString(),
+                            )
+                        )
+                    )
+                } else {
+                    logD("UI 无需加载上一页")
+                }
+            }
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
@@ -107,14 +175,31 @@ private fun PhoneChatInnerPage(
                 modifier = Modifier.align(Alignment.Start)
             )
             Text(text = userName, modifier = Modifier.align(Alignment.CenterHorizontally))
-            PrivateMessageListComponent(
-                messageList = uiState.items,
-                userId = userId,
-                userName = userName,
-                userAvatar = userAvatar,
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                listState = listState
-            )
+            Column(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                // 加载上一页的进度指示器
+                if (uiState.isLoadingPreviousPage) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().padding(2.dp)
+                    )
+                }
+                // 没有更多历史消息提示
+                if (!uiState.hasMorePreviousPage && uiState.items.isNotEmpty()) {
+                    Text(
+                        text = "— 没有更多消息 —",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(2.dp),
+                        color = Color(0xFF999999),
+                    )
+                }
+                PrivateMessageListComponent(
+                    messageList = uiState.items,
+                    userId = userId,
+                    userName = userName,
+                    userAvatar = userAvatar,
+                    modifier = Modifier.fillMaxWidth().weight(1f).padding(top = 8.dp),
+                    listState = listState
+                )
+            }
             SendComponent(onSendClick = { text ->
                 val self = IMGlobalStorage.getCurrentUser()
                 viewModel.dispatch(
@@ -160,8 +245,8 @@ fun SendComponent(
             state = textState,
             placeholder = { Text("请输入内容") },
             modifier = Modifier.weight(1f)
-                .onPreviewKeyEvent { keyEvent ->
-                    // 监听回车键
+                .onKeyEvent { keyEvent ->
+                    // 监听回车键（JS 平台需用冒泡阶段的 onKeyEvent）
                     if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
                         val text = textState.text.toString().trim()
                         if (text.isNotEmpty()) {
@@ -197,7 +282,10 @@ fun PrivateMessageListComponent(
     modifier: Modifier,
     listState: LazyListState,
 ) {
-    LazyColumn(modifier = modifier, state = listState) {
+    LazyColumn(
+        modifier = modifier,
+        state = listState,
+    ) {
         items(
             messageList,
             key = { it.msgId }
@@ -220,7 +308,9 @@ fun ReceiveMessageComponent(
     userAvatar: String
 ) {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+        Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.width(300.dp), verticalAlignment = Alignment.Top) {
+            Spacer(modifier = Modifier.width(10.dp))
             AsyncImage(
                 model = userAvatar.ifEmpty { Res.drawable.icon_header_default },
                 contentDescription = null,
@@ -238,6 +328,7 @@ fun ReceiveMessageComponent(
                 Text(text = item.content)
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -245,6 +336,7 @@ fun ReceiveMessageComponent(
 fun SendMessageComponent(item: PrivateMessageResponse) {
     val selfAvatar = IMGlobalStorage.getCurrentUser().avatar
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+        Spacer(modifier = Modifier.height(16.dp))
         Row(modifier = Modifier.width(300.dp), verticalAlignment = Alignment.Top) {
             Column(modifier = Modifier.weight(1f)) {
                 Spacer(modifier = Modifier.height(11.dp))
@@ -253,12 +345,25 @@ fun SendMessageComponent(item: PrivateMessageResponse) {
                     textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth()
                 )
-                // 显示消息已读
-                if (item.isRead) {
-                    Image(
-                        painter = painterResource(Res.drawable.check), contentDescription = null,
-                        modifier = Modifier.align(Alignment.End)
-                    )
+                // 显示消息发送状态
+                Row(modifier = Modifier.align(Alignment.End)) {
+                    if (item.isRead) {
+                        Image(
+                            painter = painterResource(Res.drawable.check),
+                            contentDescription = "已发送",
+                        )
+                        Image(
+                            painter = painterResource(Res.drawable.check),
+                            contentDescription = "已读",
+                        )
+                    } else {
+                        if (item.isSent) {
+                            Image(
+                                painter = painterResource(Res.drawable.check),
+                                contentDescription = "已发送",
+                            )
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(10.dp))
@@ -273,7 +378,9 @@ fun SendMessageComponent(item: PrivateMessageResponse) {
                     shape = CircleShape
                 )
             )
+            Spacer(modifier = Modifier.width(10.dp))
         }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -287,7 +394,7 @@ fun ReceiveMessageComponentPreview() {
             senderName = "张三",
             receiverId = 2,
             receiverName = "李四",
-            content = "这是消息内容",
+            content = "收到的消息内容",
             msgType = "TEXT"
         ),
         userId = 2,
@@ -305,7 +412,7 @@ fun SendMessageComponentPreview() {
             senderName = "张三",
             receiverId = 2,
             receiverName = "李四",
-            content = "这是消息内容",
+            content = "我发的消息内容",
             msgType = "TEXT"
         ),
     )
