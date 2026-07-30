@@ -40,7 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -186,7 +186,8 @@ private fun PhoneChatInnerPage(
                 if (!uiState.hasMorePreviousPage && uiState.items.isNotEmpty()) {
                     Text(
                         text = "— 没有更多消息 —",
-                        modifier = Modifier.padding(2.dp),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(2.dp),
                         color = Color(0xFF999999),
                     )
                 }
@@ -244,8 +245,8 @@ fun SendComponent(
             state = textState,
             placeholder = { Text("请输入内容") },
             modifier = Modifier.weight(1f)
-                .onPreviewKeyEvent { keyEvent ->
-                    // 监听回车键
+                .onKeyEvent { keyEvent ->
+                    // 监听回车键（JS 平台需用冒泡阶段的 onKeyEvent）
                     if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyUp) {
                         val text = textState.text.toString().trim()
                         if (text.isNotEmpty()) {
@@ -346,17 +347,22 @@ fun SendMessageComponent(item: PrivateMessageResponse) {
                 )
                 // 显示消息发送状态
                 Row(modifier = Modifier.align(Alignment.End)) {
-                    if (item.isSent) {
+                    if (item.isRead) {
                         Image(
                             painter = painterResource(Res.drawable.check),
                             contentDescription = "已发送",
                         )
-                    }
-                    if (item.isRead) {
                         Image(
                             painter = painterResource(Res.drawable.check),
                             contentDescription = "已读",
                         )
+                    } else {
+                        if (item.isSent) {
+                            Image(
+                                painter = painterResource(Res.drawable.check),
+                                contentDescription = "已发送",
+                            )
+                        }
                     }
                 }
             }
