@@ -59,6 +59,7 @@ data class PrivateMessageResponse(
     val msgType: String = "TEXT",
     val sendTime: String = TimePlatform.getCurrentTimeStamp(),
     val isRead: Boolean = false,
+    val isSent: Boolean = false,
     val isRecalled: Boolean = false,
     val dhPublicKey: String = "",
     @SerialName("nKey")

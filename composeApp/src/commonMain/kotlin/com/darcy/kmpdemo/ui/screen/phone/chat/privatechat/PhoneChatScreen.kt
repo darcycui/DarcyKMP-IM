@@ -344,12 +344,20 @@ fun SendMessageComponent(item: PrivateMessageResponse) {
                     textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth()
                 )
-                // 显示消息已读
-                if (item.isRead) {
-                    Image(
-                        painter = painterResource(Res.drawable.check), contentDescription = null,
-                        modifier = Modifier.align(Alignment.End)
-                    )
+                // 显示消息发送状态
+                Row(modifier = Modifier.align(Alignment.End)) {
+                    if (item.isSent) {
+                        Image(
+                            painter = painterResource(Res.drawable.check),
+                            contentDescription = "已发送",
+                        )
+                    }
+                    if (item.isRead) {
+                        Image(
+                            painter = painterResource(Res.drawable.check),
+                            contentDescription = "已读",
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(10.dp))

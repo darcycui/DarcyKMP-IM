@@ -244,6 +244,12 @@ class ChatViewModel(
                 dispatch(ChatIntent.RefreshByReceiveMessageReadStatus(response))
             }
         }
+        io {
+            websocketRepository.messageSendReceiptFlow.collect { msgId ->
+                logW("收到服务端发送确认帧, 更新消息发送状态 msgId: $msgId")
+                dispatch(ChatIntent.RefreshBySendReceipt(msgId))
+            }
+        }
     }
 
     private fun actionReceiverPullOfflineMessages(

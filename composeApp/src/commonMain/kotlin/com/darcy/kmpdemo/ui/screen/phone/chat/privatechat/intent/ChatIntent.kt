@@ -18,6 +18,8 @@ sealed class ChatIntent : IIntent {
         val response: MessageReadStatusResponse
     ) : ChatIntent()
 
+    data class RefreshBySendReceipt(val msgId: String) : ChatIntent()
+
     data class WebSocketState(val state: WebSocketConnectionState) : ChatIntent()
 
     /** 更新上一页加载状态 */

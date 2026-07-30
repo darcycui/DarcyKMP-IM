@@ -56,8 +56,10 @@ object WebsocketRepository : IRepository {
     val messageFlow: SharedFlow<PrivateMessageResponse> = _messageFlow.asSharedFlow()
 
     private val _messageReadStatusFlow = MutableSharedFlow<MessageReadStatusResponse>(replay = 1)
-    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> =
-        _messageReadStatusFlow.asSharedFlow()
+    val messageReadStatusFlow: SharedFlow<MessageReadStatusResponse> = _messageReadStatusFlow.asSharedFlow()
+
+    private val _messageSendReceiptFlow = MutableSharedFlow<String>(replay = 0)
+    val messageSendReceiptFlow: SharedFlow<String> = _messageSendReceiptFlow.asSharedFlow()
     private val _connectionStateFlow =
         MutableStateFlow<WebSocketConnectionState>(WebSocketConnectionState.Disconnected)
     val connectionStateFlow: SharedFlow<WebSocketConnectionState> =
@@ -103,6 +105,17 @@ object WebsocketRepository : IRepository {
             }
 
             override fun onSend(message: String) {
+                scope.launch {
+                    runCatching {
+                        val stompMessage = JsonHelper.fromJson<STOMPMessage>(message)
+                        stompMessage?.let {
+                            logI("$TAG 收到服务端发送确认帧 msgId: ${it.msgId}")
+                            _messageSendReceiptFlow.emit(it.msgId)
+                        }
+                    }.onFailure { e ->
+                        logE("$TAG 解析发送确认消息错误: ${e.message}")
+                    }
+                }
             }
 
             override fun onSend(bytes: ByteArray) {

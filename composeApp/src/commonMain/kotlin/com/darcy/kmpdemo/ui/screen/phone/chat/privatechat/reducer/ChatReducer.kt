@@ -44,6 +44,18 @@ class ChatReducer :
                 )
             }
 
+            is ChatIntent.RefreshBySendReceipt -> {
+                state.copy(
+                    items = state.items.map {
+                        if (it.msgId == intent.msgId) {
+                            it.copy(isSent = true)
+                        } else {
+                            it
+                        }
+                    }
+                )
+            }
+
             is ChatIntent.RefreshByPreviousPageLoadingState -> {
                 state.copy(
                     isLoadingPreviousPage = intent.isLoading
