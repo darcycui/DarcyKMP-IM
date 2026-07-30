@@ -12,4 +12,7 @@ data class ChatState(
     val pagingState: PagingState = PagingState(),
     val tipsState: TipsState = TipsState(),
     val webSocketConnectionState: WebSocketConnectionState = WebSocketConnectionState.Disconnected,
+    val enabledLoadPreviousPage: Boolean = false,
+    val isLoadingPreviousPage: Boolean = false,
+    val hasMorePreviousPage: Boolean = true,
 ) : IState

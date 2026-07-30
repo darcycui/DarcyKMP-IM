@@ -21,6 +21,7 @@ import com.darcy.kmpdemo.ui.base.BaseViewModel
 import com.darcy.kmpdemo.ui.base.IIntent
 import com.darcy.kmpdemo.ui.base.IReducer
 import com.darcy.kmpdemo.ui.base.impl.fetch.FetchIntent
+import com.darcy.kmpdemo.ui.base.impl.paging.PagingIntent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.event.ChatEvent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.reducer.ChatReducer
@@ -45,7 +46,8 @@ class ChatViewModel(
     private val queryMessageFromDBByPageUseCase: QueryMessageFromDBByPageUseCase = QueryMessageFromDBByPageUseCase(),
     private val markMessageReadStatusUseCase: MarkMessageReadStatusUseCase = MarkMessageReadStatusUseCase(),
     private val receiveDoubleRatchetStepUseCase: ReceiveDoubleRatchetStepUseCase = ReceiveDoubleRatchetStepUseCase(),
-    private var messageTotalCount: Int = 0
+    private var messageTotalCount: Int = 0,
+    private var dbQueryPage: Int = 1
 ) : BaseViewModel<ChatState>() {
     companion object {
         private const val TAG = "ChatViewModel"
@@ -92,6 +94,12 @@ class ChatViewModel(
                 actionRegisterConnectionState()
             }
 
+            is PagingIntent.ActionLoadNewPage -> {
+                val targetId = intent.params["targetId"]?.toLongOrNull() ?: return
+                val conversationId = intent.params["conversationId"]?.toLongOrNull() ?: return
+                actionLoadPreviousPage(targetId, conversationId)
+            }
+
             else -> {
                 super.dispatch(intent)
             }
@@ -105,6 +113,7 @@ class ChatViewModel(
         size: Int = 10
     ) {
         io {
+            logI("ViewModel 加载第一页")
             val userId = IMGlobalStorage.getCurrentUserId()
             // 从数据库 分页读取数据 刷新UI
             val messageList = queryMessageFromDBByPageUseCase.invoke(
@@ -116,8 +125,50 @@ class ChatViewModel(
                     "size" to size.toString()
                 ), Unit
             ).getOrElse { emptyList() }
-            logV("loadMessageByPage messageList: $messageList")
-            main { dispatch(FetchIntent.RefreshByFetchData(messageList)) }
+            logV("ViewModel 加载第一页 messageList: $messageList")
+            main {
+                dispatch(FetchIntent.RefreshByFetchData(messageList))
+                dbQueryPage = page
+            }
+        }
+    }
+
+    /**
+     * 用户滑动到顶部，加载上一页历史消息
+     * 从数据库查询下一页数据，前置追加到消息列表
+     */
+    private fun actionLoadPreviousPage(targetId: Long, conversationId: Long) {
+        logV("ViewModel 加载上一页")
+        // 检查当前状态（运行在 Main 线程）
+        val currentState = _uiState.value
+        if (currentState.enabledLoadPreviousPage.not() || currentState.isLoadingPreviousPage || currentState.hasMorePreviousPage.not()) {
+            logV("ViewModel 加载上一页 跳过: enabledLoadPreviousPage=${currentState.enabledLoadPreviousPage} isLoading=${currentState.isLoadingPreviousPage}, hasMore=${currentState.hasMorePreviousPage}")
+            return
+        }
+        dispatch(ChatIntent.RefreshByPreviousPageLoadingState(true))
+        val nextPage = dbQueryPage + 1
+        io {
+            val userId = IMGlobalStorage.getCurrentUserId()
+            val messageList = queryMessageFromDBByPageUseCase.invoke(
+                mapOf(
+                    "userId" to userId.toString(),
+                    "targetId" to targetId.toString(),
+                    "conversationId" to conversationId.toString(),
+                    "page" to nextPage.toString(),
+                    "size" to "10"
+                ), Unit
+            ).getOrElse { emptyList() }
+            logV("ViewModel 加载上一页 page=$nextPage messageList: $messageList")
+            main {
+                if (messageList.isEmpty()) {
+                    logD("没有上一页")
+                    dispatch(ChatIntent.RefreshByNoMorePreviousPage)
+                } else {
+                    logD("有上一页")
+                    dbQueryPage = nextPage
+                    dispatch(PagingIntent.RefreshByLoadNewPage(nextPage, messageList))
+                }
+            }
         }
     }
 

@@ -44,6 +44,19 @@ class ChatReducer :
                 )
             }
 
+            is ChatIntent.RefreshByPreviousPageLoadingState -> {
+                state.copy(
+                    isLoadingPreviousPage = intent.isLoading
+                )
+            }
+
+            is ChatIntent.RefreshByNoMorePreviousPage -> {
+                state.copy(
+                    hasMorePreviousPage = false,
+                    isLoadingPreviousPage = false,
+                )
+            }
+
             else -> super.reduce(intent, state)
         }
     }
@@ -60,7 +73,8 @@ class ChatReducer :
         result: List<PrivateMessageResponse>
     ): ChatState {
         return state.copy(
-            items = result
+            items = result,
+            enabledLoadPreviousPage = true
         )
     }
 
@@ -70,7 +84,8 @@ class ChatReducer :
         response: List<PrivateMessageResponse>
     ): ChatState {
         return state.copy(
-            items = response + state.items
+            items = response + state.items,
+            isLoadingPreviousPage = false,
         )
     }
 
