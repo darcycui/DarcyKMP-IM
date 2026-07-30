@@ -115,16 +115,16 @@ private fun PhoneChatInnerPage(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // 当滚动到顶部时，触发加载上一页：使用 derivedStateOf
     // 监听滚动到顶部（准确判断：索引为0且偏移为0）
-    val isAtTop by remember {
-        derivedStateOf {
-            listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
-        }
-    }
-
-    // 当滚动到顶部时，触发加载上一页：
-//    LaunchedEffect(isAtTop && uiState.enabledLoadPreviousPage) {
+//    val isAtTop by remember {
+//        derivedStateOf {
+//            listState.firstVisibleItemIndex == 0 &&
+//                    listState.firstVisibleItemScrollOffset == 0
+//        }
+//    }
+//
+//    LaunchedEffect(isAtTop) {
 //        logD("UI 监听列表在顶部 isAtTop: $isAtTop")
 //        if (isAtTop) {
 //            logW("UI 加载上一页")
@@ -142,7 +142,7 @@ private fun PhoneChatInnerPage(
 //        }
 //    }
 
-    // 在 Composable 中
+    // 当滚动到顶部时，触发加载上一页：使用 snapshotFlow
     LaunchedEffect(Unit) {
         snapshotFlow {
             listState.firstVisibleItemIndex == 0
