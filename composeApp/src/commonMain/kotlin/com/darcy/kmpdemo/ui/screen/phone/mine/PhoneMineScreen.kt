@@ -35,9 +35,9 @@ import com.darcy.kmpdemo.ui.screen.phone.mine.intent.MineIntent
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
 import com.darcy.kmpdemo.ui.screen.phone.navigation.PhoneRoute
 import com.darcy.kmpdemo.ui.screen.phone.navigation.customNavigate
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.icon_header_default
-import kmpdarcydemo.composeapp.generated.resources.page_mine
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.icon_header_default
+import darcykmp_im.composeapp.generated.resources.page_mine
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 

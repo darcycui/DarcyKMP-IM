@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.page_dynamic
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.page_dynamic
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

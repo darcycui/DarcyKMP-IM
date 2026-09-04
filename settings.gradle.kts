@@ -1,4 +1,4 @@
-rootProject.name = "KMPDarcyDemo"
+rootProject.name = "DarcyKMP-IM"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

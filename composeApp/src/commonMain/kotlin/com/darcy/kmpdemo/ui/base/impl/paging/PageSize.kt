@@ -1,7 +1,7 @@
 package com.darcy.kmpdemo.ui.base.impl.paging
 
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.page_size_10
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.page_size_10
 import org.jetbrains.compose.resources.StringResource
 
 data class PageSize(

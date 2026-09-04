@@ -16,9 +16,9 @@ import com.darcy.kmpdemo.ui.base.impl.screenstatus.ScreenStateIntent
 import com.darcy.kmpdemo.ui.base.impl.tips.TipsIntent
 import com.darcy.kmpdemo.ui.screen.learn.loaddata.reducer.LoadDataReducer
 import com.darcy.kmpdemo.ui.screen.learn.loaddata.state.LoadDataState
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.confirm
-import kmpdarcydemo.composeapp.generated.resources.tips_success
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.confirm
+import darcykmp_im.composeapp.generated.resources.tips_success
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.getString
 import kotlin.reflect.KClass

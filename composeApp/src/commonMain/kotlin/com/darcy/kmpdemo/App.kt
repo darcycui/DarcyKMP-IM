@@ -13,7 +13,7 @@ import com.darcy.kmpdemo.platform.SSLPlatform
 import com.darcy.kmpdemo.storage.database.getDarcyIMDatabase
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigationNavHost
 import com.darcy.kmpdemo.ui.screen.phone.navigation.PhoneRoute
-import kmpdarcydemo.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.Res
 
 // resources中内置证书路径
 const val KEYSTORE_PATH_IP = "files/ssl/test2IPSelf241.p12"

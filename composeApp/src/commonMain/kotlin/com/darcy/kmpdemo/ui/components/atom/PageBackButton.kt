@@ -8,8 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.page_back
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.page_back
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

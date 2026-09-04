@@ -5,10 +5,10 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import kmpdarcydemo.composeapp.generated.resources.PingFang_Light
-import kmpdarcydemo.composeapp.generated.resources.PingFang_Medium
-import kmpdarcydemo.composeapp.generated.resources.PingFang_Regular
-import kmpdarcydemo.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.PingFang_Light
+import darcykmp_im.composeapp.generated.resources.PingFang_Medium
+import darcykmp_im.composeapp.generated.resources.PingFang_Regular
+import darcykmp_im.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.Font
 
 /**

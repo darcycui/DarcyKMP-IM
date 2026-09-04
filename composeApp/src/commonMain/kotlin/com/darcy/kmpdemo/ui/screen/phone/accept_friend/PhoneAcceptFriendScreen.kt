@@ -40,10 +40,10 @@ import com.darcy.kmpdemo.ui.screen.phone.accept_friend.intent.AcceptFriendIntent
 import com.darcy.kmpdemo.ui.screen.phone.accept_friend.state.AcceptFriendState
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
 import com.darcy.kmpdemo.ui.screen.phone.navigation.customGoBack
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.icon_header_default
-import kmpdarcydemo.composeapp.generated.resources.page_back
-import kmpdarcydemo.composeapp.generated.resources.page_mine
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.icon_header_default
+import darcykmp_im.composeapp.generated.resources.page_back
+import darcykmp_im.composeapp.generated.resources.page_mine
 import org.jetbrains.compose.resources.stringResource
 import kotlin.text.ifEmpty
 

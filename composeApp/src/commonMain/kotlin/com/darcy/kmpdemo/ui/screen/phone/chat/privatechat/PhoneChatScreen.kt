@@ -60,9 +60,9 @@ import com.darcy.kmpdemo.ui.colors.AppColors
 import com.darcy.kmpdemo.ui.components.structure.TipsDialog
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.event.ChatEvent
 import com.darcy.kmpdemo.ui.screen.phone.chat.privatechat.intent.ChatIntent
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.check
-import kmpdarcydemo.composeapp.generated.resources.icon_header_default
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.check
+import darcykmp_im.composeapp.generated.resources.icon_header_default
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map

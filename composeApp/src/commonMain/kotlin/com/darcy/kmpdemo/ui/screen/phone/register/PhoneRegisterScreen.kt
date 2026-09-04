@@ -29,8 +29,8 @@ import com.darcy.kmpdemo.ui.screen.phone.navigation.customNavigate
 import com.darcy.kmpdemo.ui.screen.phone.register.event.RegisterEvent
 import com.darcy.kmpdemo.ui.screen.phone.register.intent.RegisterIntent
 import com.darcy.kmpdemo.utils.HashHelper
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.page_register
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.page_register
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 

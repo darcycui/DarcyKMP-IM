@@ -47,8 +47,8 @@ import com.darcy.kmpdemo.ui.screen.phone.conversations.state.ConversationState
 import com.darcy.kmpdemo.ui.screen.phone.navigation.AppNavigation
 import com.darcy.kmpdemo.ui.screen.phone.navigation.PhoneRoute
 import com.darcy.kmpdemo.ui.screen.phone.navigation.customNavigate
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.icon_header_default
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.icon_header_default
 import org.jetbrains.compose.resources.painterResource
 
 @Composable

@@ -1,14 +1,14 @@
 package com.darcy.kmpdemo.ui.screen.phone.navigation
 
-import kmpdarcydemo.composeapp.generated.resources.Res
-import kmpdarcydemo.composeapp.generated.resources.icon_home
-import kmpdarcydemo.composeapp.generated.resources.icon_mine
-import kmpdarcydemo.composeapp.generated.resources.icon_notification
-import kmpdarcydemo.composeapp.generated.resources.icon_search
-import kmpdarcydemo.composeapp.generated.resources.page_chat_list
-import kmpdarcydemo.composeapp.generated.resources.page_dynamic
-import kmpdarcydemo.composeapp.generated.resources.page_friends
-import kmpdarcydemo.composeapp.generated.resources.page_mine
+import darcykmp_im.composeapp.generated.resources.Res
+import darcykmp_im.composeapp.generated.resources.icon_home
+import darcykmp_im.composeapp.generated.resources.icon_mine
+import darcykmp_im.composeapp.generated.resources.icon_notification
+import darcykmp_im.composeapp.generated.resources.icon_search
+import darcykmp_im.composeapp.generated.resources.page_chat_list
+import darcykmp_im.composeapp.generated.resources.page_dynamic
+import darcykmp_im.composeapp.generated.resources.page_friends
+import darcykmp_im.composeapp.generated.resources.page_mine
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
